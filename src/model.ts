@@ -1,7 +1,3 @@
-class Texture {
-
-}
-
 class Sprite {
     private current = 0;
 
@@ -12,7 +8,7 @@ class Sprite {
         private columns: number,
         private rows: number,
         private count: number,
-        private image: HTMLImageElement,
+        private imagePath: string,
     ) {
         const spriteCoords: number[] = [];
 
@@ -64,7 +60,7 @@ class Model {
     }
 
     public bind() {
-        
+
     }
 }
 
