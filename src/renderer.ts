@@ -1,4 +1,4 @@
-import {text} from 'stream/consumers';
+import { Util } from "./util/util.js";
 
 class Shader {
   private program: WebGLProgram;
@@ -89,44 +89,16 @@ class Shader {
 
     image.onload = () => {
       this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      this.gl.texImage2D(
-        this.gl.TEXTURE_2D,
-        0,
-        this.gl.RGBA,
-        this.gl.RGBA,
-        this.gl.UNSIGNED_BYTE,
-        image
-      );
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 
-      const wrapMode =
-        (image.width & (image.width - 1)) === 0 &&
-        (image.height & (image.height - 1)) === 0; // if image is power of 2
+      let wrapMode: GLint = this.gl.CLAMP_TO_EDGE;
 
-      const wrapMode =
-        isPowerOfTwo(image.width) && isPowerOfTwo(image.height)
-          ? this.gl.REPEAT
-          : this.gl.CLAMP_TO_EDGE;
+      if (Util.isPowerOf2(image.width) && Util.isPowerOf2(image.height)) wrapMode = this.gl.REPEAT;
 
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_WRAP_S,
-        this.gl.REPEAT
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_WRAP_T,
-        this.gl.REPEAT
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_MIN_FILTER,
-        this.gl.LINEAR
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_MAG_FILTER,
-        this.gl.LINEAR
-      );
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, wrapMode);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, wrapMode);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     };
 
     image.onerror = () => {
@@ -152,11 +124,7 @@ class Shader {
     this.attribLocations[name] = location;
   }
 
-  public setAttribBuffer(
-    name: string,
-    buffer: WebGLBuffer | null,
-    size: GLint
-  ) {
+  public setAttribBuffer(name: string, buffer: WebGLBuffer, size: GLint, stride: GLint, offset: GLint) {
     const location = this.attribLocations[name];
 
     if (location === undefined) {
@@ -165,7 +133,7 @@ class Shader {
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
 
-    this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, stride, offset);
     this.gl.enableVertexAttribArray(location);
   }
 
@@ -193,19 +161,6 @@ class Shader {
 
   public use() {
     this.gl.useProgram(this.program);
-  }
-
-  public draw(model: Model) {
-    this.setAttribBuffer('position', model.vertexBuffer, 3);
-    this.setAttribBuffer('color', model.colorBuffer, 3);
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
-
-    this.gl.drawElements(
-      this.gl.LINES,
-      model.indexCount,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
   }
 
   public destroy() {
@@ -293,7 +248,7 @@ class Renderer {
       loadShaderFile('res/shaders/vertex.glsl'),
       loadShaderFile('res/shaders/fragment.glsl'),
     ]).then(([vertSource, fragSource]) => {
-      const shader = new Shader(gl, vertSource, fragSource);
+      const shader: Shader = new Shader(gl, vertSource, fragSource);
       shader.use();
       shader.createAttrib('vertexPos');
       shader.createAttrib('textureCoord');
@@ -306,32 +261,33 @@ class Renderer {
         new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
       );
 
-      shader.setAttribBuffer('vertexPos', vertexBuffer, 2);
+      shader.setAttribBuffer('vertexPos', vertexBuffer, 2, 0, 0);
 
       shader.setUniformMatrix4(
         'screenProjection',
         new Float32Array([
-          1 / 20,
-          0,
-          0,
-          0,
-          0,
-          (1 / 20) * (canvas.width / canvas.height),
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          1
-        ]),
+          1 / 20, 0, 0, 0,
+          0, (1 / 20) * (canvas.width / canvas.height), 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1
+        ])
       );
 
-      const sprite = new Sprite(gl, 2, 3, 1, 1, 1, 'res/assets/testsprite.png');
-      sprite.bind();
+      const texture = shader.createTexture("res/assets/testanimsprite.png");
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+
+      const textureCoords = new Float32Array([
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0
+      ]);
+
+      const textureBuffer = shader.createBuffer(textureCoords);
+
+      shader.setAttribBuffer("textureCoord", textureBuffer, 2, 0, 0);
+
+      gl.bindTexture(gl.TEXTURE_2D, texture);
 
       gl.clearColor(0, 0, 0, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

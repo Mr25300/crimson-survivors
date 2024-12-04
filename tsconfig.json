@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "outDir": "dist", //optionally use “” to not use an output folder
+    "rootDir": "./src",
+    "outDir": "./dist", //optionally use “” to not use an output folder
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,

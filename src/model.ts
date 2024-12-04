@@ -7,6 +7,7 @@ class Sprite {
 
   constructor(
     private shader: Shader,
+    private gl: WebGL2RenderingContext,
     private width: number,
     private height: number,
     private columns: number,
@@ -27,14 +28,10 @@ class Sprite {
     }
 
     const vertices = new Float32Array([
-      -width / 2,
-      -height / 2,
-      width / 2,
-      -height / 2,
-      -width / 2,
-      height / 2,
-      width / 2,
-      height / 2
+      -width / 2, -height / 2,
+      width / 2, -height / 2,
+      -width / 2, height / 2,
+      width / 2, height / 2
     ]);
 
     const textureCoords = new Float32Array(spriteCoords);
@@ -50,14 +47,7 @@ class Sprite {
     image.src = imagePath;
 
     image.addEventListener('load', () => {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        image
-      );
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     });
 
     // gl.generateMipmap(gl.TEXTURE_2D);
@@ -92,10 +82,10 @@ class SpriteAnimation {
   ) {}
 
   public update(delta: number) {
-    this.timePassed =
-      (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
+    this.timePassed = (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
 
-    const frame =
-      Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
+    const frame = Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
   }
 }
+
+export {Model};
