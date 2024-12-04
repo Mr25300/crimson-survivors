@@ -1,3 +1,5 @@
+import { text } from "stream/consumers";
+
 class Shader {
   private program: WebGLProgram;
   private vertShader: WebGLShader;
@@ -60,8 +62,45 @@ class Shader {
     return buffer;
   }
 
-  public deleteBuffer(buffer: WebGLBuffer) {
+  public deleteBuffer(buffer: WebGLBuffer): void {
     this.gl.deleteBuffer(buffer);
+  }
+
+  public createTexture(imagePath: string): WebGLTexture {
+    const image = new Image();
+    image.src = imagePath;
+
+    const texture = this.gl.createTexture();
+
+    if (texture == null) {
+      throw new Error("Failed to create texture.");
+    }
+
+    image.onload = () => {
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+
+      const wrapMode = (image.width & (image.width - 1)) === 0 && (image.height & (image.height - 1)) === 0; // if image is power of 2
+
+      const wrapMode = isPowerOfTwo(image.width) && isPowerOfTwo(image.height) 
+                        ? this.gl.REPEAT 
+                        : this.gl.CLAMP_TO_EDGE;
+
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    }
+
+    image.onerror = () => {
+      console.error(`Failed to load image texture ${imagePath}.`);
+    }
+
+    return texture;
+  }
+
+  public deleteTexture(texture: WebGLTexture): void {
+    this.gl.deleteTexture(texture);
   }
 
   public createAttrib(name: string) {
@@ -222,7 +261,10 @@ class Renderer {
         0, 1/20 * (canvas.width/canvas.height), 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
-      ]))
+      ]));
+
+      let sprite = new Sprite(gl, 2, 3, 1, 1, 1, "res/assets/testsprite.png");
+      sprite.bind();
       
       gl.clearColor(0, 0, 0, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -277,4 +319,4 @@ class Renderer {
   }
 }
 
-export { Renderer };
+export { Renderer, Shader };

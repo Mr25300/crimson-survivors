@@ -23,15 +23,15 @@ void main() {
 `;
 
 function getScalingMatrix(canvasWidth, canvasHeight) {
-    const scaleY = 1 / 20; // 100 represents unit distance visible from center of screen to top of screen
-    const scaleX = scaleY * (canvasHeight / canvasWidth);
+	const scaleY = 1 / 20; // 100 represents unit distance visible from center of screen to top of screen
+	const scaleX = scaleY * (canvasHeight / canvasWidth);
 
-    return new Float32Array([
-        scaleX, 0, 0, 0,
-        0, scaleY, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ]);
+	return new Float32Array([
+		scaleX, 0, 0, 0,
+		0, scaleY, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	]);
 }
 
 // Initialize WebGL context
@@ -87,8 +87,8 @@ const image = new Image();
 image.src = 'res/assets/testsprite.png'; // Replace with your image URL
 image.onload = () => {
 	const textureRepeatX = 3;
-	const windowRatio = canvas.width/canvas.height;
-	const aspectRatio = image.width/image.height;
+	const windowRatio = canvas.width / canvas.height;
+	const aspectRatio = image.width / image.height;
 	const textureRepeatY = textureRepeatX / windowRatio / aspectRatio;
 
 	// Fullscreen quad vertices and texture coordinates

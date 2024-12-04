@@ -1,8 +1,12 @@
+import { Shader } from "./renderer";
+
 class Sprite {
     private current = 0;
 
+    private texture: WebGLTexture;
+
     constructor(
-        private gl: WebGL2RenderingContext,
+        private shader: Shader,
         private width: number,
         private height: number,
         private columns: number,
@@ -28,15 +32,31 @@ class Sprite {
         }
 
         const vertices = new Float32Array([
-            -width/2, -height/2,
-            width/2, -height/2,
-            -width/2, height/2,
-            width/2, height/2
+            -width / 2, -height / 2,
+            width / 2, -height / 2,
+            -width / 2, height / 2,
+            width / 2, height / 2
         ]);
 
         const textureCoords = new Float32Array(spriteCoords);
 
+        const texture: WebGLTexture = gl.createTexture()!;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
+        const image = new Image();
+        image.src = imagePath;
+
+        image.addEventListener("load", () => {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        });
+
+
+
+        // gl.generateMipmap(gl.TEXTURE_2D);
     }
 
     public createModel() {
@@ -44,7 +64,7 @@ class Sprite {
     }
 
     public bind() {
-
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
     }
 }
 
@@ -71,7 +91,7 @@ class SpriteAnimation {
     constructor(
         private sprite: Sprite,
         private frames: number[]
-    ) {}
+    ) { }
 
     public update(delta: number) {
         this.timePassed = (this.timePassed + delta) % (this.frames.length * 1 / this.fps);
