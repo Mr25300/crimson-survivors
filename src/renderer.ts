@@ -1,17 +1,21 @@
-import { text } from "stream/consumers";
+import {text} from 'stream/consumers';
 
 class Shader {
   private program: WebGLProgram;
   private vertShader: WebGLShader;
   private fragShader: WebGLShader;
 
-  private attribLocations: { [key: string]: GLint } = {};
-  private uniformLocations: { [key: string]: WebGLUniformLocation } = {};
+  private attribLocations: {[key: string]: GLint} = {};
+  private uniformLocations: {[key: string]: WebGLUniformLocation} = {};
 
-  constructor(private gl: WebGL2RenderingContext, vertSource: string, fragSource: string) {
+  constructor(
+    private gl: WebGL2RenderingContext,
+    vertSource: string,
+    fragSource: string
+  ) {
     const program = gl.createProgram();
 
-    if (program == null) throw new Error("Failed to create program.");
+    if (program == null) throw new Error('Failed to create program.');
 
     this.program = program;
     this.vertShader = this.createShader(gl.VERTEX_SHADER, vertSource);
@@ -20,20 +24,24 @@ class Shader {
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error("Failed to link shader program: " + gl.getProgramInfoLog(program));
+      console.error(
+        'Failed to link shader program: ' + gl.getProgramInfoLog(program),
+      );
     }
 
     gl.validateProgram(program);
 
     if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-      console.error("Failed to validate shader program: " + gl.getProgramInfoLog(program));
+      console.error(
+        'Failed to validate shader program: ' + gl.getProgramInfoLog(program),
+      );
     }
   }
 
   private createShader(type: GLenum, source: string): WebGLShader {
     const shader = this.gl.createShader(type);
 
-    if (shader == null) throw new Error("Failed to create shader.");
+    if (shader == null) throw new Error('Failed to create shader.');
 
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -41,7 +49,10 @@ class Shader {
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       this.gl.deleteShader(shader);
 
-      throw new Error(`Error compiling ${type == this.gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ` + this.gl.getShaderInfoLog(shader));
+      throw new Error(
+        `Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` +
+          this.gl.getShaderInfoLog(shader)
+      );
     }
 
     this.gl.attachShader(this.program, shader);
@@ -53,7 +64,7 @@ class Shader {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error("Failed to create buffer.");
+      throw new Error('Failed to create buffer.');
     }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
@@ -73,28 +84,54 @@ class Shader {
     const texture = this.gl.createTexture();
 
     if (texture == null) {
-      throw new Error("Failed to create texture.");
+      throw new Error('Failed to create texture.');
     }
 
     image.onload = () => {
       this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+      this.gl.texImage2D(
+        this.gl.TEXTURE_2D,
+        0,
+        this.gl.RGBA,
+        this.gl.RGBA,
+        this.gl.UNSIGNED_BYTE,
+        image
+      );
 
-      const wrapMode = (image.width & (image.width - 1)) === 0 && (image.height & (image.height - 1)) === 0; // if image is power of 2
+      const wrapMode =
+        (image.width & (image.width - 1)) === 0 &&
+        (image.height & (image.height - 1)) === 0; // if image is power of 2
 
-      const wrapMode = isPowerOfTwo(image.width) && isPowerOfTwo(image.height) 
-                        ? this.gl.REPEAT 
-                        : this.gl.CLAMP_TO_EDGE;
+      const wrapMode =
+        isPowerOfTwo(image.width) && isPowerOfTwo(image.height)
+          ? this.gl.REPEAT
+          : this.gl.CLAMP_TO_EDGE;
 
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    }
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_WRAP_S,
+        this.gl.REPEAT
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_WRAP_T,
+        this.gl.REPEAT
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_MIN_FILTER,
+        this.gl.LINEAR
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_MAG_FILTER,
+        this.gl.LINEAR
+      );
+    };
 
     image.onerror = () => {
       console.error(`Failed to load image texture ${imagePath}.`);
-    }
+    };
 
     return texture;
   }
@@ -115,10 +152,16 @@ class Shader {
     this.attribLocations[name] = location;
   }
 
-  public setAttribBuffer(name: string, buffer: WebGLBuffer | null, size: GLint) {
+  public setAttribBuffer(
+    name: string,
+    buffer: WebGLBuffer | null,
+    size: GLint
+  ) {
     const location = this.attribLocations[name];
 
-    if (location === undefined) throw new Error(`Attrib "${name}" does not exist.`);
+    if (location === undefined) {
+      throw new Error(`Attrib "${name}" does not exist.`);
+    }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
 
@@ -141,7 +184,9 @@ class Shader {
   public setUniformMatrix4(name: string, value: Float32Array) {
     const location = this.uniformLocations[name];
 
-    if (location === undefined) throw new Error(`Uniform "${name}" does not exist.`);
+    if (location === undefined) {
+      throw new Error(`Uniform "${name}" does not exist.`);
+    }
 
     this.gl.uniformMatrix4fv(location, false, value);
   }
@@ -151,11 +196,16 @@ class Shader {
   }
 
   public draw(model: Model) {
-    this.setAttribBuffer("position", model.vertexBuffer, 3);
-    this.setAttribBuffer("color", model.colorBuffer, 3);
+    this.setAttribBuffer('position', model.vertexBuffer, 3);
+    this.setAttribBuffer('color', model.colorBuffer, 3);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, model.indexBuffer);
 
-    this.gl.drawElements(this.gl.LINES, model.indexCount, this.gl.UNSIGNED_SHORT, 0);
+    this.gl.drawElements(
+      this.gl.LINES,
+      model.indexCount,
+      this.gl.UNSIGNED_SHORT,
+      0
+    );
   }
 
   public destroy() {
@@ -187,7 +237,13 @@ class Model {
     return this._indexCount;
   }
 
-  constructor(private gl: WebGL2RenderingContext, vertices: number[], colors: number[], indices: number[], public dimensions: number) {
+  constructor(
+    private gl: WebGL2RenderingContext,
+    vertices: number[],
+    colors: number[],
+    indices: number[],
+    public dimensions: number
+  ) {
     this._vertexBuffer = this.createBuffer(vertices, false);
     this._colorBuffer = this.createBuffer(colors, false);
     this._indexBuffer = this.createBuffer(indices, true);
@@ -201,7 +257,7 @@ class Model {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error("Failed to create buffer.");
+      throw new Error('Failed to create buffer.');
     }
 
     this.gl.bindBuffer(type, buffer);
@@ -231,41 +287,52 @@ function isPowerOf2(value: number) {
 
 class Renderer {
   constructor(canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext;
+    const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
 
     Promise.all([
-      loadShaderFile("res/shaders/vertex.glsl"),
-      loadShaderFile("res/shaders/fragment.glsl")
-
+      loadShaderFile('res/shaders/vertex.glsl'),
+      loadShaderFile('res/shaders/fragment.glsl'),
     ]).then(([vertSource, fragSource]) => {
       const shader = new Shader(gl, vertSource, fragSource);
       shader.use();
-      shader.createAttrib("vertexPos");
-      shader.createAttrib("textureCoord");
-      shader.createUniform("screenProjection");
+      shader.createAttrib('vertexPos');
+      shader.createAttrib('textureCoord');
+      shader.createUniform('screenProjection');
       // shader.createUniform("modelTransform");
 
       gl.enable(gl.DEPTH_TEST); // give z values to change priority order of sprites (i.e. gun underneath player)
 
-      const vertexBuffer = shader.createBuffer(new Float32Array([
-        -1, -1,
-        1, -1,
-        -1, 1,
-        1, 1
-      ]));
+      const vertexBuffer = shader.createBuffer(
+        new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
+      );
 
-      shader.setAttribBuffer("vertexPos", vertexBuffer, 2);
+      shader.setAttribBuffer('vertexPos', vertexBuffer, 2);
 
-      shader.setUniformMatrix4("screenProjection", new Float32Array([
-        1/20, 0, 0, 0,
-        0, 1/20 * (canvas.width/canvas.height), 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-      ]));
+      shader.setUniformMatrix4(
+        'screenProjection',
+        new Float32Array([
+          1 / 20,
+          0,
+          0,
+          0,
+          0,
+          (1 / 20) * (canvas.width / canvas.height),
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]),
+      );
 
-      let sprite = new Sprite(gl, 2, 3, 1, 1, 1, "res/assets/testsprite.png");
+      const sprite = new Sprite(gl, 2, 3, 1, 1, 1, 'res/assets/testsprite.png');
       sprite.bind();
-      
+
       gl.clearColor(0, 0, 0, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -319,4 +386,4 @@ class Renderer {
   }
 }
 
-export { Renderer, Shader };
+export {Renderer, Shader};

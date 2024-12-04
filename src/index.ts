@@ -1,6 +1,6 @@
-import { Renderer } from "./renderer.js";
+import {Renderer} from './renderer.js';
 
-const CANVAS = document.getElementById("gameScreen") as HTMLCanvasElement;
+const CANVAS = document.getElementById('gameScreen') as HTMLCanvasElement;
 
 class Game {
   private static _instance: Game;
