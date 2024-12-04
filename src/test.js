@@ -3,9 +3,10 @@ const vertexShaderSource = `
 attribute vec4 a_position;
 attribute vec2 a_texcoord;
 varying vec2 v_texcoord;
+uniform mat4 u_camera;
 
 void main() {
-    gl_Position = a_position;
+    gl_Position = u_camera*a_position;
     v_texcoord = a_texcoord;
 }
 `;
@@ -20,6 +21,18 @@ void main() {
     gl_FragColor = texture2D(u_texture, v_texcoord);
 }
 `;
+
+function getScalingMatrix(canvasWidth, canvasHeight) {
+    const scaleY = 1 / 5; // 100 represents unit distance visible from center of screen to top of screen
+    const scaleX = scaleY * (canvasHeight / canvasWidth);
+
+    return new Float32Array([
+        scaleX, 0, 0, 0,
+        0, scaleY, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    ]);
+}
 
 // Initialize WebGL context
 const canvas = document.getElementById("gameScreen");//document.createElement('canvas');
@@ -87,10 +100,14 @@ image.onload = () => {
 	]);
 
 	const textureCoords = new Float32Array([
-		0, textureRepeatY,
-		textureRepeatX, textureRepeatY,
+		// 0, textureRepeatY,
+		// textureRepeatX, textureRepeatY,
+		// 0, 0,
+		// textureRepeatX, 0
+		0, 1,
+		1, 1,
 		0, 0,
-		textureRepeatX, 0
+		1, 0
 	]);
 
 	// Create and bind buffer
@@ -117,6 +134,10 @@ image.onload = () => {
 
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+	// matrix
+	const projectLoc = gl.getUniformLocation(program, "u_camera");
+	gl.uniformMatrix4fv(projectLoc, false, getScalingMatrix(canvas.width, canvas.height));
 
 	// Render
 	gl.clearColor(0, 0, 0, 1);

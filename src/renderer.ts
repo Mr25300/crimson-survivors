@@ -191,7 +191,7 @@ class Renderer {
 
       gl.clearColor(1, 1, 1, 1);
 
-      gl.enable(gl.DEPTH_TEST);
+      gl.enable(gl.DEPTH_TEST); // give z values to change priority order of sprites (i.e. gun underneath player)
 
       // drawing
 
