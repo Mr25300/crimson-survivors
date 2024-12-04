@@ -1,4 +1,4 @@
-import { Renderer } from "./renderer";
+import { Renderer } from "./renderer.js";
 
 const CANVAS = document.getElementById("gameScreen") as HTMLCanvasElement;
 
@@ -9,9 +9,17 @@ class Game {
     new Renderer(CANVAS);
   }
 
-  public get instance() {
+  public static get instance() {
     if (!Game._instance) Game._instance = new Game();
 
     return Game._instance;
   }
 }
+
+class Driver {
+  constructor() {
+    Game.instance;
+  }
+}
+
+new Driver();

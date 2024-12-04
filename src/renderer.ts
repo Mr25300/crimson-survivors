@@ -47,28 +47,33 @@ class Shader {
     return shader;
   }
 
+  public createBuffer(data: Float32Array): WebGLBuffer {
+    const buffer = this.gl.createBuffer();
+
+    if (buffer == null) {
+      throw new Error("Failed to create buffer.");
+    }
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+
+    return buffer;
+  }
+
+  public deleteBuffer(buffer: WebGLBuffer) {
+    this.gl.deleteBuffer(buffer);
+  }
+
   public createAttrib(name: string) {
     const location = this.gl.getAttribLocation(this.program, name);
 
     if (location < 0) {
-      console.error(`Attribute ${name} not found.`);
+      console.error(`Attribute "${name}" not found.`);
 
       return;
     }
 
     this.attribLocations[name] = location;
-  }
-
-  public createUniform(name: string) {
-    const location = this.gl.getUniformLocation(this.program, name);
-
-    if (!location) {
-      console.error(`Uniform ${name} not found.`);
-
-      return;
-    }
-
-    this.uniformLocations[name] = location;
   }
 
   public setAttribBuffer(name: string, buffer: WebGLBuffer | null, size: GLint) {
@@ -80,6 +85,18 @@ class Shader {
 
     this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, 0, 0);
     this.gl.enableVertexAttribArray(location);
+  }
+
+  public createUniform(name: string) {
+    const location = this.gl.getUniformLocation(this.program, name);
+
+    if (!location) {
+      console.error(`Uniform "${name}" not found.`);
+
+      return;
+    }
+
+    this.uniformLocations[name] = location;
   }
 
   public setUniformMatrix4(name: string, value: Float32Array) {
@@ -161,7 +178,7 @@ class Model {
   }
 }
 
-function loadShaderFile(url: string) {
+function loadShaderFile(url: string): Promise<string> {
   return fetch(url).then(response => {
     if (!response.ok) throw new Error(`Failed to load shader file: ${url}`);
 
@@ -186,59 +203,76 @@ class Renderer {
       shader.use();
       shader.createAttrib("vertexPos");
       shader.createAttrib("textureCoord");
-      shader.createUniform("transform");
-      shader.createUniform("camera");
-
-      gl.clearColor(1, 1, 1, 1);
+      shader.createUniform("screenProjection");
+      // shader.createUniform("modelTransform");
 
       gl.enable(gl.DEPTH_TEST); // give z values to change priority order of sprites (i.e. gun underneath player)
 
+      const vertexBuffer = shader.createBuffer(new Float32Array([
+        -1, -1,
+        1, -1,
+        -1, 1,
+        1, 1
+      ]));
+
+      shader.setAttribBuffer("vertexPos", vertexBuffer, 2);
+
+      shader.setUniformMatrix4("screenProjection", new Float32Array([
+        1/20, 0, 0, 0,
+        0, 1/20 * (canvas.width/canvas.height), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+      ]))
+      
+      gl.clearColor(0, 0, 0, 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
       // drawing
 
-      const image = new Image();
-      image.src = "./res/assets/testsprite.png";
+      // const image = new Image();
+      // image.src = "./res/assets/testsprite.png";
 
-      const texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+      // const texture = gl.createTexture();
+      // gl.bindTexture(gl.TEXTURE_2D, texture);
+      // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
 
-      image.onload = function () {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      // image.onload = function () {
+      //   gl.bindTexture(gl.TEXTURE_2D, texture);
+      //   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-          gl.generateMipmap(gl.TEXTURE_2D);
+      //   if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+      //     gl.generateMipmap(gl.TEXTURE_2D);
 
-        } else {
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        }
-      };
+      //   } else {
+      //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      //   }
+      // };
 
-      const positionBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      // const positionBuffer = gl.createBuffer();
+      // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-      const positions = [
-        1.0, 1.0,
-        -1.0, 1.0,
-        1.0, -1.0,
-        -1.0, -1.0,
-      ];
+      // const positions = [
+      //   1.0, 1.0,
+      //   -1.0, 1.0,
+      //   1.0, -1.0,
+      //   -1.0, -1.0,
+      // ];
 
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+      // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-      const textureCoordBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+      // const textureCoordBuffer = gl.createBuffer();
+      // gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
-      const textureCoordinates = [
-        1.0, 1.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        0.0, 0.0,
-      ];
+      // const textureCoordinates = [
+      //   1.0, 1.0,
+      //   0.0, 1.0,
+      //   1.0, 0.0,
+      //   0.0, 0.0,
+      // ];
 
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+      // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
     });
   }
 }

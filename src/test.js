@@ -23,7 +23,7 @@ void main() {
 `;
 
 function getScalingMatrix(canvasWidth, canvasHeight) {
-    const scaleY = 1 / 5; // 100 represents unit distance visible from center of screen to top of screen
+    const scaleY = 1 / 20; // 100 represents unit distance visible from center of screen to top of screen
     const scaleX = scaleY * (canvasHeight / canvasWidth);
 
     return new Float32Array([
