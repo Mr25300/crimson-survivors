@@ -47,9 +47,9 @@ function getScalingMatrix(canvasWidth, canvasHeight) {
 }
 
 // Initialize WebGL context
-const canvas = document.getElementById("gameScreen"); //document.createElement("canvas");
+const canvas = document.getElementById('gameScreen'); //document.createElement("canvas");
 // document.body.appendChild(canvas);
-const gl = canvas.getContext("webgl");
+const gl = canvas.getContext('webgl');
 
 // Resize the canvas to fill the screen
 function resizeCanvas() {
@@ -58,7 +58,7 @@ function resizeCanvas() {
   gl.viewport(0, 0, canvas.width, canvas.height);
 }
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener('resize', resizeCanvas);
 
 // Compile shader
 function compileShader(type, source) {
@@ -96,7 +96,7 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
 // Load an image and set it as the texture
 const image = new Image();
-image.src = "res/assets/testsprite.png"; // Replace with your image URL
+image.src = 'res/assets/testsprite.png'; // Replace with your image URL
 image.onload = () => {
   const textureRepeatX = 3;
   const windowRatio = canvas.width / canvas.height;
@@ -121,7 +121,7 @@ image.onload = () => {
 
   // Get attribute locations
   // Enable and set up attributes
-  const positionLocation = gl.getAttribLocation(program, "a_position");
+  const positionLocation = gl.getAttribLocation(program, 'a_position');
   gl.enableVertexAttribArray(positionLocation);
   gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -132,7 +132,7 @@ image.onload = () => {
 
   // Get attribute locations
   // Enable and set up attributes
-  const texcoordLocation = gl.getAttribLocation(program, "a_texcoord");
+  const texcoordLocation = gl.getAttribLocation(program, 'a_texcoord');
   gl.enableVertexAttribArray(texcoordLocation);
   gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -140,7 +140,7 @@ image.onload = () => {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
   // matrix
-  const projectLoc = gl.getUniformLocation(program, "u_camera");
+  const projectLoc = gl.getUniformLocation(program, 'u_camera');
   gl.uniformMatrix4fv(
     projectLoc,
     false,

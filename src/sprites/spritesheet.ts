@@ -1,5 +1,5 @@
-import { ShaderProgram } from "../rendering/shaderprogram.js";
-import { SpriteModel } from "./spritemodel.js";
+import {ShaderProgram} from '../rendering/shaderprogram.js';
+import {SpriteModel} from './spritemodel.js';
 
 export class Spritesheet {
   public static activeSprites: Spritesheet[];
@@ -19,7 +19,7 @@ export class Spritesheet {
     imagePath: string
   ) {
     this.initBufferTexture(imagePath);
-    
+
     Spritesheet.activeSprites.push(this);
   }
 
@@ -37,12 +37,7 @@ export class Spritesheet {
       const startY = currentRow / this.rows;
       const endY = startY + 1 / this.rows;
 
-      spriteCoords.push(
-        startX, startY,
-        endX, startY,
-        startX, endY,
-        endX, endY
-      );
+      spriteCoords.push(startX, startY, endX, startY, startX, endY, endX, endY);
     }
 
     this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
@@ -56,13 +51,26 @@ export class Spritesheet {
   public bind() {
     this.shader.bindTexture(this.texture);
 
-    this.shader.setUniformMatrix4("spriteScale",
+    this.shader.setUniformMatrix4(
+      'spriteScale',
       new Float32Array([
-        this.width, 0, 0, 0,
-        0, this.height, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-      ])
+        this.width,
+        0,
+        0,
+        0,
+        0,
+        this.height,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]),
     );
   }
 }
@@ -77,9 +85,11 @@ export class SpriteAnimation {
   ) {}
 
   public update(delta: number) {
-    this.timePassed = (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
+    this.timePassed =
+      (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
 
-    const frame = Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
+    const frame =
+      Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
 
     this.model.setCurrentSprite(frame);
   }

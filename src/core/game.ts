@@ -1,5 +1,5 @@
-import { Gameloop } from "./gameloop.js";
-import { Canvas } from "../rendering/canvas.js";
+import {Gameloop} from './gameloop.js';
+import {Canvas} from '../rendering/canvas.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -20,13 +20,9 @@ class Game extends Gameloop {
     return Game._instance;
   }
 
-  protected update(deltaTime: number): void {
+  protected update(deltaTime: number): void {}
 
-  }
-
-  protected render(): void {
-    
-  }
+  protected render(): void {}
 }
 
 class Driver {

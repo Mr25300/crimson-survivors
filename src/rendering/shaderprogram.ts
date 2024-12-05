@@ -1,4 +1,4 @@
-import { Util } from "../util/util.js";
+import {Util} from '../util/util.js';
 
 export class ShaderProgram {
   private program: WebGLProgram;
@@ -8,10 +8,14 @@ export class ShaderProgram {
   private attribLocations: {[key: string]: GLint} = {};
   private uniformLocations: {[key: string]: WebGLUniformLocation} = {};
 
-  constructor(private gl: WebGL2RenderingContext, vertSource: string, fragSource: string) {
+  constructor(
+    private gl: WebGL2RenderingContext,
+    vertSource: string,
+    fragSource: string
+  ) {
     const program = gl.createProgram();
 
-    if (program == null) throw new Error("Failed to create program.");
+    if (program == null) throw new Error('Failed to create program.');
 
     this.program = program;
     this.vertShader = this.createShader(gl.VERTEX_SHADER, vertSource);
@@ -21,7 +25,7 @@ export class ShaderProgram {
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error(
-        "Failed to link shader program: " + gl.getProgramInfoLog(program),
+        'Failed to link shader program: ' + gl.getProgramInfoLog(program),
       );
     }
 
@@ -29,7 +33,7 @@ export class ShaderProgram {
 
     if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
       console.error(
-        "Failed to validate shader program: " + gl.getProgramInfoLog(program),
+        'Failed to validate shader program: ' + gl.getProgramInfoLog(program),
       );
     }
   }
@@ -37,7 +41,7 @@ export class ShaderProgram {
   private createShader(type: GLenum, source: string): WebGLShader {
     const shader = this.gl.createShader(type);
 
-    if (shader == null) throw new Error("Failed to create shader.");
+    if (shader == null) throw new Error('Failed to create shader.');
 
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -45,7 +49,10 @@ export class ShaderProgram {
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       this.gl.deleteShader(shader);
 
-      throw new Error(`Error compiling ${type == this.gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ` + this.gl.getShaderInfoLog(shader));
+      throw new Error(
+        `Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` +
+          this.gl.getShaderInfoLog(shader)
+      );
     }
 
     this.gl.attachShader(this.program, shader);
@@ -57,7 +64,7 @@ export class ShaderProgram {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error("Failed to create buffer.");
+      throw new Error('Failed to create buffer.');
     }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
@@ -77,25 +84,60 @@ export class ShaderProgram {
     const texture = this.gl.createTexture();
 
     if (texture == null) {
-      throw new Error("Failed to create texture.");
+      throw new Error('Failed to create texture.');
     }
 
     image.onload = () => {
       this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+      this.gl.texImage2D(
+        this.gl.TEXTURE_2D,
+        0,
+        this.gl.RGBA,
+        this.gl.RGBA,
+        this.gl.UNSIGNED_BYTE,
+        image
+      );
 
       let wrapMode: GLint = this.gl.CLAMP_TO_EDGE;
-    
-      if (Util.isPowerOf2(image.width) && Util.isPowerOf2(image.height)) wrapMode = this.gl.REPEAT;
 
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, wrapMode);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, wrapMode);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+      if (Util.isPowerOf2(image.width) && Util.isPowerOf2(image.height)) {
+        wrapMode = this.gl.REPEAT;
+      }
+
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_WRAP_S,
+        wrapMode
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_WRAP_T,
+        wrapMode
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_MIN_FILTER,
+        this.gl.LINEAR
+      );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_MAG_FILTER,
+        this.gl.LINEAR
+      );
     };
 
     image.onerror = () => {
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+      this.gl.texImage2D(
+        this.gl.TEXTURE_2D,
+        0,
+        this.gl.RGBA,
+        1,
+        1,
+        0,
+        this.gl.RGBA,
+        this.gl.UNSIGNED_BYTE,
+        new Uint8Array([0, 0, 0, 255])
+      );
 
       console.error(`Failed to load image texture ${imagePath}.`);
     };
@@ -123,7 +165,13 @@ export class ShaderProgram {
     this.attribLocations[name] = location;
   }
 
-  public setAttribBuffer(name: string, buffer: WebGLBuffer, size: GLint, stride: GLint, offset: GLint) {
+  public setAttribBuffer(
+    name: string,
+    buffer: WebGLBuffer,
+    size: GLint,
+    stride: GLint,
+    offset: GLint
+  ) {
     const location = this.attribLocations[name];
 
     if (location === undefined) {
@@ -132,7 +180,14 @@ export class ShaderProgram {
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
 
-    this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, stride, offset);
+    this.gl.vertexAttribPointer(
+      location,
+      size,
+      this.gl.FLOAT,
+      false,
+      stride,
+      offset
+    );
     this.gl.enableVertexAttribArray(location);
   }
 

@@ -2,7 +2,7 @@ class Util {
   static loadShaderFile(url: string): Promise<string> {
     return fetch(url).then(response => {
       if (!response.ok) throw new Error(`Failed to load shader file: ${url}`);
-  
+
       return response.text();
     });
   }
@@ -14,4 +14,4 @@ class Util {
   }
 }
 
-export { Util };
+export {Util};

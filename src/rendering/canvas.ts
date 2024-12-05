@@ -1,18 +1,18 @@
-import { Util } from "../util/util.js";
-import { ShaderProgram } from "./shaderprogram.js";
+import {Util} from '../util/util.js';
+import {ShaderProgram} from './shaderprogram.js';
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
   private shader: ShaderProgram;
 
-  private screenUnitScale: number = 1/10;
+  private screenUnitScale: number = 1 / 10;
   private aspectRatio: number = 1;
 
   constructor() {
-    this.canvas = document.getElementById("gameScreen") as HTMLCanvasElement;
+    this.canvas = document.getElementById('gameScreen') as HTMLCanvasElement;
 
-    this.gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
+    this.gl = this.canvas.getContext('webgl2') as WebGL2RenderingContext;
     this.gl.enable(this.gl.DEPTH_TEST);
 
     this.init();
@@ -74,7 +74,7 @@ export class Canvas {
 
     //   //   requestAnimationFrame(frame);
     //   // }
-      
+
     //   // frame();
 
     //   // // drawing
@@ -134,37 +134,44 @@ export class Canvas {
 
   private async initShaderProgram(): Promise<void> {
     await Promise.all([
-      Util.loadShaderFile("res/shaders/vertex.glsl"),
-      Util.loadShaderFile("res/shaders/fragment.glsl"),
-
+      Util.loadShaderFile('res/shaders/vertex.glsl'),
+      Util.loadShaderFile('res/shaders/fragment.glsl')
     ]).then(([vertSource, fragSource]) => {
       this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
       this.shader.use();
-      this.shader.createAttrib("vertexPos");
-      this.shader.createAttrib("textureCoord");
-      this.shader.createUniform("screenProjection");
-      this.shader.createUniform("spriteScale");
-      this.shader.createUniform("modelTransform");
+      this.shader.createAttrib('vertexPos');
+      this.shader.createAttrib('textureCoord');
+      this.shader.createUniform('screenProjection');
+      this.shader.createUniform('spriteScale');
+      this.shader.createUniform('modelTransform');
     });
   }
 
   private initUniversalVertexBuffer(): void {
-    this.shader.createBuffer(new Float32Array([
-      -1, -1,
-      1, -1,
-      -1, 1,
-      1, 1
-    ]));
+    this.shader.createBuffer(new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
   }
 
   private render(): void {
-    this.shader.setUniformMatrix4("screenProjection",
+    this.shader.setUniformMatrix4(
+      'screenProjection',
       new Float32Array([
-        this.screenUnitScale, 0, 0, 0,
-        0, this.screenUnitScale * this.aspectRatio, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-      ])
+        this.screenUnitScale,
+        0,
+        0,
+        0,
+        0,
+        this.screenUnitScale * this.aspectRatio,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]),
     );
 
     this.gl.clearColor(0, 0, 0, 0);

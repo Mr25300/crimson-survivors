@@ -8,11 +8,7 @@ class entity {
   public get healthPoints(): number {
     return this.healthPoints;
   }
-  public dealDamage(damageValue: number): void {
-
-  }
+  public dealDamage(damageValue: number): void {}
 }
 
-class Weapon {
-
-}
+class Weapon {}
