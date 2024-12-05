@@ -1,12 +1,12 @@
-import {ShaderProgram} from '../rendering/shaderprogram';
-import {Spritesheet} from './spritesheet.js';
+import { ShaderProgram } from '../rendering/shaderprogram';
+import { SpriteSheet } from './spritesheet.js';
 
 export class SpriteModel {
   private currentSprite: number;
 
   constructor(
     private shader: ShaderProgram,
-    private sprite: Spritesheet
+    private sprite: SpriteSheet
   ) {}
 
   public setCurrentSprite(n: number) {

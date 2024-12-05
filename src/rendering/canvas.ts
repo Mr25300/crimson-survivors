@@ -155,22 +155,10 @@ export class Canvas {
     this.shader.setUniformMatrix4(
       'screenProjection',
       new Float32Array([
-        this.screenUnitScale,
-        0,
-        0,
-        0,
-        0,
-        this.screenUnitScale * this.aspectRatio,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1
+        this.screenUnitScale, 0, 0, 0,
+        0, this.screenUnitScale * this.aspectRatio, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
       ]),
     );
 

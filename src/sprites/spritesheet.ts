@@ -1,9 +1,7 @@
 import {ShaderProgram} from '../rendering/shaderprogram.js';
 import {SpriteModel} from './spritemodel.js';
 
-export class Spritesheet {
-  public static activeSprites: Spritesheet[];
-
+export class SpriteSheet {
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
 
@@ -19,8 +17,6 @@ export class Spritesheet {
     imagePath: string
   ) {
     this.initBufferTexture(imagePath);
-
-    Spritesheet.activeSprites.push(this);
   }
 
   public get buffer(): WebGLBuffer {
