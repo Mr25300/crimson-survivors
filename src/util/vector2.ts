@@ -3,8 +3,8 @@
  */
 class Vector2 {
   constructor(
-    private x: number,
-    private y: number
+    public x: number,
+    public y: number
   ) {}
 
   public add(vec: Vector2): Vector2 {
