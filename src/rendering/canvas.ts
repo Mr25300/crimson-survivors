@@ -1,5 +1,7 @@
-import {Util} from '../util/util.js';
-import {ShaderProgram} from './shaderprogram.js';
+import { Util } from '../util/util.js';
+import { Matrix4 } from '../util/matrix4.js';
+import { ShaderProgram } from './shaderprogram.js';
+import { SpriteSheet } from '../sprites/spritesheet.js';
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
@@ -9,8 +11,18 @@ export class Canvas {
   private screenUnitScale: number = 1 / 10;
   private aspectRatio: number = 1;
 
+  private sprites: SpriteSheet[] = [];
+
   constructor() {
     this.canvas = document.getElementById('gameScreen') as HTMLCanvasElement;
+
+    new ResizeObserver(([canvas]) => {
+      console.log(this.canvas.clientWidth, this.canvas.clientHeight, canvas.contentRect.width, canvas.contentRect.height);
+      this.canvas.width = this.canvas.clientWidth;
+      this.canvas.height = this.canvas.clientHeight;
+      this.aspectRatio = this.canvas.width/this.canvas.height;;
+      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    });
 
     this.gl = this.canvas.getContext('webgl2') as WebGL2RenderingContext;
     this.gl.enable(this.gl.DEPTH_TEST);
@@ -136,6 +148,7 @@ export class Canvas {
     await Promise.all([
       Util.loadShaderFile('res/shaders/vertex.glsl'),
       Util.loadShaderFile('res/shaders/fragment.glsl')
+
     ]).then(([vertSource, fragSource]) => {
       this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
       this.shader.use();
@@ -152,15 +165,11 @@ export class Canvas {
   }
 
   private render(): void {
-    this.shader.setUniformMatrix4(
-      'screenProjection',
-      new Float32Array([
-        this.screenUnitScale, 0, 0, 0,
-        0, this.screenUnitScale * this.aspectRatio, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-      ]),
-    );
+    const screenMatrix = Matrix4.fromScale(this.screenUnitScale, this.screenUnitScale*this.aspectRatio)
+    
+    this.shader.setUniformMatrix4("screenProjection", screenMatrix);
+
+    for (let sprite of )
 
     this.gl.clearColor(0, 0, 0, 0);
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
