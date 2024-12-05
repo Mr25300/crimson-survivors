@@ -1,26 +1,26 @@
 /**
  * Represents a vector in 2d space.
  */
-class Vector {
+class Vector2 {
   constructor(
     private x: number,
     private y: number
   ) {}
 
-  public add(vec: Vector): Vector {
-    return new Vector(this.x + vec.x, this.y + vec.y);
+  public add(vec: Vector2): Vector2 {
+    return new Vector2(this.x + vec.x, this.y + vec.y);
   }
 
-  public subtract(vec: Vector): Vector {
-    return new Vector(this.x - vec.x, this.y - vec.y);
+  public subtract(vec: Vector2): Vector2 {
+    return new Vector2(this.x - vec.x, this.y - vec.y);
   }
 
-  public multiply(scalar: number): Vector {
-    return new Vector(this.x*scalar, this.y*scalar);
+  public multiply(scalar: number): Vector2 {
+    return new Vector2(this.x*scalar, this.y*scalar);
   }
 
-  public divide(scalar: number): Vector {
-    return new Vector(this.x/scalar, this.y/scalar);
+  public divide(scalar: number): Vector2 {
+    return new Vector2(this.x/scalar, this.y/scalar);
   }
 
   /**
@@ -35,10 +35,10 @@ class Vector {
    * Calculates the unit vector, having a magnitude of 1.
    * @returns The unit vector.
    */
-  public unit(): Vector {
+  public unit(): Vector2 {
     const mag: number = this.magnitude();
 
-    if (mag == 0) return new Vector(0, 0);
+    if (mag == 0) return new Vector2(0, 0);
 
     return this.divide(mag);
   }
