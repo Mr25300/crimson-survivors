@@ -1,13 +1,13 @@
-import {Shader} from './renderer';
+import { Shader } from "./renderer";
 
-class Sprite {
-  private current = 0;
+class Spritesheet {
+  private currentSprite = 4;
 
   private texture: WebGLTexture;
+  private coordBuffer: WebGLBuffer;
 
   constructor(
     private shader: Shader,
-    private gl: WebGL2RenderingContext,
     private width: number,
     private height: number,
     private columns: number,
@@ -20,11 +20,16 @@ class Sprite {
     for (let i: number = 0; i < count; i++) {
       const currentRow = Math.floor(i / columns);
       const startX = (i % columns) / columns;
-      const endX = (i % columns) / columns;
+      const endX = startX + 1 / columns;
       const startY = currentRow / rows;
-      const endY = (currentRow + 1) / rows;
+      const endY = startY + 1 / rows;
 
-      spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
+      spriteCoords.push(
+        startX, endY,
+        endX, endY,
+        startX, startY,
+        endX, startY
+      );
     }
 
     const vertices = new Float32Array([
@@ -34,23 +39,8 @@ class Sprite {
       width / 2, height / 2
     ]);
 
-    const textureCoords = new Float32Array(spriteCoords);
-
-    const texture: WebGLTexture = gl.createTexture()!;
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    const image = new Image();
-    image.src = imagePath;
-
-    image.addEventListener('load', () => {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    });
-
-    // gl.generateMipmap(gl.TEXTURE_2D);
+    this.coordBuffer = shader.createBuffer(new Float32Array(spriteCoords));
+    this.texture = shader.createTexture(imagePath);
   }
 
   public createModel() {
@@ -58,7 +48,12 @@ class Sprite {
   }
 
   public bind() {
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+    this.shader.setAttribBuffer("textureCoord", this.coordBuffer, 2, 0, this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
+    this.shader.bindTexture(this.texture);
+  }
+
+  public setCurrentSprite(n: number) {
+    this.currentSprite = n;
   }
 }
 
@@ -67,9 +62,9 @@ class Model {
   private y: number = 0;
   private rot: number = 0;
 
-  constructor(private sprite: Sprite) {}
+  constructor(private sprite: Spritesheet) { }
 
-  public bind() {}
+  public bind() { }
 }
 
 class SpriteAnimation {
@@ -77,15 +72,17 @@ class SpriteAnimation {
   private fps = 12;
 
   constructor(
-    private sprite: Sprite,
+    private sprite: Spritesheet,
     private frames: number[]
-  ) {}
+  ) { }
 
   public update(delta: number) {
     this.timePassed = (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
 
     const frame = Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
+
+    this.sprite.setCurrentSprite(frame);
   }
 }
 
-export {Model};
+export { Model, Spritesheet, SpriteAnimation };

@@ -1,3 +1,4 @@
+import { SpriteAnimation, Spritesheet } from "./model.js";
 import { Util } from "./util/util.js";
 
 class Shader {
@@ -15,7 +16,7 @@ class Shader {
   ) {
     const program = gl.createProgram();
 
-    if (program == null) throw new Error('Failed to create program.');
+    if (program == null) throw new Error("Failed to create program.");
 
     this.program = program;
     this.vertShader = this.createShader(gl.VERTEX_SHADER, vertSource);
@@ -25,7 +26,7 @@ class Shader {
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error(
-        'Failed to link shader program: ' + gl.getProgramInfoLog(program),
+        "Failed to link shader program: " + gl.getProgramInfoLog(program),
       );
     }
 
@@ -33,7 +34,7 @@ class Shader {
 
     if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
       console.error(
-        'Failed to validate shader program: ' + gl.getProgramInfoLog(program),
+        "Failed to validate shader program: " + gl.getProgramInfoLog(program),
       );
     }
   }
@@ -41,7 +42,7 @@ class Shader {
   private createShader(type: GLenum, source: string): WebGLShader {
     const shader = this.gl.createShader(type);
 
-    if (shader == null) throw new Error('Failed to create shader.');
+    if (shader == null) throw new Error("Failed to create shader.");
 
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -49,10 +50,7 @@ class Shader {
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       this.gl.deleteShader(shader);
 
-      throw new Error(
-        `Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` +
-          this.gl.getShaderInfoLog(shader)
-      );
+      throw new Error(`Error compiling ${type == this.gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ` + this.gl.getShaderInfoLog(shader));
     }
 
     this.gl.attachShader(this.program, shader);
@@ -64,7 +62,7 @@ class Shader {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error('Failed to create buffer.');
+      throw new Error("Failed to create buffer.");
     }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
@@ -84,7 +82,7 @@ class Shader {
     const texture = this.gl.createTexture();
 
     if (texture == null) {
-      throw new Error('Failed to create texture.');
+      throw new Error("Failed to create texture.");
     }
 
     image.onload = () => {
@@ -92,7 +90,7 @@ class Shader {
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 
       let wrapMode: GLint = this.gl.CLAMP_TO_EDGE;
-
+    
       if (Util.isPowerOf2(image.width) && Util.isPowerOf2(image.height)) wrapMode = this.gl.REPEAT;
 
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, wrapMode);
@@ -102,10 +100,16 @@ class Shader {
     };
 
     image.onerror = () => {
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+
       console.error(`Failed to load image texture ${imagePath}.`);
     };
 
     return texture;
+  }
+
+  public bindTexture(texture: WebGLTexture): void {
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
   }
 
   public deleteTexture(texture: WebGLTexture): void {
@@ -212,7 +216,7 @@ class Model {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error('Failed to create buffer.');
+      throw new Error("Failed to create buffer.");
     }
 
     this.gl.bindBuffer(type, buffer);
@@ -228,31 +232,20 @@ class Model {
   }
 }
 
-function loadShaderFile(url: string): Promise<string> {
-  return fetch(url).then(response => {
-    if (!response.ok) throw new Error(`Failed to load shader file: ${url}`);
-
-    return response.text();
-  });
-}
-
-function isPowerOf2(value: number) {
-  return (value & (value - 1)) == 0;
-}
-
 class Renderer {
   constructor(canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
+    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext;
 
     Promise.all([
-      loadShaderFile('res/shaders/vertex.glsl'),
-      loadShaderFile('res/shaders/fragment.glsl'),
+      Util.loadShaderFile("res/shaders/vertex.glsl"),
+      Util.loadShaderFile("res/shaders/fragment.glsl"),
+
     ]).then(([vertSource, fragSource]) => {
       const shader: Shader = new Shader(gl, vertSource, fragSource);
       shader.use();
-      shader.createAttrib('vertexPos');
-      shader.createAttrib('textureCoord');
-      shader.createUniform('screenProjection');
+      shader.createAttrib("vertexPos");
+      shader.createAttrib("textureCoord");
+      shader.createUniform("screenProjection");
       // shader.createUniform("modelTransform");
 
       gl.enable(gl.DEPTH_TEST); // give z values to change priority order of sprites (i.e. gun underneath player)
@@ -261,36 +254,49 @@ class Renderer {
         new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
       );
 
-      shader.setAttribBuffer('vertexPos', vertexBuffer, 2, 0, 0);
+      shader.setAttribBuffer("vertexPos", vertexBuffer, 2, 0, 0);
 
+      const screenScale = 1/5;
       shader.setUniformMatrix4(
-        'screenProjection',
+        "screenProjection",
         new Float32Array([
-          1 / 20, 0, 0, 0,
-          0, (1 / 20) * (canvas.width / canvas.height), 0, 0,
+          screenScale, 0, 0, 0,
+          0, screenScale * (canvas.width / canvas.height), 0, 0,
           0, 0, 1, 0,
           0, 0, 0, 1
         ])
       );
 
-      const texture = shader.createTexture("res/assets/testanimsprite.png");
-      gl.bindTexture(gl.TEXTURE_2D, texture);
+      // const texture = shader.createTexture("res/assets/testanimsprite.png");
+      // gl.bindTexture(gl.TEXTURE_2D, texture);
 
-      const textureCoords = new Float32Array([
-        0, 1,
-        1, 1,
-        0, 0,
-        1, 0
-      ]);
+      // const textureCoords = new Float32Array([
+      //   0, 1,
+      //   1, 1,
+      //   0, 0,
+      //   1, 0
+      // ]);
 
-      const textureBuffer = shader.createBuffer(textureCoords);
+      // const textureBuffer = shader.createBuffer(textureCoords);
 
-      shader.setAttribBuffer("textureCoord", textureBuffer, 2, 0, 0);
+      // shader.setAttribBuffer("textureCoord", textureBuffer, 2, 0, 0);
 
-      gl.bindTexture(gl.TEXTURE_2D, texture);
+      // gl.bindTexture(gl.TEXTURE_2D, texture);
 
-      gl.clearColor(0, 0, 0, 0);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      const sprite = new Spritesheet(shader, 1, 1, 5, 2, 10, "res/assets/testanimsprite.png");
+      const anim = new SpriteAnimation(sprite, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      const frame = () => {
+        anim.update(1/60);
+        sprite.bind();
+
+        gl.clearColor(0, 0, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        requestAnimationFrame(frame);
+      }
+      
+      frame();
 
       // drawing
 
