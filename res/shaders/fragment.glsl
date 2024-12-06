@@ -7,7 +7,7 @@ varying vec2 textureVertCoord;
 void main() {
   vec4 textureColor = texture2D(texture, textureVertCoord);
 
-  if (textureColor.a < 0.1) {
+  if (textureColor.a < 0.01) {
     discard;
   }
 
