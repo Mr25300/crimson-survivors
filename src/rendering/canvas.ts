@@ -69,9 +69,9 @@ export class Canvas {
     columns: number,
     rows: number,
     imagePath: string,
+
   ): SpriteSheet {
-    const sprite = new SpriteSheet(
-      this.shader,
+    const sprite = new SpriteSheet(this.shader,
       width,
       height,
       spriteCount,
@@ -95,15 +95,11 @@ export class Canvas {
 
   public render(): void {
     this.gl.clearColor(0, 0, 0, 1);
-    this.gl.clear(
-      this.gl.COLOR_BUFFER_BIT |
-        this.gl.DEPTH_BUFFER_BIT |
-        this.gl.STENCIL_BUFFER_BIT,
-    );
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
     const screenMatrix = Matrix4.fromScale(
-      (this.screenUnitScale * 2) / this.aspectRatio,
-      this.screenUnitScale * 2,
+      this.screenUnitScale * 2 / this.aspectRatio, this.screenUnitScale * 2
+    );
 
     this.shader.setUniformMatrix4('screenProjection', screenMatrix);
 

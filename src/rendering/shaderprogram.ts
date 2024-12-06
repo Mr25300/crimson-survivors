@@ -8,11 +8,7 @@ export class ShaderProgram {
   private attribLocations: Map<string, GLint> = new Map();
   private uniformLocations: Map<string, WebGLUniformLocation> = new Map();
 
-  constructor(
-    private gl: WebGL2RenderingContext,
-    vertSource: string,
-    fragSource: string
-  ) {
+  constructor(private gl: WebGL2RenderingContext, vertSource: string, fragSource: string) {
     const program = gl.createProgram();
 
     if (program == null) throw new Error('Failed to create program.');
@@ -49,10 +45,7 @@ export class ShaderProgram {
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       this.gl.deleteShader(shader);
 
-      throw new Error(
-        `Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` +
-          this.gl.getShaderInfoLog(shader)
-      );
+      throw new Error(`Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` + this.gl.getShaderInfoLog(shader));
     }
 
     this.gl.attachShader(this.program, shader);
@@ -89,14 +82,7 @@ export class ShaderProgram {
 
     image.onload = () => {
       this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      this.gl.texImage2D(
-        this.gl.TEXTURE_2D,
-        0,
-        this.gl.RGBA,
-        this.gl.RGBA,
-        this.gl.UNSIGNED_BYTE,
-        image
-      );
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 
       let wrapMode: GLint = this.gl.CLAMP_TO_EDGE;
 
@@ -104,40 +90,36 @@ export class ShaderProgram {
         wrapMode = this.gl.REPEAT;
       }
 
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_WRAP_S,
-        wrapMode
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_WRAP_T,
-        wrapMode
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_MIN_FILTER,
-        this.gl.LINEAR
-      );
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_MAG_FILTER,
-        this.gl.LINEAR
-      );
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+      // this.gl.texParameteri(
+      //   this.gl.TEXTURE_2D,
+      //   this.gl.TEXTURE_WRAP_S,
+      //   wrapMode
+      // );
+      // this.gl.texParameteri(
+      //   this.gl.TEXTURE_2D,
+      //   this.gl.TEXTURE_WRAP_T,
+      //   wrapMode
+      // );
+      // this.gl.texParameteri(
+      //   this.gl.TEXTURE_2D,
+      //   this.gl.TEXTURE_MIN_FILTER,
+      //   this.gl.LINEAR
+      // );
+      // this.gl.texParameteri(
+      //   this.gl.TEXTURE_2D,
+      //   this.gl.TEXTURE_MAG_FILTER,
+      //   this.gl.LINEAR
+      // );
     };
 
     image.onerror = () => {
-      this.gl.texImage2D(
-        this.gl.TEXTURE_2D,
-        0,
-        this.gl.RGBA,
-        1,
-        1,
-        0,
-        this.gl.RGBA,
-        this.gl.UNSIGNED_BYTE,
-        new Uint8Array([0, 0, 0, 255])
-      );
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
 
       console.error(`Failed to load image texture ${imagePath}.`);
     };

@@ -12,28 +12,21 @@ class Game extends Gameloop {
     this.canvas = new Canvas();
 
     this.canvas.init().then(() => {
-      const sprite = this.canvas.createSprite(
-        1,
-        1,
-        10,
-        5,
-        2,
-        'res/assets/testanimsprite.png'
-      );
+      const sprite = this.canvas.createSprite(8, 8, 11, 3, 4, 'res/assets/player.png');
 
-      sprite.createAnimation('walking', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      sprite.createAnimation('walking', [7, 6, 5, 4, 5, 6, 7, 8, 9, 10, 9, 8]);
+      sprite.createAnimation('shoot', [0, 1, 2, 3, 0]);
 
-      for (let i = 0; i < 100; i++) {
-        const angle = (Math.PI * 2 * i) / 100;
-        const model = sprite.createModel();
+      // for (let i = 0; i < 5; i++) {
+      //   const angle = (Math.PI * 2 * i) / 100;
+      //   const model = sprite.createModel();
 
-        model.setTransformation(
-          Math.sin(angle) * 4,
-          Math.cos(angle) * 4,
-          angle
-        );
-        model.playAnimation('walking', 1, Math.random());
-      }
+      //   model.setTransformation(Math.sin(angle) * 4, Math.cos(angle) * 4, angle);
+      //   model.playAnimation('walking', 1, Math.random());
+      // }
+
+      const model = sprite.createModel();
+      model.playAnimation('shoot', 0.1);
 
       this.start();
     });

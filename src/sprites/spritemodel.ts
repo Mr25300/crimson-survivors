@@ -25,7 +25,7 @@ export class SpriteModel {
   public setCurrentSprite(n: number): void {
     this.currentSprite = n;
   }
-
+  
   public playAnimation(
     name: string,
     duration: number,
