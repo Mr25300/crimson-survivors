@@ -1,5 +1,5 @@
-import {Gameloop} from './gameloop.js';
-import {Canvas} from '../rendering/canvas.js';
+import { Gameloop } from "./gameloop.js";
+import { Canvas } from "../rendering/canvas.js";
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -11,7 +11,21 @@ class Game extends Gameloop {
 
     this.canvas = new Canvas();
 
-    this.start();
+    this.canvas.init().then(() => {
+      const sprite = this.canvas.createSprite(1, 1, 10, 5, 2, "res/assets/testanimsprite.png");
+
+      sprite.createAnimation("walking", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      for (let i = 0; i < 100; i++) {
+        const angle = Math.PI*2 * i/100;
+        const model = sprite.createModel();
+
+        model.setTransformation(Math.sin(angle)*4, Math.cos(angle)*4, angle);
+        model.playAnimation("walking", 1, Math.random());
+      }
+
+      this.start();
+    });    
   }
 
   public static get instance(): Game {
@@ -20,9 +34,13 @@ class Game extends Gameloop {
     return Game._instance;
   }
 
-  protected update(deltaTime: number): void {}
+  protected update(deltaTime: number): void {
+    this.canvas.update(deltaTime);
+  }
 
-  protected render(): void {}
+  protected render(): void {
+    this.canvas.render();
+  }
 }
 
 class Driver {

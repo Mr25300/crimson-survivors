@@ -1,11 +1,13 @@
-import {ShaderProgram} from '../rendering/shaderprogram.js';
-import {SpriteModel} from './spritemodel.js';
+import { ShaderProgram } from "../rendering/shaderprogram.js";
+import { Matrix4 } from "../util/matrix4.js";
+import { SpriteModel } from "./spritemodel.js";
 
 export class SpriteSheet {
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
 
-  private models: SpriteModel[];
+  public models: SpriteModel[] = [];
+  public animationFrames: Map<string, number[]> = new Map();
 
   constructor(
     private shader: ShaderProgram,
@@ -16,14 +18,6 @@ export class SpriteSheet {
     private rows: number,
     imagePath: string
   ) {
-    this.initBufferTexture(imagePath);
-  }
-
-  public get buffer(): WebGLBuffer {
-    return this.coordBuffer;
-  }
-
-  private initBufferTexture(path: string): void {
     const spriteCoords: number[] = [];
 
     for (let i: number = 0; i < this.spriteCount; i++) {
@@ -33,60 +27,44 @@ export class SpriteSheet {
       const startY = currentRow / this.rows;
       const endY = startY + 1 / this.rows;
 
-      spriteCoords.push(startX, startY, endX, startY, startX, endY, endX, endY);
+      spriteCoords.push(
+        startX, endY,
+        endX, endY,
+        startX, startY,
+        endX, startY
+      );
     }
 
     this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
-    this.texture = this.shader.createTexture(path);
+    this.texture = this.shader.createTexture(imagePath);
+  }
+
+  public getBuffer(): WebGLBuffer {
+    return this.coordBuffer;
   }
 
   // public createModel() {
   //   return new Model(this);
   // }
 
+  public createAnimation(name: string, frames: number[]): void {
+    this.animationFrames.set(name, frames);
+  }
+
+  public getAnimationFrames(name: string): number[] | undefined {
+    return this.animationFrames.get(name);
+  }
+
+  public createModel(): SpriteModel {
+    const model = new SpriteModel(this.shader, this);
+
+    this.models.push(model);
+
+    return model;
+  }
+
   public bind() {
     this.shader.bindTexture(this.texture);
-
-    this.shader.setUniformMatrix4(
-      'spriteScale',
-      new Float32Array([
-        this.width,
-        0,
-        0,
-        0,
-        0,
-        this.height,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1
-      ]),
-    );
-  }
-}
-
-export class SpriteAnimation {
-  private timePassed = 0;
-  private fps = 12;
-
-  constructor(
-    private model: SpriteModel,
-    private frames: number[]
-  ) {}
-
-  public update(delta: number) {
-    this.timePassed =
-      (this.timePassed + delta) % ((this.frames.length * 1) / this.fps);
-
-    const frame =
-      Math.floor(this.timePassed / (1 / this.fps)) % this.frames.length;
-
-    this.model.setCurrentSprite(frame);
+    this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height));
   }
 }
