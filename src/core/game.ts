@@ -1,10 +1,13 @@
 import {Gameloop} from './gameloop.js';
 import {Canvas} from '../rendering/canvas.js';
+import { Player } from '../entities/entity.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
 
   private canvas: Canvas;
+
+  private playerChar: Player = new Player();
 
   private constructor() {
     super();
@@ -12,7 +15,7 @@ class Game extends Gameloop {
     this.canvas = new Canvas();
 
     this.canvas.init().then(() => {
-      const sprite = this.canvas.createSprite(8, 8, 11, 3, 4, 'res/assets/player.png');
+      const sprite = this.canvas.createSprite(1, 1, 11, 3, 4, 'res/assets/player.png');
 
       sprite.createAnimation('walking', [7, 6, 5, 4, 5, 6, 7, 8, 9, 10, 9, 8]);
       sprite.createAnimation('shoot', [0, 1, 2, 3, 0]);
@@ -39,6 +42,9 @@ class Game extends Gameloop {
   }
 
   protected update(deltaTime: number): void {
+    this.playerChar.input();
+    this.playerChar.update(deltaTime);
+
     this.canvas.update(deltaTime);
   }
 

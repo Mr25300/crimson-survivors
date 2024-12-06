@@ -1,5 +1,5 @@
-import {Weapon} from './weapon';
-import {Vector2} from './../util/vector2';
+import {Weapon} from './weapon.js';
+import {Vector2} from './../util/vector2.js';
 export class Entity {
   private moveDirection: Vector2;
 
@@ -12,8 +12,7 @@ export class Entity {
     private _currentPositionVector: Vector2,
   ) {
     this._currentMovementSpeed = _defaultMovementSpeed;
-    this._currentVelocity.x = 0;
-    this._currentVelocity.y = 0;
+    this._currentVelocity = new Vector2(0, 0);
     this.update(0);
   }
 
