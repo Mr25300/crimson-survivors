@@ -1,1 +1,1 @@
-export class Weapon{}
+export class Weapon {}

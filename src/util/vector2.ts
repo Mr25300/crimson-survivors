@@ -16,11 +16,11 @@ export class Vector2 {
   }
 
   public multiply(scalar: number): Vector2 {
-    return new Vector2(this.x*scalar, this.y*scalar);
+    return new Vector2(this.x * scalar, this.y * scalar);
   }
 
   public divide(scalar: number): Vector2 {
-    return new Vector2(this.x/scalar, this.y/scalar);
+    return new Vector2(this.x / scalar, this.y / scalar);
   }
 
   /**
@@ -28,7 +28,7 @@ export class Vector2 {
    * @returns The magnitude of the vector.
    */
   public magnitude(): number {
-    return Math.sqrt(this.x**2 + this.y**2);
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
   }
 
   /**

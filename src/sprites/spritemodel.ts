@@ -1,6 +1,6 @@
-import { ShaderProgram } from "../rendering/shaderprogram.js";
-import { Matrix4 } from "../util/matrix4.js";
-import { SpriteSheet } from "./spritesheet.js";
+import {ShaderProgram} from '../rendering/shaderprogram.js';
+import {Matrix4} from '../util/matrix4.js';
+import {SpriteSheet} from './spritesheet.js';
 
 export class SpriteModel {
   private currentSprite: number = 0;
@@ -26,11 +26,15 @@ export class SpriteModel {
     this.currentSprite = n;
   }
 
-  public playAnimation(name: string, duration: number, timePassed: number = 0): void {
+  public playAnimation(
+    name: string,
+    duration: number,
+    timePassed: number = 0
+  ): void {
     const frames = this.sprite.getAnimationFrames(name);
 
     if (!frames) {
-      console.error(`Sprite animation frames for "name" do not exist.`);
+      console.error('Sprite animation frames for "name" do not exist.');
 
       return;
     }
@@ -51,8 +55,17 @@ export class SpriteModel {
   }
 
   public bind(): void {
-    this.shader.setAttribBuffer("textureCoord", this.sprite.getBuffer(), 2, 0, this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-    this.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.x, this.y, this.rot));
+    this.shader.setAttribBuffer(
+      'textureCoord',
+      this.sprite.getBuffer(),
+      2,
+      0,
+      this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT,
+    );
+    this.shader.setUniformMatrix4(
+      'modelTransform',
+      Matrix4.fromTransformation(this.x, this.y, this.rot),
+    );
   }
 }
 

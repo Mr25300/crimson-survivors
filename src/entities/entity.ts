@@ -1,4 +1,4 @@
-import { Weapon } from "./weapon";
+import {Weapon} from './weapon';
 export class Entity {
   private _currentMovementSpeed: number;
   private _currentVelocity: Vector2;
@@ -25,14 +25,8 @@ export class Entity {
   }
   public multiplySpeed(multiplier: number): void {
     this._currentMovementSpeed *= multiplier;
-  };
+  }
   public resetSpeed(): void {
     this._currentMovementSpeed = this._defaultMovementSpeed;
-  };
-
-
-
-
+  }
 }
-
-

@@ -1,6 +1,6 @@
-import { ShaderProgram } from "../rendering/shaderprogram.js";
-import { Matrix4 } from "../util/matrix4.js";
-import { SpriteModel } from "./spritemodel.js";
+import {ShaderProgram} from '../rendering/shaderprogram.js';
+import {Matrix4} from '../util/matrix4.js';
+import {SpriteModel} from './spritemodel.js';
 
 export class SpriteSheet {
   private texture: WebGLTexture;
@@ -27,12 +27,7 @@ export class SpriteSheet {
       const startY = currentRow / this.rows;
       const endY = startY + 1 / this.rows;
 
-      spriteCoords.push(
-        startX, endY,
-        endX, endY,
-        startX, startY,
-        endX, startY
-      );
+      spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
     }
 
     this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
@@ -65,6 +60,9 @@ export class SpriteSheet {
 
   public bind() {
     this.shader.bindTexture(this.texture);
-    this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height));
+    this.shader.setUniformMatrix4(
+      'spriteScale',
+      Matrix4.fromScale(this.width, this.height),
+    );
   }
 }
