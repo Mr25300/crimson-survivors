@@ -6,17 +6,17 @@ export class Entity {
   private moveDirection: Vector2 = new Vector2();
   private faceDirection: Vector2 = new Vector2();
   public animationState: string = 'idle';
+  private health: number;
 
   public isAttacking: boolean = false;
 
   constructor(
-    private health: number,
     private maxHealth: number,
     private moveSpeed: number,
     protected position: Vector2,
     public sprite: SpriteModel
   ) {
-    this.update(0);
+    this.health = maxHealth;
   }
 
   public get currentPositionVector(): Vector2 {
@@ -24,7 +24,9 @@ export class Entity {
   }
 
   public update(deltaTime: number): void {
-    this.position = this.position.add(this.moveDirection.multiply(deltaTime));
+    this.position = this.position.add(
+      this.moveDirection.multiply(deltaTime).multiply(this.moveSpeed)
+    );
 
     this.sprite.setTransformation(this.position, this.faceDirection.angle());
     if (this.isAttacking && this.animationState !== 'attacking') {

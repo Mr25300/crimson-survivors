@@ -1,7 +1,7 @@
-import {Vector2} from '../util/vector2.js';
-import {Canvas} from '../rendering/canvas.js';
+import {Vector2} from '../../../util/vector2.js';
+import {Canvas} from '../../../rendering/canvas.js';
 
-export class Controller {
+export class PlayerController {
   private mouseDown: boolean = false;
   private mousePosition: Vector2 = new Vector2();
 

@@ -2,7 +2,7 @@ import {Entity} from './entity.js';
 import {Weapon} from './weapon.js';
 import {Vector2} from '../util/vector2.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
-import {Controller} from './controller.js';
+import {PlayerController} from './enemies/controllers/player-controller.js';
 
 export class Player extends Entity {
   private tool: Weapon | null;
@@ -10,10 +10,10 @@ export class Player extends Entity {
   private maximumTools: number = 0;
 
   constructor(
-    private controller: Controller,
+    private controller: PlayerController,
     spriteModel: SpriteModel
   ) {
-    super(100, 100, 3, new Vector2(), spriteModel);
+    super(100, 3, new Vector2(), spriteModel);
   }
 
   private switchWeapon(index: number): void {
