@@ -1,11 +1,11 @@
 import {Gameloop} from './gameloop.js';
 import {Canvas} from '../rendering/canvas.js';
-import {Controller, Player} from '../entities/entity.js';
-import {Weapon} from '../entities/weapon.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {Camera} from '../rendering/camera.js';
 import {Vector2} from '../util/vector2.js';
 import {SpriteSheet} from '../sprites/spritesheet.js';
+import {Player} from '../entities/player.js';
+import {Controller} from '../entities/controller.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
