@@ -1,12 +1,10 @@
 export class Weapon {
   constructor(
-  private _minDamage: number,
-  private _maxDamage: number,
-  private _name: string,
-  private _cooldown: number,
-  ){
-
-  }
+    private _minDamage: number,
+    private _maxDamage: number,
+    private _name: string,
+    private _cooldown: number
+  ) {}
 
   /*
    * @returns The cooldown in ms
@@ -19,8 +17,9 @@ export class Weapon {
     return this._name;
   }
 
-
   public calculateDamage(): number {
-    return Math.round(this._minDamage + Math.random()*(this._maxDamage - this._minDamage));
+    return Math.round(
+      this._minDamage + Math.random() * (this._maxDamage - this._minDamage)
+    );
   }
 }
