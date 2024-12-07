@@ -1,6 +1,6 @@
-import {Weapon} from './weapon.js';
-import {Vector2} from './../util/vector2.js';
-import {SpriteModel} from '../sprites/spritemodel.js';
+import {Weapon} from "./weapon.js";
+import {Vector2} from "./../util/vector2.js";
+import {SpriteModel} from "../sprites/spritemodel.js";
 export class Entity {
   private moveDirection: Vector2 = new Vector2(0, 0);
   private _currentMovementSpeed: number;
@@ -23,11 +23,9 @@ export class Entity {
   }
 
   public update(deltaTime: number): void {
-    this._currentPositionVector.x += this.moveDirection.x * deltaTime;
-    this._currentPositionVector.y += this.moveDirection.y * deltaTime;
+    this._currentPositionVector = this._currentPositionVector.add(this.moveDirection.multiply(deltaTime));
     this.sprite.setTransformation(
-      this._currentPositionVector.x,
-      this._currentPositionVector.y,
+      this._currentPositionVector,
       this.lookAngle
     );
   }
@@ -62,7 +60,7 @@ export class Player extends Entity {
     private spriteModel: SpriteModel
   ) {
     super(100, 1, new Vector2(0, 0), 0, spriteModel);
-    this.controller = new Controller('w', 'a', 's', 'd');
+    this.controller = new Controller("w", "a", "s", "d");
     this.maximumWeaponCount = maximumWeaponCount;
     this._allWeapons = new Array(this.maximumWeaponCount);
     this._allWeapons.push(_currentWeapon);
@@ -105,14 +103,17 @@ class Controller {
     private downKey: string,
     private rightKey: string
   ) {
-    document.addEventListener('mousemove', event => {
+    document.addEventListener("mousemove", event => {
       const centerX: number = window.innerWidth / 2;
       const centerY: number = window.innerHeight / 2;
-      this.mousePosition.x = event.pageX - centerX;
-      this.mousePosition.y = event.pageY - centerY;
+
+      this.mousePosition = new Vector2(
+        event.pageX - centerX,
+        event.pageY - centerY
+      );
     });
 
-    document.addEventListener('keydown', (event: KeyboardEvent) => {
+    document.addEventListener("keydown", (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === this.upKey) this.up = true;
@@ -121,7 +122,7 @@ class Controller {
       if (key === this.rightKey) this.right = true;
     });
 
-    document.addEventListener('keyup', (event: KeyboardEvent) => {
+    document.addEventListener("keyup", (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === upKey) this.up = false;

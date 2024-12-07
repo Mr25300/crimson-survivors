@@ -1,6 +1,6 @@
-import {ShaderProgram} from '../rendering/shaderprogram.js';
-import {Matrix4} from '../util/matrix4.js';
-import {SpriteModel} from './spritemodel.js';
+import { ShaderProgram } from "../rendering/shaderprogram.js";
+import { Matrix4 } from "../util/matrix4.js";
+import { SpriteModel } from "./spritemodel.js";
 
 export class SpriteSheet {
   private texture: WebGLTexture;
@@ -58,11 +58,8 @@ export class SpriteSheet {
     return model;
   }
 
-  public bind() {
+  public bind(): void {
     this.shader.bindTexture(this.texture);
-    this.shader.setUniformMatrix4(
-      'spriteScale',
-      Matrix4.fromScale(this.width, this.height).values
-    );
+    this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
   }
 }

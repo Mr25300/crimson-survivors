@@ -3,24 +3,32 @@
  */
 export class Vector2 {
   constructor(
-    public x: number,
-    public y: number
+    private _x: number = 0,
+    private _y: number = 0
   ) {}
 
+  public get x() {
+    return this._x;
+  }
+
+  public get y() {
+    return this._y;
+  }
+
   public add(vec: Vector2): Vector2 {
-    return new Vector2(this.x + vec.x, this.y + vec.y);
+    return new Vector2(this._x + vec._x, this._y + vec._y);
   }
 
   public subtract(vec: Vector2): Vector2 {
-    return new Vector2(this.x - vec.x, this.y - vec.y);
+    return new Vector2(this._x - vec._x, this._y - vec._y);
   }
 
   public multiply(scalar: number): Vector2 {
-    return new Vector2(this.x * scalar, this.y * scalar);
+    return new Vector2(this._x * scalar, this._y * scalar);
   }
 
-  public divide(scalar: number): Vector2 {
-    return new Vector2(this.x / scalar, this.y / scalar);
+  public divide(divisor: number): Vector2 {
+    return new Vector2(this._x / divisor, this._y / divisor);
   }
 
   /**
@@ -28,7 +36,7 @@ export class Vector2 {
    * @returns The magnitude of the vector.
    */
   public magnitude(): number {
-    return Math.sqrt(this.x ** 2 + this.y ** 2);
+    return Math.sqrt(this._x ** 2 + this._y ** 2);
   }
 
   /**
@@ -38,8 +46,12 @@ export class Vector2 {
   public unit(): Vector2 {
     const mag: number = this.magnitude();
 
-    if (mag == 0) return new Vector2(0, 0);
+    if (mag == 0) return new Vector2();
 
     return this.divide(mag);
+  }
+
+  public angle(): number {
+    return 0;
   }
 }
