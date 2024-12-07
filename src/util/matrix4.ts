@@ -1,4 +1,4 @@
-import { Vector2 } from "./vector2.js";
+import {Vector2} from './vector2.js';
 
 export class Matrix4 {
   public values: Float32Array;
