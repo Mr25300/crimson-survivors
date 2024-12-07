@@ -2,14 +2,16 @@ import {Gameloop} from './gameloop.js';
 import {Canvas} from '../rendering/canvas.js';
 import { Player } from '../entities/entity.js';
 import { Weapon } from '../entities/weapon.js';
+import { HitBox } from '../collisions/collisions.js';
+import { Vector2 } from '../util/vector2.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
 
   private canvas: Canvas;
 
+  private playerChar: Player;
 
-  private playerChar: Player; 
   private constructor() {
     super();
 
@@ -31,6 +33,7 @@ class Game extends Gameloop {
 
       const model = sprite.createModel();
       model.playAnimation('shoot', 0.1);
+
       this.playerChar = new Player(new Weapon(0,0,"BIDEN",0), 3, model);
 
       this.start();

@@ -1,4 +1,4 @@
-import { Vector2 } from "./vector2";
+import { Vector2 } from "./vector2.js";
 
 export class Matrix4 {
   public values: Float32Array;
@@ -37,7 +37,7 @@ export class Matrix4 {
     );
   }
 
-  public apply(vector: Vector2) {
+  public multiply(vector: Vector2) {
     const values = this.values;
 
     return new Vector2(

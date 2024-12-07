@@ -19,7 +19,7 @@ export class Entity {
   }
 
   public update(deltaTime: number){
-    console.log(this.moveDirection, deltaTime);
+    // console.log(this.moveDirection, deltaTime);
     this._currentPositionVector.x += this.moveDirection.x * deltaTime; 
     this._currentPositionVector.y += this.moveDirection.y * deltaTime; 
     this.sprite.setTransformation(this._currentPositionVector.x, this._currentPositionVector.y, 0);

@@ -22,7 +22,7 @@ export class Canvas {
 
     this.gl.enable(this.gl.DEPTH_TEST);
 
-    new ResizeObserver(([canvasEntry]) => {
+    new ResizeObserver(() => {
       const width = this.canvas.clientWidth;
       const height = this.canvas.clientHeight;
 
@@ -30,6 +30,7 @@ export class Canvas {
       this.canvas.height = height;
       this.aspectRatio = width / height;
       this.gl.viewport(0, 0, width, height);
+
     }).observe(this.canvas);
   }
 
