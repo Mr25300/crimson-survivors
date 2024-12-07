@@ -7,6 +7,7 @@ export class Entity {
 
   private moveDirection: Vector2 = new Vector2();
   private faceDirection: Vector2 = new Vector2();
+  public animationState: string = 'idle';
 
   public isAttacking: boolean = false;
 
@@ -28,6 +29,20 @@ export class Entity {
     this.position = this.position.add(this.moveDirection.multiply(deltaTime));
 
     this.sprite.setTransformation(this.position, this.faceDirection.angle());
+    if (this.isAttacking && this.animationState !== 'attacking') {
+      this.sprite.playAnimation('shoot', 0.25);
+      this.animationState = 'attacking';
+    } else if (!this.isAttacking && this.animationState === 'attacking') {
+      // if walking
+      if (this.moveDirection !== new Vector2(0, 0)) {
+        this.sprite.playAnimation('walking', 0.5);
+        this.animationState = 'walking';
+      } else {
+        this.sprite.playAnimation('walking', 0.5);
+        this.animationState = 'walking';
+      }
+      // if idle
+    }
   }
 
   public setFaceDirection(direction: Vector2): void {
@@ -66,6 +81,11 @@ export class Player extends Entity {
 
     this.setFaceDirection(mousePos.subtract(this.position).unit());
     this.setMoveDirection(this.controller.getMoveDirection());
+    if (this.controller.isShooting) {
+      this.isAttacking = true;
+    } else {
+      this.isAttacking = false;
+    }
   }
 }
 

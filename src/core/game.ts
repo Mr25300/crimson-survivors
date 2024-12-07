@@ -5,6 +5,7 @@ import {Weapon} from '../entities/weapon.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {Camera} from '../rendering/camera.js';
 import {Vector2} from '../util/vector2.js';
+import {SpriteSheet} from '../sprites/spritesheet.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -15,12 +16,12 @@ class Game extends Gameloop {
   private constructor() {
     super();
 
-    const camera = new Camera(new Vector2());
+    const camera: Camera = new Camera(new Vector2());
 
     this.canvas = new Canvas(camera);
 
-    this.canvas.init().then(() => {
-      const sprite = this.canvas.createSprite(
+    void this.canvas.init().then(() => {
+      const sprite: SpriteSheet = this.canvas.createSprite(
         1,
         1,
         11,
