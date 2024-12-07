@@ -1,5 +1,5 @@
-import { Matrix4 } from "../util/matrix4.js";
-import { Vector2 } from "../util/vector2.js";
+import {Matrix4} from '../util/matrix4.js';
+import {Vector2} from '../util/vector2.js';
 
 export class HitRay {
   constructor(
@@ -95,7 +95,10 @@ export class HitBox {
       new Vector2(this.width / 2, this.height / 2)
     ];
 
-    const rotationMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this.rotation);
+    const rotationMatrix: Matrix4 = Matrix4.fromTransformation(
+      undefined,
+      this.rotation
+    );
 
     for (let i: number = 0; i < 4; i++) {
       corners[i] = rotationMatrix.multiply(corners[i]).add(this.position);

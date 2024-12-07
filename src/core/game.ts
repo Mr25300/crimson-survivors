@@ -1,10 +1,10 @@
-import {Gameloop} from "./gameloop.js";
-import {Canvas} from "../rendering/canvas.js";
-import {Controller, Player} from "../entities/entity.js";
-import {Weapon} from "../entities/weapon.js";
-import { SpriteModel } from "../sprites/spritemodel.js";
-import { Camera } from "../rendering/camera.js";
-import { Vector2 } from "../util/vector2.js";
+import {Gameloop} from './gameloop.js';
+import {Canvas} from '../rendering/canvas.js';
+import {Controller, Player} from '../entities/entity.js';
+import {Weapon} from '../entities/weapon.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
+import {Camera} from '../rendering/camera.js';
+import {Vector2} from '../util/vector2.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -20,10 +20,17 @@ class Game extends Gameloop {
     this.canvas = new Canvas(camera);
 
     this.canvas.init().then(() => {
-      const sprite = this.canvas.createSprite(1, 1, 11, 3, 4, "res/assets/player.png");
+      const sprite = this.canvas.createSprite(
+        1,
+        1,
+        11,
+        3,
+        4,
+        'res/assets/player.png'
+      );
 
-      sprite.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5]);
-      sprite.createAnimation("shoot", [0, 1, 2]);
+      sprite.createAnimation('walking', [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5]);
+      sprite.createAnimation('shoot', [0, 1, 2]);
 
       // for (let i = 0; i < 5; i++) {
       //   const angle = (Math.PI * 2 * i) / 100;
@@ -33,11 +40,17 @@ class Game extends Gameloop {
       //   model.playAnimation("walking", 1, Math.random());
       // }
 
-      const controller: Controller = new Controller(this.canvas, "w", "a", "s", "d");
+      const controller: Controller = new Controller(
+        this.canvas,
+        'w',
+        'a',
+        's',
+        'd'
+      );
 
       const model: SpriteModel = sprite.createModel();
-      model.playAnimation("walking", 1);
-      
+      model.playAnimation('walking', 1);
+
       this.playerChar = new Player(controller, model);
 
       this.start();

@@ -1,7 +1,7 @@
-import {Weapon} from "./weapon.js";
-import {Vector2} from "./../util/vector2.js";
-import {SpriteModel} from "../sprites/spritemodel.js";
-import { Canvas } from "../rendering/canvas.js";
+import {Weapon} from './weapon.js';
+import {Vector2} from './../util/vector2.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
+import {Canvas} from '../rendering/canvas.js';
 export class Entity {
   private velocity: Vector2 = new Vector2();
 
@@ -97,7 +97,7 @@ export class Controller {
       this.mousePosition = new Vector2(event.clientX, event.clientY);
     });
 
-    document.addEventListener("keydown", (event: KeyboardEvent) => {
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === this.upKey) this.up = true;
@@ -106,7 +106,7 @@ export class Controller {
       if (key === this.rightKey) this.right = true;
     });
 
-    document.addEventListener("keyup", (event: KeyboardEvent) => {
+    document.addEventListener('keyup', (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === upKey) this.up = false;
@@ -117,7 +117,7 @@ export class Controller {
   }
 
   public getMousePosition(): Vector2 {
-    return this.canvas.pixelsToCoordinates(this.mousePosition)
+    return this.canvas.pixelsToCoordinates(this.mousePosition);
   }
 
   public getMoveDirection(): Vector2 {
