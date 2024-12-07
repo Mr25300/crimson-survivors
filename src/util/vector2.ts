@@ -52,6 +52,6 @@ export class Vector2 {
   }
 
   public angle(): number {
-    return 0;
+    return Math.atan2(this._x, this._y);
   }
 }

@@ -2,6 +2,8 @@ import {Util} from "../util/util.js";
 import {Matrix4} from "../util/matrix4.js";
 import {ShaderProgram} from "./shaderprogram.js";
 import {SpriteSheet} from "../sprites/spritesheet.js";
+import { Vector2 } from "../util/vector2.js";
+import { Camera } from "./camera.js";
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
@@ -9,11 +11,15 @@ export class Canvas {
   private shader: ShaderProgram;
 
   private screenUnitScale: number = 1 / 10;
-  private aspectRatio: number = 1;
+  private height: number;
+  private width: number;
+  private aspectRatio: number;
 
   private sprites: SpriteSheet[] = [];
 
-  constructor() {
+  constructor(
+    private camera: Camera
+  ) {
     this.canvas = document.getElementById("gameScreen") as HTMLCanvasElement;
     this.gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
 
@@ -22,14 +28,11 @@ export class Canvas {
 
     this.gl.enable(this.gl.DEPTH_TEST);
 
-    new ResizeObserver(() => {
-      const width = this.canvas.clientWidth;
-      const height = this.canvas.clientHeight;
+    this.updateDimenstions();
 
-      this.canvas.width = width;
-      this.canvas.height = height;
-      this.aspectRatio = width / height;
-      this.gl.viewport(0, 0, width, height);
+    new ResizeObserver(() => {
+      this.updateDimenstions();
+
     }).observe(this.canvas);
   }
 
@@ -68,6 +71,23 @@ export class Canvas {
     this.sprites.push(sprite);
 
     return sprite;
+  }
+
+  private updateDimenstions(): void {
+    this.width = this.canvas.clientWidth;
+    this.height = this.canvas.clientHeight;
+    
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+    this.aspectRatio = this.width / this.height;
+    this.gl.viewport(0, 0, this.width, this.height);
+  }
+
+  public pixelsToCoordinates(pPosition: Vector2): Vector2 {
+    const difference = new Vector2(pPosition.x - this.width/2, this.height/2 - pPosition.y);
+    const scaledDiff = difference.divide(this.screenUnitScale * this.height);
+
+    return scaledDiff.add(this.camera.position);
   }
 
   public update(deltaTime: number): void {
