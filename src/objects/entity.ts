@@ -1,4 +1,4 @@
-import {Vector2} from './../util/vector2.js';
+import {Vector2} from '../util/vector2.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 export class Entity {
   private velocity: Vector2 = new Vector2();

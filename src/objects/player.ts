@@ -1,6 +1,6 @@
 import {Entity} from './entity.js';
 import {Weapon} from './weapon.js';
-import {Vector2} from './../util/vector2.js';
+import {Vector2} from '../util/vector2.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {Controller} from './controller.js';
 

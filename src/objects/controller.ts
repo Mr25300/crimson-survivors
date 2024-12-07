@@ -1,4 +1,4 @@
-import {Vector2} from './../util/vector2.js';
+import {Vector2} from '../util/vector2.js';
 import {Canvas} from '../rendering/canvas.js';
 
 export class Controller {

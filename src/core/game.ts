@@ -4,8 +4,8 @@ import {SpriteModel} from '../sprites/spritemodel.js';
 import {Camera} from '../rendering/camera.js';
 import {Vector2} from '../util/vector2.js';
 import {SpriteSheet} from '../sprites/spritesheet.js';
-import {Player} from '../entities/player.js';
-import {Controller} from '../entities/controller.js';
+import {Player} from '../objects/player.js';
+import {Controller} from '../objects/controller.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
