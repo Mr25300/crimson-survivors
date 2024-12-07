@@ -5,6 +5,7 @@ export class Entity {
   private moveDirection: Vector2 = new Vector2(0, 0);
   private _currentMovementSpeed: number;
   private _currentVelocity: Vector2;
+  public isAttacking: boolean = false;
 
   constructor(
     private _healthPoints: number,
@@ -25,6 +26,11 @@ export class Entity {
   public update(deltaTime: number): void {
     this._currentPositionVector.x += this.moveDirection.x * deltaTime;
     this._currentPositionVector.y += this.moveDirection.y * deltaTime;
+    if (this.isAttacking) {
+      this.sprite.playAnimation('shoot', 0.5);
+    } else {
+      this.sprite.playAnimation('walking', 0.5);
+    }
     this.sprite.setTransformation(
       this._currentPositionVector.x,
       this._currentPositionVector.y,
@@ -84,11 +90,11 @@ export class Player extends Entity {
       this.controller.getMouseLocation().x - this.currentPositionVector.x;
     const dy: number =
       this.controller.getMouseLocation().y - this.currentPositionVector.y;
+    this.isAttacking = this.controller.isShooting;
 
     // Add canvas method to convert mouse to x, y position and use facing direction vector instead of look angle
     // Calculate look angle every frame and multiply movedirection by rotation matrix of look angle
     this.lookAngle = Math.atan2(dy, dx) + Math.PI / 2;
-    console.log(this.lookAngle);
   }
 }
 
@@ -97,6 +103,7 @@ class Controller {
   private down: boolean;
   private left: boolean;
   private right: boolean;
+  private _isShooting: boolean = false;
   private mousePosition: Vector2 = new Vector2(0, 0);
 
   constructor(
@@ -105,6 +112,14 @@ class Controller {
     private downKey: string,
     private rightKey: string
   ) {
+    document.addEventListener('mousedown', () => {
+      this._isShooting = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+      this._isShooting = false;
+    });
+
     document.addEventListener('mousemove', event => {
       const centerX: number = window.innerWidth / 2;
       const centerY: number = window.innerHeight / 2;
@@ -142,8 +157,11 @@ class Controller {
     return direction.unit();
   }
 
+  public get isShooting(): boolean {
+    return this._isShooting;
+  }
+
   public getMouseLocation(): Vector2 {
     return this.mousePosition;
-    // return our look angle in radians
   }
 }
