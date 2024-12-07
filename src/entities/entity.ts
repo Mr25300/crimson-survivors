@@ -1,8 +1,8 @@
 import {Weapon} from './weapon.js';
 import {Vector2} from './../util/vector2.js';
+import { SpriteModel } from '../sprites/spritemodel.js';
 export class Entity {
-  private moveDirection: Vector2;
-
+  private moveDirection: Vector2 = new Vector2(0,0);
   private _currentMovementSpeed: number;
   private _currentVelocity: Vector2;
 
@@ -10,6 +10,8 @@ export class Entity {
     private _healthPoints: number,
     private _defaultMovementSpeed: number,
     private _currentPositionVector: Vector2,
+    private _lookAngle: number,
+    public sprite: SpriteModel,
   ) {
     this._currentMovementSpeed = _defaultMovementSpeed;
     this._currentVelocity = new Vector2(0, 0);
@@ -17,13 +19,18 @@ export class Entity {
   }
 
   public update(deltaTime: number){
-    let targetPostion = this._currentPositionVector;
-    // math bs
-    this._currentPositionVector = targetPostion; // upddated final target position
+    console.log(this.moveDirection, deltaTime);
+    this._currentPositionVector.x += this.moveDirection.x * deltaTime; 
+    this._currentPositionVector.y += this.moveDirection.y * deltaTime; 
+    this.sprite.setTransformation(this._currentPositionVector.x, this._currentPositionVector.y, 0);
   }
 
   public setMoveDirection(direction: Vector2) {
     this.moveDirection = direction.unit();
+  }
+
+  public get lookAngle(): number {
+    return this._lookAngle;
   }
 
   public get healthPoints(): number {
@@ -44,11 +51,28 @@ export class Entity {
 }
 export class Player extends Entity {
   private controller: Controller;
-
-  constructor() {
-    super(0, 0, new Vector2(0, 0));
-
+  private maximumWeaponCount: number;
+  private _allWeapons: Weapon[];
+  constructor(
+    private _currentWeapon: Weapon,
+    maximumWeaponCount: number,
+    private spriteModel: SpriteModel
+  ) {
+    super(100, 1, new Vector2(0, 0), 0, spriteModel);
     this.controller = new Controller('w', 'a', 's', 'd');
+    this.maximumWeaponCount = maximumWeaponCount;
+    this._allWeapons = new Array(this.maximumWeaponCount);
+    this._allWeapons.push(_currentWeapon);
+  }
+
+  private switchWeapon(index: number): void {
+    this._currentWeapon = this._allWeapons[index];
+  }
+
+  private pickupWeapon(weaponOnFloor: Weapon): void {
+    if (this._allWeapons.length <= this.maximumWeaponCount) {
+      this._allWeapons.push(weaponOnFloor);
+    }
   }
 
   public input() {
@@ -71,10 +95,10 @@ class Controller {
     document.addEventListener("keydown", (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
 
-      if (key == upKey) this.up = true;
-      if (key == leftKey) this.left = true;
-      if (key == downKey) this.down = true;
-      if (key == rightKey) this.right = true;
+      if (key == this.upKey) this.up = true;
+      if (key == this.leftKey) this.left = true;
+      if (key == this.downKey) this.down = true;
+      if (key == this.rightKey) this.right = true;
     });
 
     document.addEventListener("keyup", (event: KeyboardEvent) => {
