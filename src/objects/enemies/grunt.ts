@@ -11,7 +11,7 @@ export class Grunt extends Entity {
     super(30, 0.5, position, sprite);
     this.setFaceDirection(new Vector2(1, 0));
     this.setMoveDirection(new Vector2(1, 0));
-    this.isAttacking = true;
+    this.isAttacking = false;
     this.animationState = 'idle';
   }
   public pathFind(playerLocation: Vector2): void {
@@ -21,8 +21,10 @@ export class Grunt extends Entity {
     ) {
       this.setFaceDirection(playerLocation.subtract(this.position).unit());
       this.setMoveDirection(playerLocation.subtract(this.position).unit());
+      this.isAttacking = true;
     } else {
       this.setMoveDirection(new Vector2(0, 0));
+      this.isAttacking = false;
     }
   }
 }
