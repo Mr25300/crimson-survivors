@@ -24,14 +24,27 @@ export class HitRay {
     const x0: number = (-b - discriminant) / (2 * a);
     const x1: number = (-b + discriminant) / (2 * a);
 
-    const rayX0: number = Math.min(relativeRay.x, relativeRay.x + this.direction.x);
-    const rayX1: number = Math.max(relativeRay.x, relativeRay.x + this.direction.x);
+    const rayX0: number = Math.min(
+      relativeRay.x,
+      relativeRay.x + this.direction.x
+    );
+    const rayX1: number = Math.max(
+      relativeRay.x,
+      relativeRay.x + this.direction.x
+    );
 
     if (x0 >= rayX0 && x1 <= rayX1) {
-      const xIntersection: number = (this.direction.x < 0 ? x1 : x0);
-      const pointIntersection: Vector2 = new Vector2(xIntersection, xIntersection * lineM + lineB);
+      const xIntersection: number = this.direction.x < 0 ? x1 : x0;
+      const pointIntersection: Vector2 = new Vector2(
+        xIntersection,
+        xIntersection * lineM + lineB
+      );
 
-      return [true, pointIntersection.add(circle.position), pointIntersection.unit()];
+      return [
+        true,
+        pointIntersection.add(circle.position),
+        pointIntersection.unit()
+      ];
     }
 
     return [false];
@@ -76,10 +89,10 @@ export class HitBox {
 
   public getCorners(): Vector2[] {
     const corners: Vector2[] = [
-      new Vector2(-this.width/2, -this.height/2),
-      new Vector2(this.width/2, -this.height/2),
-      new Vector2(-this.width/2, this.height/2),
-      new Vector2(this.width/2, this.height/2)
+      new Vector2(-this.width / 2, -this.height / 2),
+      new Vector2(this.width / 2, -this.height / 2),
+      new Vector2(-this.width / 2, this.height / 2),
+      new Vector2(this.width / 2, this.height / 2)
     ];
 
     const rotationMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this.rotation);

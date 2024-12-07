@@ -30,7 +30,6 @@ export class Canvas {
       this.canvas.height = height;
       this.aspectRatio = width / height;
       this.gl.viewport(0, 0, width, height);
-
     }).observe(this.canvas);
   }
 
