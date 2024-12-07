@@ -97,11 +97,9 @@ export class Canvas {
     this.gl.clearColor(0, 0, 0, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const screenMatrix = Matrix4.fromScale(
-      this.screenUnitScale * 2 / this.aspectRatio, this.screenUnitScale * 2
-    );
+    const screenMatrix = Matrix4.fromScale(this.screenUnitScale * 2 / this.aspectRatio, this.screenUnitScale * 2);
 
-    this.shader.setUniformMatrix4('screenProjection', screenMatrix);
+    this.shader.setUniformMatrix4('screenProjection', screenMatrix.values);
 
     for (const sprite of this.sprites) {
       sprite.bind();

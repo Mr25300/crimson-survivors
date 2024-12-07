@@ -25,7 +25,7 @@ export class SpriteModel {
   public setCurrentSprite(n: number): void {
     this.currentSprite = n;
   }
-  
+
   public playAnimation(
     name: string,
     duration: number,
@@ -64,7 +64,7 @@ export class SpriteModel {
     );
     this.shader.setUniformMatrix4(
       'modelTransform',
-      Matrix4.fromTransformation(this.x, this.y, this.rot),
+      Matrix4.fromTransformation(this.x, this.y, this.rot).values,
     );
   }
 }

@@ -8,7 +8,7 @@ export class HitRay {
 }
 
 export class HitRadius {
-
+  
 }
 
 export class HitBox {

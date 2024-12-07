@@ -62,7 +62,7 @@ export class SpriteSheet {
     this.shader.bindTexture(this.texture);
     this.shader.setUniformMatrix4(
       'spriteScale',
-      Matrix4.fromScale(this.width, this.height),
+      Matrix4.fromScale(this.width, this.height).values,
     );
   }
 }
