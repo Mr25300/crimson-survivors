@@ -1,8 +1,8 @@
 import {Weapon} from './weapon.js';
 import {Vector2} from './../util/vector2.js';
-import { SpriteModel } from '../sprites/spritemodel.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
 export class Entity {
-  private moveDirection: Vector2 = new Vector2(0,0);
+  private moveDirection: Vector2 = new Vector2(0, 0);
   private _currentMovementSpeed: number;
   private _currentVelocity: Vector2;
 
@@ -10,27 +10,30 @@ export class Entity {
     private _healthPoints: number,
     private _defaultMovementSpeed: number,
     private _currentPositionVector: Vector2,
-    private _lookAngle: number,
-    public sprite: SpriteModel,
+    public lookAngle: number = 0,
+    public sprite: SpriteModel
   ) {
     this._currentMovementSpeed = _defaultMovementSpeed;
     this._currentVelocity = new Vector2(0, 0);
     this.update(0);
   }
 
-  public update(deltaTime: number){
-    console.log(this.moveDirection, deltaTime);
-    this._currentPositionVector.x += this.moveDirection.x * deltaTime; 
-    this._currentPositionVector.y += this.moveDirection.y * deltaTime; 
-    this.sprite.setTransformation(this._currentPositionVector.x, this._currentPositionVector.y, 0);
+  public get currentPositionVector(): Vector2 {
+    return this._currentPositionVector;
   }
 
-  public setMoveDirection(direction: Vector2) {
+  public update(deltaTime: number): void {
+    this._currentPositionVector.x += this.moveDirection.x * deltaTime;
+    this._currentPositionVector.y += this.moveDirection.y * deltaTime;
+    this.sprite.setTransformation(
+      this._currentPositionVector.x,
+      this._currentPositionVector.y,
+      this.lookAngle
+    );
+  }
+
+  public setMoveDirection(direction: Vector2): void {
     this.moveDirection = direction.unit();
-  }
-
-  public get lookAngle(): number {
-    return this._lookAngle;
   }
 
   public get healthPoints(): number {
@@ -75,8 +78,16 @@ export class Player extends Entity {
     }
   }
 
-  public input() {
+  public input(): void {
     this.setMoveDirection(this.controller.getMoveDirection());
+    const dx: number =
+      this.controller.getMouseLocation().x - this.currentPositionVector.x;
+    const dy: number =
+      this.controller.getMouseLocation().y - this.currentPositionVector.y;
+
+    // Calculate the angle using Math.atan2
+    this.lookAngle = Math.atan2(dy, dx) + Math.PI / 2;
+    console.log(this.lookAngle);
   }
 }
 
@@ -85,6 +96,7 @@ class Controller {
   private down: boolean;
   private left: boolean;
   private right: boolean;
+  private mousePosition: Vector2 = new Vector2(0, 0);
 
   constructor(
     private upKey: string,
@@ -92,27 +104,34 @@ class Controller {
     private downKey: string,
     private rightKey: string
   ) {
-    document.addEventListener("keydown", (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-
-      if (key == this.upKey) this.up = true;
-      if (key == this.leftKey) this.left = true;
-      if (key == this.downKey) this.down = true;
-      if (key == this.rightKey) this.right = true;
+    document.addEventListener('mousemove', event => {
+      const centerX: number = window.innerWidth / 2;
+      const centerY: number = window.innerHeight / 2;
+      this.mousePosition.x = event.pageX - centerX;
+      this.mousePosition.y = event.pageY - centerY;
     });
 
-    document.addEventListener("keyup", (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      const key: string = event.key.toLowerCase();
 
-      if (key == upKey) this.up = false;
-      if (key == leftKey) this.left = false;
-      if (key == downKey) this.down = false;
-      if (key == rightKey) this.right = false;
+      if (key === this.upKey) this.up = true;
+      if (key === this.leftKey) this.left = true;
+      if (key === this.downKey) this.down = true;
+      if (key === this.rightKey) this.right = true;
+    });
+
+    document.addEventListener('keyup', (event: KeyboardEvent) => {
+      const key: string = event.key.toLowerCase();
+
+      if (key === upKey) this.up = false;
+      if (key === leftKey) this.left = false;
+      if (key === downKey) this.down = false;
+      if (key === rightKey) this.right = false;
     });
   }
 
-  public getMoveDirection() {
-    let direction = new Vector2(0, 0);
+  public getMoveDirection(): Vector2 {
+    let direction: Vector2 = new Vector2(0, 0);
 
     if (this.up) direction = direction.add(new Vector2(0, 1));
     if (this.down) direction = direction.subtract(new Vector2(0, 1));
@@ -120,5 +139,10 @@ class Controller {
     if (this.right) direction = direction.add(new Vector2(1, 0));
 
     return direction.unit();
+  }
+
+  public getMouseLocation(): Vector2 {
+    return this.mousePosition;
+    // return our look angle in radians
   }
 }

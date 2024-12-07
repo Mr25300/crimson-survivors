@@ -37,7 +37,6 @@ export class Canvas {
     await Promise.all([
       Util.loadShaderFile('res/shaders/vertex.glsl'),
       Util.loadShaderFile('res/shaders/fragment.glsl')
-
     ]).then(([vertSource, fragSource]) => {
       this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
       this.shader.use();
@@ -56,7 +55,7 @@ export class Canvas {
    */
   private createUniversalVertexBuffer(): void {
     const vertexBuffer = this.shader.createBuffer(
-      new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]),
+      new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5])
     );
 
     this.shader.setAttribBuffer('vertexPos', vertexBuffer, 2, 0, 0);
@@ -68,16 +67,16 @@ export class Canvas {
     spriteCount: number,
     columns: number,
     rows: number,
-    imagePath: string,
-
+    imagePath: string
   ): SpriteSheet {
-    const sprite = new SpriteSheet(this.shader,
+    const sprite = new SpriteSheet(
+      this.shader,
       width,
       height,
       spriteCount,
       columns,
       rows,
-      imagePath,
+      imagePath
     );
 
     this.sprites.push(sprite);
@@ -95,9 +94,16 @@ export class Canvas {
 
   public render(): void {
     this.gl.clearColor(0, 0, 0, 1);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
+    this.gl.clear(
+      this.gl.COLOR_BUFFER_BIT |
+        this.gl.DEPTH_BUFFER_BIT |
+        this.gl.STENCIL_BUFFER_BIT
+    );
 
-    const screenMatrix = Matrix4.fromScale(this.screenUnitScale * 2 / this.aspectRatio, this.screenUnitScale * 2);
+    const screenMatrix = Matrix4.fromScale(
+      (this.screenUnitScale * 2) / this.aspectRatio,
+      this.screenUnitScale * 2
+    );
 
     this.shader.setUniformMatrix4('screenProjection', screenMatrix.values);
 

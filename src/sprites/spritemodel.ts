@@ -60,11 +60,11 @@ export class SpriteModel {
       this.sprite.getBuffer(),
       2,
       0,
-      this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT,
+      this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT
     );
     this.shader.setUniformMatrix4(
       'modelTransform',
-      Matrix4.fromTransformation(this.x, this.y, this.rot).values,
+      Matrix4.fromTransformation(this.x, this.y, this.rot).values
     );
   }
 }

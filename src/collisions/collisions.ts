@@ -1,4 +1,4 @@
-import { Vector2 } from '../util/vector2.js';
+import {Vector2} from '../util/vector2.js';
 
 export class HitRay {
   constructor(
@@ -7,9 +7,7 @@ export class HitRay {
   ) {}
 }
 
-export class HitRadius {
-  
-}
+export class HitRadius {}
 
 export class HitBox {
   private position: Vector2;
@@ -26,8 +24,6 @@ export class HitBox {
   }
 
   public getRayCollision(ray: HitRay): HitRay {
-    
-
     return ray;
   }
 
