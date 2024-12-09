@@ -1,4 +1,4 @@
-export class Weapon {
+export class Tool {
   constructor(
     private _minDamage: number,
     private _maxDamage: number,

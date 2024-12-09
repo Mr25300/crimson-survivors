@@ -1,26 +1,28 @@
 import {Entity} from "./entity.js";
-import {Weapon} from "./weapon.js";
+import {Tool} from "./tool.js";
 import {Vector2} from "../util/vector2.js";
 import {SpriteModel} from "../sprites/spritemodel.js";
 import {PlayerController} from "./enemies/controllers/player-controller.js";
 
 export class Player extends Entity {
-  private tool: Weapon | null;
-  private tools: Weapon[] = [];
+  private tool: Tool | null;
+  private tools: Tool[] = [];
   private maximumTools: number = 0;
 
   constructor(
-    private controller: PlayerController,
-    spriteModel: SpriteModel
+    sprite: SpriteModel,
+    width: number,
+    height: number,
+    private controller: PlayerController
   ) {
-    super(100, 3, new Vector2(), spriteModel);
+    super(sprite, width, height, 100, 2);
   }
 
   private switchWeapon(index: number): void {
     this.tool = this.tools[index];
   }
 
-  private pickupWeapon(weaponOnFloor: Weapon): void {
+  private pickupWeapon(weaponOnFloor: Tool): void {
     if (this.tools.length <= this.maximumTools) {
       this.tools.push(weaponOnFloor);
     }
@@ -31,10 +33,5 @@ export class Player extends Entity {
 
     this.setFaceDirection(mousePos.subtract(this.position).unit());
     this.setMoveDirection(this.controller.getMoveDirection());
-    if (this.controller.isShooting) {
-      this.isAttacking = true;
-    } else {
-      this.isAttacking = false;
-    }
   }
 }

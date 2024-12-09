@@ -1,5 +1,7 @@
 import {Vector2} from "../util/vector2.js";
 import {SpriteModel} from "../sprites/spritemodel.js";
+import { GameObject } from "./gameobject.js";
+import { HitBox } from "../collisions/collisions.js";
 
 export class StateMachine {
 
@@ -11,49 +13,46 @@ export abstract class State {
   abstract leave(): void;
 }
 
-export class Entity {
+export class Entity extends GameObject {
+  private accelTime: number = 0.1;
   private velocity: Vector2 = new Vector2();
 
   private moveDirection: Vector2 = new Vector2();
   private faceDirection: Vector2 = new Vector2();
-  public animationState: string = "idle";
+
   private health: number;
 
-  public isAttacking: boolean = false;
-
   constructor(
-    private maxHealth: number,
-    private moveSpeed: number,
-    protected position: Vector2,
-    public sprite: SpriteModel
+    sprite: SpriteModel,
+    protected width: number,
+    protected height: number,
+    protected maxHealth: number,
+    protected moveSpeed: number
   ) {
+    super(sprite);
+
     this.health = maxHealth;
   }
 
-  public get currentPositionVector(): Vector2 {
-    return this.position;
+  public getHitbox(): HitBox {
+    return new HitBox(this.position, this.rotation, this.width, this.height);
   }
 
   public update(deltaTime: number): void {
-    this.position = this.position.add(
-      this.moveDirection.multiply(deltaTime).multiply(this.moveSpeed)
-    );
+    const goalVelocity: Vector2 = this.moveDirection.multiply(this.moveSpeed);
+    const difference: Vector2 = goalVelocity.subtract(this.velocity);
 
-    this.sprite.setTransformation(this.position, this.faceDirection.angle());
-    if (this.isAttacking && this.animationState !== "attacking") {
-      this.sprite.playAnimation("shoot", false, 0.25);
-      this.animationState = "attacking";
-    } else if (!this.isAttacking && this.animationState === "attacking") {
-      // if walking
-      if (this.moveDirection !== new Vector2(0, 0)) {
-        this.sprite.playAnimation("walking", true, 0.5);
-        this.animationState = "walking";
-      } else {
-        this.sprite.playAnimation("walking", true, 0.5);
-        this.animationState = "walking";
-      }
-      // if idle
-    }
+    const acceleration: Vector2 = difference.divide(this.accelTime);
+
+    const velDisplacement: Vector2 = this.velocity.multiply(deltaTime);
+    const accelDisplacement: Vector2 = acceleration.multiply(deltaTime ** 2 / 2);
+
+    this.position = this.position.add(velDisplacement).add(accelDisplacement);
+    this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
+
+    this.rotation = this.faceDirection.angle();
+
+    this.updateSprite();
   }
 
   public setFaceDirection(direction: Vector2): void {
