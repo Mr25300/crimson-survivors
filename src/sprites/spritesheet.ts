@@ -9,7 +9,7 @@ export class SpriteSheet {
   public models: SpriteModel[] = [];
   public animationFrames: Map<string, number[]> = new Map();
 
-  constructor(
+  constructor( // ADD Z-LEVEL TO SPRITESHEET
     private shader: ShaderProgram,
     private width: number,
     private height: number,
