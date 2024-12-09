@@ -1,5 +1,5 @@
-import {Vector2} from '../../../util/vector2.js';
-import {Canvas} from '../../../rendering/canvas.js';
+import {Vector2} from "../../../util/vector2.js";
+import {Canvas} from "../../../rendering/canvas.js";
 
 export class PlayerController {
   private mouseDown: boolean = false;
@@ -17,19 +17,19 @@ export class PlayerController {
     private downKey: string,
     private rightKey: string
   ) {
-    document.addEventListener('mousedown', () => {
+    document.addEventListener("mousedown", () => {
       this.mouseDown = true;
     });
 
-    document.addEventListener('mouseup', () => {
+    document.addEventListener("mouseup", () => {
       this.mouseDown = false;
     });
 
-    document.addEventListener('mousemove', (event: MouseEvent) => {
+    document.addEventListener("mousemove", (event: MouseEvent) => {
       this.mousePosition = new Vector2(event.clientX, event.clientY);
     });
 
-    document.addEventListener('keydown', (event: KeyboardEvent) => {
+    document.addEventListener("keydown", (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === this.upKey) this.up = true;
@@ -38,7 +38,7 @@ export class PlayerController {
       if (key === this.rightKey) this.right = true;
     });
 
-    document.addEventListener('keyup', (event: KeyboardEvent) => {
+    document.addEventListener("keyup", (event: KeyboardEvent) => {
       const key: string = event.key.toLowerCase();
 
       if (key === upKey) this.up = false;

@@ -31,7 +31,7 @@ export abstract class Gameloop {
     });
   }
 
-  private stop(): void {
+  protected stop(): void {
     this.running = false;
   }
 

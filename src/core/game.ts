@@ -67,8 +67,8 @@ class Game extends Gameloop {
 
       const model: SpriteModel = sprite.createModel();
       const badModel: SpriteModel = enemySprite.createModel();
-      model.playAnimation('walking', 1);
-      badModel.playAnimation('walking', 1);
+      model.playAnimation('walking', true, 1);
+      badModel.playAnimation('walking', true, 1);
 
       this.playerChar = new Player(controller, model);
       this.enemeyChar = new Grunt(new Vector2(0, 0), badModel);
@@ -84,6 +84,14 @@ class Game extends Gameloop {
   }
 
   protected update(deltaTime: number): void {
+    // handle input
+    // pathfinding in seperate input method
+    // entity physics
+    // hitbox checks for attacks and entites
+    // projectile physics
+    // animations (canvas update)
+    // render
+
     this.playerChar.input();
     this.playerChar.update(deltaTime);
     this.enemeyChar.pathFind(this.playerChar.currentPositionVector);

@@ -1,6 +1,6 @@
-import {SpriteModel} from '../../sprites/spritemodel.js';
-import {Vector2} from '../../util/vector2.js';
-import {Entity} from '../entity.js';
+import {SpriteModel} from "../../sprites/spritemodel.js";
+import {Vector2} from "../../util/vector2.js";
+import {Entity} from "../entity.js";
 
 export class Grunt extends Entity {
   private detectionRadius: number = 5;
@@ -12,7 +12,7 @@ export class Grunt extends Entity {
     this.setFaceDirection(new Vector2(1, 0));
     this.setMoveDirection(new Vector2(1, 0));
     this.isAttacking = false;
-    this.animationState = 'idle';
+    this.animationState = "idle";
   }
   public pathFind(playerLocation: Vector2): void {
     // if in range

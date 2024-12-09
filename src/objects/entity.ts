@@ -1,11 +1,22 @@
-import {Vector2} from '../util/vector2.js';
-import {SpriteModel} from '../sprites/spritemodel.js';
+import {Vector2} from "../util/vector2.js";
+import {SpriteModel} from "../sprites/spritemodel.js";
+
+export class StateMachine {
+
+}
+
+export abstract class State {
+  abstract enter(): void;
+  abstract update(deltaTime: number): void;
+  abstract leave(): void;
+}
+
 export class Entity {
   private velocity: Vector2 = new Vector2();
 
   private moveDirection: Vector2 = new Vector2();
   private faceDirection: Vector2 = new Vector2();
-  public animationState: string = 'idle';
+  public animationState: string = "idle";
   private health: number;
 
   public isAttacking: boolean = false;
@@ -29,17 +40,17 @@ export class Entity {
     );
 
     this.sprite.setTransformation(this.position, this.faceDirection.angle());
-    if (this.isAttacking && this.animationState !== 'attacking') {
-      this.sprite.playAnimation('shoot', 0.25);
-      this.animationState = 'attacking';
-    } else if (!this.isAttacking && this.animationState === 'attacking') {
+    if (this.isAttacking && this.animationState !== "attacking") {
+      this.sprite.playAnimation("shoot", false, 0.25);
+      this.animationState = "attacking";
+    } else if (!this.isAttacking && this.animationState === "attacking") {
       // if walking
       if (this.moveDirection !== new Vector2(0, 0)) {
-        this.sprite.playAnimation('walking', 0.5);
-        this.animationState = 'walking';
+        this.sprite.playAnimation("walking", true, 0.5);
+        this.animationState = "walking";
       } else {
-        this.sprite.playAnimation('walking', 0.5);
-        this.animationState = 'walking';
+        this.sprite.playAnimation("walking", true, 0.5);
+        this.animationState = "walking";
       }
       // if idle
     }

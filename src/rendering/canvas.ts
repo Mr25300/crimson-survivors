@@ -1,9 +1,9 @@
-import {Util} from '../util/util.js';
-import {Matrix4} from '../util/matrix4.js';
-import {ShaderProgram} from './shaderprogram.js';
-import {SpriteSheet} from '../sprites/spritesheet.js';
-import {Vector2} from '../util/vector2.js';
-import {Camera} from './camera.js';
+import {Util} from "../util/util.js";
+import {Matrix4} from "../util/matrix4.js";
+import {ShaderProgram} from "./shaderprogram.js";
+import {SpriteSheet} from "../sprites/spritesheet.js";
+import {Vector2} from "../util/vector2.js";
+import {Camera} from "./camera.js";
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
@@ -18,8 +18,8 @@ export class Canvas {
   private sprites: SpriteSheet[] = [];
 
   constructor(private camera: Camera) {
-    this.canvas = document.getElementById('gameScreen') as HTMLCanvasElement;
-    this.gl = this.canvas.getContext('webgl2') as WebGL2RenderingContext;
+    this.canvas = document.getElementById("gameScreen") as HTMLCanvasElement;
+    this.gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
 
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -35,16 +35,16 @@ export class Canvas {
 
   public async init(): Promise<void> {
     await Promise.all([
-      Util.loadShaderFile('res/shaders/vertex.glsl'),
-      Util.loadShaderFile('res/shaders/fragment.glsl')
+      Util.loadShaderFile("res/shaders/vertex.glsl"),
+      Util.loadShaderFile("res/shaders/fragment.glsl")
     ]).then(([vertSource, fragSource]) => {
       this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
       this.shader.use();
-      this.shader.createAttrib('vertexPos');
-      this.shader.createAttrib('textureCoord');
-      this.shader.createUniform('screenProjection');
-      this.shader.createUniform('spriteScale');
-      this.shader.createUniform('modelTransform');
+      this.shader.createAttrib("vertexPos");
+      this.shader.createAttrib("textureCoord");
+      this.shader.createUniform("screenProjection");
+      this.shader.createUniform("spriteScale");
+      this.shader.createUniform("modelTransform");
 
       this.createUniversalVertexBuffer();
     });
@@ -58,7 +58,7 @@ export class Canvas {
       new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5])
     );
 
-    this.shader.setAttribBuffer('vertexPos', vertexBuffer, 2, 0, 0);
+    this.shader.setAttribBuffer("vertexPos", vertexBuffer, 2, 0, 0);
   }
 
   public createSprite(
@@ -125,7 +125,7 @@ export class Canvas {
       this.screenUnitScale * 2
     );
 
-    this.shader.setUniformMatrix4('screenProjection', screenMatrix.values);
+    this.shader.setUniformMatrix4("screenProjection", screenMatrix.values);
 
     for (const sprite of this.sprites) {
       sprite.bind();

@@ -1,7 +1,7 @@
-import {ShaderProgram} from '../rendering/shaderprogram.js';
-import {Matrix4} from '../util/matrix4.js';
-import {Vector2} from '../util/vector2.js';
-import {SpriteSheet} from './spritesheet.js';
+import {ShaderProgram} from "../rendering/shaderprogram.js";
+import {Matrix4} from "../util/matrix4.js";
+import {Vector2} from "../util/vector2.js";
+import {SpriteSheet} from "./spritesheet.js";
 
 export class SpriteModel {
   private position: Vector2 = new Vector2();
@@ -26,18 +26,19 @@ export class SpriteModel {
 
   public playAnimation(
     name: string,
+    looped: boolean,
     duration: number,
     timePassed: number = 0
   ): void {
     const frames = this.sprite.getAnimationFrames(name);
 
     if (!frames) {
-      console.error('Sprite animation frames for "name" do not exist.');
+      console.error(`Sprite animation frames for "name" do not exist.`);
 
       return;
     }
 
-    this.activeAnim = new SpriteAnimation(this, frames, duration, timePassed);
+    this.activeAnim = new SpriteAnimation(this, frames, looped, duration, timePassed);
   }
 
   public stopAnimation() {
@@ -54,14 +55,14 @@ export class SpriteModel {
 
   public bind(): void {
     this.shader.setAttribBuffer(
-      'textureCoord',
+      "textureCoord",
       this.sprite.getBuffer(),
       2,
       0,
       this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT
     );
     this.shader.setUniformMatrix4(
-      'modelTransform',
+      "modelTransform",
       Matrix4.fromTransformation(this.position, this.rotation).values
     );
   }
@@ -71,12 +72,23 @@ export class SpriteAnimation {
   constructor(
     private model: SpriteModel,
     private frames: number[],
+    private looped: boolean,
     private duration: number,
     private timePassed: number
   ) {}
 
-  public update(deltaTime: number) {
-    this.timePassed = (this.timePassed + deltaTime) % this.duration;
+  public update(deltaTime: number): void {
+    this.timePassed = this.timePassed + deltaTime;
+
+    if (this.timePassed > this.duration) {
+      if (!this.looped) {
+        this.model.stopAnimation();
+
+        return;
+      }
+
+      this.timePassed %= this.duration;
+    }
 
     const percentThrough = this.timePassed / this.duration;
     const frameIndex = Math.floor(this.frames.length * percentThrough);

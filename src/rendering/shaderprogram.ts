@@ -1,4 +1,4 @@
-import {Util} from '../util/util.js';
+import {Util} from "../util/util.js";
 
 export class ShaderProgram {
   private program: WebGLProgram;
@@ -15,7 +15,7 @@ export class ShaderProgram {
   ) {
     const program = gl.createProgram();
 
-    if (program == null) throw new Error('Failed to create program.');
+    if (program == null) throw new Error("Failed to create program.");
 
     this.program = program;
     this.vertShader = this.createShader(gl.VERTEX_SHADER, vertSource);
@@ -25,7 +25,7 @@ export class ShaderProgram {
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error(
-        'Failed to link shader program: ' + gl.getProgramInfoLog(program)
+        "Failed to link shader program: " + gl.getProgramInfoLog(program)
       );
     }
 
@@ -33,7 +33,7 @@ export class ShaderProgram {
 
     if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
       console.error(
-        'Failed to validate shader program: ' + gl.getProgramInfoLog(program)
+        "Failed to validate shader program: " + gl.getProgramInfoLog(program)
       );
     }
   }
@@ -41,7 +41,7 @@ export class ShaderProgram {
   private createShader(type: GLenum, source: string): WebGLShader {
     const shader = this.gl.createShader(type);
 
-    if (shader == null) throw new Error('Failed to create shader.');
+    if (shader == null) throw new Error("Failed to create shader.");
 
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -50,7 +50,7 @@ export class ShaderProgram {
       this.gl.deleteShader(shader);
 
       throw new Error(
-        `Error compiling ${type == this.gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader: ` +
+        `Error compiling ${type == this.gl.VERTEX_SHADER ? "vertex" : "fragment"} shader: ` +
           this.gl.getShaderInfoLog(shader)
       );
     }
@@ -64,7 +64,7 @@ export class ShaderProgram {
     const buffer = this.gl.createBuffer();
 
     if (buffer == null) {
-      throw new Error('Failed to create buffer.');
+      throw new Error("Failed to create buffer.");
     }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
@@ -84,7 +84,7 @@ export class ShaderProgram {
     const texture = this.gl.createTexture();
 
     if (texture == null) {
-      throw new Error('Failed to create texture.');
+      throw new Error("Failed to create texture.");
     }
 
     image.onload = () => {
