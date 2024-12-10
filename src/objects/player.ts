@@ -11,11 +11,9 @@ export class Player extends Entity {
 
   constructor(
     sprite: SpriteModel,
-    width: number,
-    height: number,
     private controller: PlayerController
   ) {
-    super(sprite, width, height, 100, 2);
+    super(sprite, 0.5, 0.8, 100, 2);
   }
 
   private giveTool(tool: Tool): void {

@@ -24,17 +24,18 @@ class Game extends Gameloop {
 
     void this.canvas.init().then(() => {
       const sprite: SpriteSheet = this.canvas.createSprite(1, 1, 11, 3, 4, 'res/assets/player.png');
-      sprite.createAnimation('walking', [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5]);
-      sprite.createAnimation('shoot', [0, 1, 2]);
+      sprite.createAnimation("idle", [0], 1, true, 0);
+      sprite.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
+      sprite.createAnimation("shoot", [0, 1, 2], 0.2, false, 2);
 
       const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
 
       const model: SpriteModel = sprite.createModel();
       // const badModel: SpriteModel = sprite.createModel();
-      model.playAnimation('walking', true, 1);
+      model.playAnimation('walking');
       // badModel.playAnimation('walking', true, 1);
 
-      this.playerChar = new Player(model, 1, 1, controller);
+      this.playerChar = new Player(model, controller);
       // this.enemeyChar = new Grunt(new Vector2(0, 0), badModel);
 
       this.start();

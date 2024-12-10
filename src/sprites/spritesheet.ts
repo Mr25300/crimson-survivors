@@ -7,7 +7,7 @@ export class SpriteSheet {
   private coordBuffer: WebGLBuffer;
 
   public models: SpriteModel[] = [];
-  public animationFrames: Map<string, number[]> = new Map();
+  public animations: Map<string, AnimationInfo> = new Map();
 
   constructor( // ADD Z-LEVEL TO SPRITESHEET
     private shader: ShaderProgram,
@@ -42,12 +42,12 @@ export class SpriteSheet {
   //   return new Model(this);
   // }
 
-  public createAnimation(name: string, frames: number[]): void {
-    this.animationFrames.set(name, frames);
+  public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): void {
+    this.animations.set(name, new AnimationInfo(frames, duration, looped, priority));
   }
 
-  public getAnimationFrames(name: string): number[] | undefined {
-    return this.animationFrames.get(name);
+  public getAnimation(name: string): AnimationInfo | undefined {
+    return this.animations.get(name);
   }
 
   public createModel(): SpriteModel {
@@ -64,5 +64,30 @@ export class SpriteSheet {
       "spriteScale",
       Matrix4.fromScale(this.width, this.height).values
     );
+  }
+}
+
+export class AnimationInfo {
+  constructor(
+    private _frames: number[],
+    private _duration: number,
+    private _looped: boolean,
+    private _priority: number
+  ) {}
+
+  public get frames(): number[] {
+    return this._frames;
+  }
+
+  public get duration(): number {
+    return this._duration;
+  }
+
+  public get looped(): boolean {
+    return this._looped;
+  }
+
+  public get priority(): number {
+    return this._priority;
   }
 }

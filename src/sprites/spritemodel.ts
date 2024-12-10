@@ -1,14 +1,14 @@
 import {ShaderProgram} from "../rendering/shaderprogram.js";
 import {Matrix4} from "../util/matrix4.js";
 import {Vector2} from "../util/vector2.js";
-import {SpriteSheet} from "./spritesheet.js";
+import {AnimationInfo, SpriteSheet} from "./spritesheet.js";
 
 export class SpriteModel {
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
   private currentSprite: number = 0;
-  private activeAnim: SpriteAnimation | null;
+  private animations: SpriteAnimation[] = [];
 
   constructor(
     private shader: ShaderProgram,
@@ -24,24 +24,27 @@ export class SpriteModel {
     this.currentSprite = n;
   }
 
-  public playAnimation(
-    name: string,
-    looped: boolean,
-    duration: number,
-    timePassed: number = 0
-  ): void {
-    const frames = this.sprite.getAnimationFrames(name);
+  public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation | null {
+    const info = this.sprite.getAnimation(name);
 
-    if (!frames) {
+    if (!info) {
       console.error(`Sprite animation frames for "name" do not exist.`);
 
-      return;
+      return null;
     }
 
-    this.activeAnim = new SpriteAnimation(this, frames, looped, duration, timePassed);
+    const animation = new SpriteAnimation(this, info, timePassed, speed);
+
+    this.animations.push(animation);
+
+    return animation;
   }
 
-  public stopAnimation() {
+  public stopAnimation(name: string) {
+    for (let i = 0; i < this.animations.length; i++) {
+      
+    }
+
     if (this.activeAnim) {
       this.activeAnim = null;
     }
@@ -71,28 +74,27 @@ export class SpriteModel {
 export class SpriteAnimation {
   constructor(
     private model: SpriteModel,
-    private frames: number[],
-    private looped: boolean,
-    private duration: number,
-    private timePassed: number
+    private info: AnimationInfo,
+    private timePassed: number = 0,
+    private speed: number = 1
   ) {}
 
   public update(deltaTime: number): void {
-    this.timePassed = this.timePassed + deltaTime;
+    this.timePassed = this.timePassed + deltaTime * this.speed;
 
-    if (this.timePassed > this.duration) {
-      if (!this.looped) {
+    if (this.timePassed > this.info.duration) {
+      if (!this.info.looped) {
         this.model.stopAnimation();
 
         return;
       }
 
-      this.timePassed %= this.duration;
+      this.timePassed %= this.info.duration;
     }
 
-    const percentThrough = this.timePassed / this.duration;
-    const frameIndex = Math.floor(this.frames.length * percentThrough);
+    const percentThrough = this.timePassed / this.info.duration;
+    const frameIndex = Math.floor(this.info.frames.length * percentThrough);
 
-    this.model.setCurrentSprite(this.frames[frameIndex]);
+    this.model.setCurrentSprite(this.info.frames[frameIndex]);
   }
 }
