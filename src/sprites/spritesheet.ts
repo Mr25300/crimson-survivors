@@ -7,7 +7,7 @@ export class SpriteSheet {
   private coordBuffer: WebGLBuffer;
 
   public models: SpriteModel[] = [];
-  public animations: Map<string, AnimationInfo> = new Map();
+  private animations: Map<string, AnimationInfo> = new Map();
 
   constructor( // ADD Z-LEVEL TO SPRITESHEET
     private shader: ShaderProgram,
@@ -34,7 +34,7 @@ export class SpriteSheet {
     this.texture = this.shader.createTexture(imagePath);
   }
 
-  public getBuffer(): WebGLBuffer {
+  public get buffer(): WebGLBuffer {
     return this.coordBuffer;
   }
 
@@ -60,10 +60,7 @@ export class SpriteSheet {
 
   public bind(): void {
     this.shader.bindTexture(this.texture);
-    this.shader.setUniformMatrix4(
-      "spriteScale",
-      Matrix4.fromScale(this.width, this.height).values
-    );
+    this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
   }
 }
 

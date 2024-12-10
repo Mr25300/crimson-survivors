@@ -1,12 +1,12 @@
-import {Gameloop} from './gameloop.js';
-import {Canvas} from '../rendering/canvas.js';
-import {SpriteModel} from '../sprites/spritemodel.js';
-import {Camera} from '../rendering/camera.js';
-import {Vector2} from '../util/vector2.js';
-import {SpriteSheet} from '../sprites/spritesheet.js';
-import {Player} from '../objects/player.js';
-import {PlayerController} from '../objects/enemies/controllers/player-controller.js';
-import {Grunt} from '../objects/enemies/grunt.js';
+import { Gameloop } from './gameloop.js';
+import { Canvas } from '../rendering/canvas.js';
+import { SpriteModel } from '../sprites/spritemodel.js';
+import { Camera } from '../rendering/camera.js';
+import { Vector2 } from '../util/vector2.js';
+import { SpriteSheet } from '../sprites/spritesheet.js';
+import { Player } from '../objects/player/player.js';
+import { PlayerController } from '../objects/player/controller.js';
+import { Tool } from '../objects/player/tool.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -14,7 +14,7 @@ class Game extends Gameloop {
   private canvas: Canvas;
 
   private playerChar: Player;
-  private enemeyChar: Grunt;
+
   private constructor() {
     super();
 
@@ -28,17 +28,19 @@ class Game extends Gameloop {
       sprite.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
       sprite.createAnimation("shoot", [0, 1, 2], 0.2, false, 2);
 
+      const model: SpriteModel = sprite.createModel();
       const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
 
-      const model: SpriteModel = sprite.createModel();
-      // const badModel: SpriteModel = sprite.createModel();
-      model.playAnimation('walking');
-      // badModel.playAnimation('walking', true, 1);
-
       this.playerChar = new Player(model, controller);
-      // this.enemeyChar = new Grunt(new Vector2(0, 0), badModel);
+      this.playerChar.giveTool(new Tool("Launcher", 2));
+      this.playerChar.holdTool(0);
 
-      this.start();
+      const sprite2: SpriteSheet = this.canvas.createSprite(1, 1, 1, 1, 1, "res/assets/WallTile.png");
+      const model2: SpriteModel = sprite2.createModel();
+
+      const structure =
+
+        this.start();
     });
   }
 

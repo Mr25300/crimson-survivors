@@ -1,5 +1,5 @@
-import {Vector2} from "../../../util/vector2.js";
-import {Canvas} from "../../../rendering/canvas.js";
+import {Vector2} from "../../util/vector2.js";
+import {Canvas} from "../../rendering/canvas.js";
 
 export class PlayerController {
   private mouseDown: boolean = false;
@@ -63,7 +63,7 @@ export class PlayerController {
     return direction.unit();
   }
 
-  public get isShooting(): boolean {
+  public isMouseDown(): boolean {
     return this.mouseDown;
   }
 }

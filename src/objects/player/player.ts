@@ -1,13 +1,13 @@
-import {Entity} from "./entity.js";
+import {Entity} from "../entity.js";
 import {Tool} from "./tool.js";
-import {Vector2} from "../util/vector2.js";
-import {SpriteModel} from "../sprites/spritemodel.js";
-import {PlayerController} from "./enemies/controllers/player-controller.js";
+import {Vector2} from "../../util/vector2.js";
+import {SpriteModel} from "../../sprites/spritemodel.js";
+import {PlayerController} from "./controller.js";
 
 export class Player extends Entity {
   private tool: Tool | null;
   private tools: Tool[] = [];
-  private maximumTools: number = 0;
+  private maximumTools: number = 1;
 
   constructor(
     sprite: SpriteModel,
@@ -16,13 +16,13 @@ export class Player extends Entity {
     super(sprite, 0.5, 0.8, 100, 2);
   }
 
-  private giveTool(tool: Tool): void {
+  public giveTool(tool: Tool): void {
     if (this.tools.length <= this.maximumTools) {
       this.tools.push(tool);
     }
   }
 
-  private switchTool(index: number): void {
+  public holdTool(index: number): void {
     this.tool = this.tools[index];
   }
 
@@ -31,6 +31,18 @@ export class Player extends Entity {
 
     this.setFaceDirection(mousePos.subtract(this.position).unit());
     this.setMoveDirection(this.controller.getMoveDirection());
+  }
+
+  override update(deltaTime: number): void {
+    super.update(deltaTime);
+
+    for (let i = 0; i < this.tools.length; i++) {
+      this.tools[i].update(deltaTime);
+    }
+
+    if (this.controller.isMouseDown()) {
+      this.attack();
+    }
   }
 
   protected attack(): void {

@@ -1,4 +1,4 @@
-import { HitBox } from "../collisions/collisions.js";
+import { HitBox } from "../physics/collisions.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 
@@ -8,6 +8,8 @@ export class GameObject {
 
   constructor(
     protected sprite: SpriteModel,
+    protected width: number,
+    protected height: number
   ) {
     this.updateSprite();
   }

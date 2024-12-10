@@ -8,7 +8,7 @@ export class SpriteModel {
   private rotation: number = 0;
 
   private currentSprite: number = 0;
-  private animations: SpriteAnimation[] = [];
+  private animations: Map<string, SpriteAnimation> = new Map();
 
   constructor(
     private shader: ShaderProgram,
@@ -28,46 +28,45 @@ export class SpriteModel {
     const info = this.sprite.getAnimation(name);
 
     if (!info) {
-      console.error(`Sprite animation frames for "name" do not exist.`);
+      console.error(`Sprite animation "name" does not exist.`);
 
       return null;
     }
 
     const animation = new SpriteAnimation(this, info, timePassed, speed);
 
-    this.animations.push(animation);
+    this.animations.set(name, animation);
 
     return animation;
   }
 
-  public stopAnimation(name: string) {
-    for (let i = 0; i < this.animations.length; i++) {
-      
-    }
+  public isAnimationPlaying(name: string): boolean {
+    return this.animations.get(name) !== undefined;
+  }
 
-    if (this.activeAnim) {
-      this.activeAnim = null;
-    }
+  public stopAnimation(name: string): void {
+    this.animations.delete(name);
   }
 
   public update(deltaTime: number) {
-    if (this.activeAnim) {
-      this.activeAnim.update(deltaTime);
+    let highestPriority: number;
+    let selectedAnim: SpriteAnimation | undefined;
+
+    this.animations.forEach((anim: SpriteAnimation) => {
+      if (highestPriority === undefined || selectedAnim === undefined || anim.priority >= highestPriority) {
+        highestPriority = anim.priority;
+        selectedAnim = anim;
+      }
+    });
+
+    if (selectedAnim !== undefined) {
+      selectedAnim.update(deltaTime);
     }
   }
 
   public bind(): void {
-    this.shader.setAttribBuffer(
-      "textureCoord",
-      this.sprite.getBuffer(),
-      2,
-      0,
-      this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT
-    );
-    this.shader.setUniformMatrix4(
-      "modelTransform",
-      Matrix4.fromTransformation(this.position, this.rotation).values
-    );
+    this.shader.setAttribBuffer("textureCoord", this.sprite.buffer, 2, 0, this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
+    this.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
   }
 }
 
@@ -79,13 +78,15 @@ export class SpriteAnimation {
     private speed: number = 1
   ) {}
 
+  public get priority(): number {
+    return this.info.priority;
+  }
+
   public update(deltaTime: number): void {
     this.timePassed = this.timePassed + deltaTime * this.speed;
 
     if (this.timePassed > this.info.duration) {
       if (!this.info.looped) {
-        this.model.stopAnimation();
-
         return;
       }
 

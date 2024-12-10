@@ -1,7 +1,7 @@
 import {Vector2} from "../util/vector2.js";
 import {SpriteModel} from "../sprites/spritemodel.js";
 import { GameObject } from "./gameobject.js";
-import { HitBox } from "../collisions/collisions.js";
+import { HitBox } from "../physics/collisions.js";
 
 export class StateMachine {
 
@@ -29,7 +29,9 @@ export abstract class Entity extends GameObject {
     protected maxHealth: number,
     protected moveSpeed: number
   ) {
-    super(sprite);
+    super(sprite, width, height);
+
+    this.sprite.playAnimation("idle");
 
     this.health = maxHealth;
   }
@@ -51,6 +53,13 @@ export abstract class Entity extends GameObject {
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
 
     this.rotation = this.faceDirection.angle();
+
+    if (this.moveDirection.magnitude() > 0) {
+      if (!this.sprite.isAnimationPlaying("walking")) this.sprite.playAnimation("walking");
+
+    } else {
+      if (this.sprite.isAnimationPlaying("walking")) this.sprite.stopAnimation("walking");
+    }
 
     this.updateSprite();
   }
