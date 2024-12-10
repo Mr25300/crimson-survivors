@@ -13,8 +13,8 @@ export abstract class State {
   abstract leave(): void;
 }
 
-export class Entity extends GameObject {
-  private accelTime: number = 0.1;
+export abstract class Entity extends GameObject {
+  private accelTime: number = 0.2;
   private velocity: Vector2 = new Vector2();
 
   private moveDirection: Vector2 = new Vector2();
@@ -62,4 +62,6 @@ export class Entity extends GameObject {
   public setMoveDirection(direction: Vector2): void {
     this.moveDirection = direction.unit();
   }
+
+  protected abstract attack(): void;
 }

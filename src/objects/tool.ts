@@ -1,25 +1,28 @@
 export class Tool {
+  private timePassed: number = 0;
+  private debounce: boolean = false;
+
   constructor(
-    private _minDamage: number,
-    private _maxDamage: number,
-    private _name: string,
-    private _cooldown: number
+    private name: string,
+    private cooldown: number = 0,
   ) {}
 
-  /*
-   * @returns The cooldown in ms
-   * */
-  public get cooldown(): number {
-    return this._cooldown;
+  public update(deltaTime: number) {
+    if (this.debounce) {
+      this.timePassed += deltaTime;
+
+      if (this.timePassed >= this.cooldown) {
+        this.debounce = false;
+        this.timePassed = 0;
+      }
+    }
   }
 
-  public get name(): string {
-    return this._name;
-  }
+  public use(): void {
+    if (this.debounce) return;
 
-  public calculateDamage(): number {
-    return Math.round(
-      this._minDamage + Math.random() * (this._maxDamage - this._minDamage)
-    );
+    this.debounce = true;
+
+    console.log("ATTACKED!!");
   }
 }

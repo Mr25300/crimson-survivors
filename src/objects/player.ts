@@ -18,14 +18,14 @@ export class Player extends Entity {
     super(sprite, width, height, 100, 2);
   }
 
-  private switchWeapon(index: number): void {
-    this.tool = this.tools[index];
+  private giveTool(tool: Tool): void {
+    if (this.tools.length <= this.maximumTools) {
+      this.tools.push(tool);
+    }
   }
 
-  private pickupWeapon(weaponOnFloor: Tool): void {
-    if (this.tools.length <= this.maximumTools) {
-      this.tools.push(weaponOnFloor);
-    }
+  private switchTool(index: number): void {
+    this.tool = this.tools[index];
   }
 
   public input(): void {
@@ -33,5 +33,11 @@ export class Player extends Entity {
 
     this.setFaceDirection(mousePos.subtract(this.position).unit());
     this.setMoveDirection(this.controller.getMoveDirection());
+  }
+
+  protected attack(): void {
+    if (this.tool) {
+      this.tool.use();
+    }
   }
 }
