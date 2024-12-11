@@ -54,4 +54,8 @@ export class Vector2 {
   public angle(): number {
     return Math.atan2(this._x, this._y);
   }
+
+  public dot(vec: Vector2): number {
+    return this._x * vec._x + this._y + vec._y;
+  }
 }
