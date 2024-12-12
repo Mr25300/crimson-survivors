@@ -45,15 +45,25 @@ export class Player extends Entity {
       this.attack();
     }
 
-    const barrier = new HitBarrier(new Vector2(0, 0.5), 0, 1);
     const box = new HitBox(this.position, this.rotation, 1, 1);
-    const [detected, normal, overlap] = barrier.checkBoxCollision(box);
 
-    console.log(box.getCorners());
+    const barriers = [
+      new HitBarrier(new Vector2(0, 0.5), 0, 1),
+      new HitBarrier(new Vector2(0, -0.5), Math.PI, 1),
+      new HitBarrier(new Vector2(-0.5, 0), -Math.PI/2, 1),
+      new HitBarrier(new Vector2(0.5, 0), Math.PI/2, 1)
+    ];
 
-    if (detected && normal !== undefined && overlap !== undefined) {
-      this.position = this.position.add(normal.multiply(overlap));
+    for (let i = 1; i < 2; i++) {
+      const barrier = barriers[i];
+      const [detected, normal, overlap] = barrier.checkBoxCollision(box);
+
+      if (detected && normal !== undefined && overlap !== undefined) {
+        this.position = this.position.add(normal.multiply(overlap));
+      }
     }
+
+    this.updateSprite();
   }
 
   protected attack(): void {

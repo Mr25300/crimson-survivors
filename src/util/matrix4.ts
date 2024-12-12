@@ -13,49 +13,22 @@ export class Matrix4 {
 
   public static fromScale(xScale: number, yScale: number): Matrix4 {
     return new Matrix4(
-      xScale,
-      0,
-      0,
-      0,
-      0,
-      yScale,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1
+      xScale, 0, 0, 0,
+      0, yScale, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
     );
   }
 
-  public static fromTransformation(
-    translation: Vector2 = new Vector2(),
-    rotation: number = 0
-  ): Matrix4 {
+  public static fromTransformation(translation: Vector2 = new Vector2(), rotation: number = 0): Matrix4 {
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
 
     return new Matrix4(
-      cos,
-      -sin,
-      0,
-      0,
-      sin,
-      cos,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      translation.x,
-      translation.y,
-      0,
-      1
+      cos, -sin, 0, 0,
+      sin, cos, 0, 0,
+      0, 0, 1, 0,
+      translation.x, translation.y, 0, 1
     );
   }
 
@@ -63,14 +36,8 @@ export class Matrix4 {
     const values = this.values;
 
     return new Vector2(
-      vector.x * values[0] +
-        vector.y * values[1] +
-        0 * values[2] +
-        1 * values[3],
-      vector.x * values[4] +
-        vector.y * values[5] +
-        0 * values[6] +
-        1 * values[7]
+      vector.x * values[0] + vector.y * values[4] + 0 * values[8] + 1 * values[12],
+      vector.x * values[1] + vector.y * values[5] + 0 * values[9] + 1 * values[13]
     );
   }
 }

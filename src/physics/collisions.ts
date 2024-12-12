@@ -108,16 +108,13 @@ export class HitBarrier {
     if (bottomMost.y <= 0) {
       const normal = rotMatrix.multiply(new Vector2(0, 1));
 
-      console.log(bottomMost.x);
-
       if (Math.abs(bottomMost.x) <= this.length/2) {
         const overlap = Math.abs(bottomMost.y);
   
         return [true, normal, overlap];
 
       } else {
-        console.log("CORNER OUTSIDE");
-        let cornerX = Math.max(Math.min(bottomMost.x, -this.length/2), this.length/2);
+        let cornerX = Math.min(Math.max(bottomMost.x, -this.length/2), this.length/2);
 
         for (let i = 0; i < 2; i++) {
           const direction = i*2 - 1;
@@ -127,15 +124,15 @@ export class HitBarrier {
 
           const adjCorner = corners[adjIndex];
 
+          if ((cornerX < 0 && adjCorner.x < cornerX) || (cornerX > 0 && adjCorner.x > cornerX)) continue;
+
           const m = (bottomMost.y - adjCorner.y) / (bottomMost.x - adjCorner.x);
           const b = bottomMost.y - m * bottomMost.x;
           const cornerY = m * cornerX + b;
-          const overlap = Math.abs(cornerY);
 
-          const lineMinY = Math.min(bottomMost.y, adjCorner.y)
-          const lineMaxY = Math.max(bottomMost.y, adjCorner.y);
+          if (cornerY <= 0) {
+            const overlap = Math.abs(cornerY);
 
-          if (cornerY > lineMinY && cornerY < lineMaxY) {
             return [true, normal, overlap];
           }
         }
@@ -162,8 +159,8 @@ export class HitBox {
     const corners: Vector2[] = [
       new Vector2(-this._width / 2, -this._height / 2),
       new Vector2(this._width / 2, -this._height / 2),
-      new Vector2(-this._width / 2, this._height / 2),
-      new Vector2(this._width / 2, this._height / 2)
+      new Vector2(this._width / 2, this._height / 2),
+      new Vector2(-this._width / 2, this._height / 2)
     ];
 
     const rotationMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this._rotation);
