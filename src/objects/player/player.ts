@@ -3,10 +3,10 @@ import {Tool} from "./tool.js";
 import {Vector2} from "../../util/vector2.js";
 import {SpriteModel} from "../../sprites/spritemodel.js";
 import {PlayerController} from "./controller.js";
-import { HitBarrier, HitBox } from "../../physics/collisions.js";
+import { HitLine, HitBox } from "../../physics/collisions.js";
 
 export class Player extends Entity {
-  private tool: Tool | null;
+  private tool: Tool = new Tool("GUN!!!!", 1);
   private tools: Tool[] = [];
   private maximumTools: number = 1;
 
@@ -14,7 +14,7 @@ export class Player extends Entity {
     sprite: SpriteModel,
     private controller: PlayerController
   ) {
-    super(sprite, 1, 1, 100, 2);
+    super(sprite, 0.4, 0.6, 100, 2);
   }
 
   public giveTool(tool: Tool): void {
@@ -45,13 +45,13 @@ export class Player extends Entity {
       this.attack();
     }
 
-    const box = new HitBox(this.position, this.rotation, 1, 1);
+    const box = new HitBox(this.position, this.rotation, this.width, this.height);
 
     const barriers = [
-      new HitBarrier(new Vector2(0, 0.5), 0, 1),
-      new HitBarrier(new Vector2(0, -0.5), Math.PI, 1),
-      new HitBarrier(new Vector2(-0.5, 0), -Math.PI/2, 1),
-      new HitBarrier(new Vector2(0.5, 0), Math.PI/2, 1)
+      new HitLine(new Vector2(0, 0.5), 0, 1),
+      new HitLine(new Vector2(0, -0.5), Math.PI, 1),
+      new HitLine(new Vector2(-0.5, 0), -Math.PI/2, 1),
+      new HitLine(new Vector2(0.5, 0), Math.PI/2, 1)
     ];
 
     for (let i = 1; i < 2; i++) {
@@ -67,8 +67,6 @@ export class Player extends Entity {
   }
 
   protected attack(): void {
-    if (this.tool) {
-      this.tool.use();
-    }
+    this.tool.use();
   }
 }

@@ -68,33 +68,90 @@ export class HitCircle {
   }
 }
 
-export class HitBarrier {
+export class HitLine {
   constructor(
     private position: Vector2,
     private rotation: number,
     private length: number
   ) {}
 
-  static fromStartAndEnd(start: Vector2, end: Vector2): HitBarrier {
-    const midPoint = start.add(end).divide(2);
-    const difference = start.subtract(end);
+  static fromStartAndEnd(start: Vector2, end: Vector2): HitLine {
+    const midPoint: Vector2 = start.add(end).divide(2);
+    const difference: Vector2 = start.subtract(end);
 
-    return new HitBarrier(midPoint, difference.angle() + Math.PI/2, difference.magnitude());
+    return new HitLine(midPoint, difference.angle() + Math.PI/2, difference.magnitude());
+  }
+
+  public getVertices(): Vector2[] {
+    const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this.rotation);
+    const ends = [new Vector2(-this.length/2), new Vector2(this.length/2)];
+
+    for (let i = 0; i < 2; i++) {
+      ends[i] = rotMatrix.multiply(ends[i]).add(this.position);
+    }
+
+    return ends;
+  }
+
+  public checkLineCollision(barrier: HitLine): [boolean, Vector2?, number?] {
+    const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, -this.rotation);
+    const vertices: Vector2[] = barrier.getVertices();
+
+    for (let i = 0; i < 2; i++) {
+      const vertex: Vector2 = vertices[i];
+      const relVertex: Vector2 = rotMatrix.multiply(vertex.subtract(this.position));
+
+      vertices[i] = relVertex;
+    }
+
+    let bottomMost: Vector2 = vertices[0];
+    let topMost: Vector2 = vertices[1];
+
+    if (topMost.y < bottomMost.y || (topMost.y === bottomMost.y && Math.abs(topMost.x) <= this.length / 2)) {
+      [bottomMost, topMost] = [topMost, bottomMost];
+    }
+
+    if (bottomMost.y <= 0) {
+      const normal = rotMatrix.multiply(new Vector2(0, 1));
+
+      if (Math.abs(bottomMost.x) <= this.length/2) {
+        const overlap = Math.abs(bottomMost.y);
+  
+        return [true, normal, overlap];
+  
+      } else {
+        const cornerX = Math.min(Math.max(bottomMost.x, -this.length/2), this.length/2);
+
+        if (cornerX < 0 && bottomMost.x > cornerX || cornerX > 0 && bottomMost.x < cornerX) {
+          const m = (bottomMost.y - topMost.y) / (bottomMost.x - topMost.x);
+          const b = bottomMost.y - m * bottomMost.x;
+          const cornerY = m * cornerX + b;
+
+          if (cornerY <= 0) {
+            const overlap = Math.abs(cornerY);
+
+            return [true, normal, overlap];
+          }
+        }
+      }
+    }
+
+    return [false];
   }
 
   public checkBoxCollision(box: HitBox): [boolean, Vector2?, number?] {
-    const rotMatrix = Matrix4.fromTransformation(undefined, -this.rotation);
+    const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, -this.rotation);
 
-    const corners = box.getCorners();
+    const corners: Vector2[] = box.getCorners();
 
     let cornerIndex: number = 0;
 
     for (let i = 0; i < 4; i++) {
-      const relativeCorner = rotMatrix.multiply(corners[i].subtract(this.position));
+      const relativeCorner: Vector2 = rotMatrix.multiply(corners[i].subtract(this.position));
 
       corners[i] = relativeCorner;
 
-      if (i == 0) continue;
+      if (i === 0) continue;
 
       const lastY = corners[cornerIndex].y;
 
@@ -140,6 +197,33 @@ export class HitBarrier {
     }
 
     return [false];
+  }
+}
+
+export class HitPoly {
+  private corners: Vector2[];
+
+  constructor(
+    private position: Vector2,
+    private rotation: number,
+    ...corners: Vector2[]
+  ) {
+    this.corners = corners;
+  }
+
+  public getLines(): Vector2[] {
+    const rotMatrix = Matrix4.fromTransformation(this.position, this.rotation);
+    const positions: Vector2[] = [];
+
+    for (let i = 0; i < this.corners.length; i++) {
+      positions[i] = rotMatrix.multiply(this.corners[i]);
+    }
+
+    return positions;
+  }
+
+  public checkLineCollision() {
+    
   }
 }
 

@@ -7,7 +7,7 @@ import { SpriteSheet } from '../sprites/spritesheet.js';
 import { Player } from '../objects/player/player.js';
 import { PlayerController } from '../objects/player/controller.js';
 import { Tool } from '../objects/player/tool.js';
-import { HitBarrier, HitBox } from '../physics/collisions.js';
+import { HitLine, HitBox } from '../physics/collisions.js';
 
 class Game extends Gameloop {
   private static _instance: Game;
@@ -40,7 +40,7 @@ class Game extends Gameloop {
       const model2: SpriteModel = sprite2.createModel();
       model2.setTransformation(new Vector2(), 0);
 
-      const barrier = HitBarrier.fromStartAndEnd(new Vector2(-1, 0), new Vector2(1, 0));
+      const barrier = HitLine.fromStartAndEnd(new Vector2(-1, 0), new Vector2(1, 0));
       const box = new HitBox(new Vector2(0, 0.5), 0, 2, 2);
 
       console.log(barrier.checkBoxCollision(box));
