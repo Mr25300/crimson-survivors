@@ -36,7 +36,7 @@ class Game extends Gameloop {
       this.playerChar.giveTool(new Tool("Launcher", 2));
       this.playerChar.holdTool(0);
 
-      const sprite2: SpriteSheet = this.canvas.createSprite(1, 1, 1, 1, 1, "res/assets/WallTile.png");
+      const sprite2: SpriteSheet = this.canvas.createSprite(4, 1, 1, 1, 1, "res/assets/WallTile.png");
       const model2: SpriteModel = sprite2.createModel();
       model2.setTransformation(new Vector2(), 0);
 

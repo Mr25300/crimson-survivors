@@ -58,4 +58,8 @@ export class Vector2 {
   public dot(vec: Vector2): number {
     return this._x * vec._x + this._y + vec._y;
   }
+
+  public cross(vec: Vector2): number {
+    return this._x * vec._y - this._y * vec._x;
+  }
 }

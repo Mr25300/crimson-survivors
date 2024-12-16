@@ -45,18 +45,18 @@ export class Player extends Entity {
       this.attack();
     }
 
-    const box = new HitBox(this.position, this.rotation, this.width, this.height);
+    const box = new HitBox(this.position, this.rotation, 1, 1);
 
     const barriers = [
-      new HitLine(new Vector2(0, 0.5), 0, 1),
+      new HitLine(new Vector2(0, 0.5), 0, 4),
       new HitLine(new Vector2(0, -0.5), Math.PI, 1),
       new HitLine(new Vector2(-0.5, 0), -Math.PI/2, 1),
       new HitLine(new Vector2(0.5, 0), Math.PI/2, 1)
     ];
 
-    for (let i = 1; i < 2; i++) {
+    for (let i = 0; i < 1; i++) {
       const barrier = barriers[i];
-      const [detected, normal, overlap] = barrier.checkBoxCollision(box);
+      const [detected, normal, overlap] = barrier.newBoxCollision(box);
 
       if (detected && normal !== undefined && overlap !== undefined) {
         this.position = this.position.add(normal.multiply(overlap));

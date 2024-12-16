@@ -68,6 +68,88 @@ export class HitCircle {
   }
 }
 
+// Check if a point lies on a line segment
+function isPointOnSegment(p: Vector2, a: Vector2, b: Vector2): boolean {
+  const crossProduct = (p.y - a.y) * (b.x - a.x) - (p.x - a.x) * (b.y - a.y);
+  if (Math.abs(crossProduct) > 1e-8) return false; // Not collinear
+
+  const dotProduct = p.subtract(a).dot(b.subtract(a)); //dot(subtract(p, a), subtract(b, a));
+  const segmentLengthSquared = b.subtract(a).dot(b.subtract(a)) //dot(subtract(b, a), subtract(b, a));
+  return dotProduct >= 0 && dotProduct <= segmentLengthSquared;
+}
+
+// Check if two line segments intersect
+function segmentsIntersect(a1: Vector2, a2: Vector2, b1: Vector2, b2: Vector2): boolean {
+  const d1 = a2.subtract(a1);
+  const d2 = b2.subtract(b1);
+  const delta = b1.subtract(a1);
+
+  const denominator = d1.cross(d2);
+  if (Math.abs(denominator) < 1e-8) return false; // Parallel or collinear
+
+  const t = delta.cross(d2) / denominator;
+  const u = delta.cross(d1) / denominator;
+
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+}
+
+function checkPolygonLineSegmentIntersectionAndResolve(
+  lineStart: Vector2, // Start of the line segment
+  lineEnd: Vector2, // End of the line segment
+  normalVector: Vector2, // Normal vector of the line
+  polygon: Vector2[] // Array of polygon corners
+): [boolean, number] {
+  let minDistance = Infinity;
+  let intersects = false;
+
+  // Calculate the segment direction vector
+  const segmentDirection = lineEnd.subtract(lineStart);
+  const segmentLengthSquared = segmentDirection.dot(segmentDirection);
+
+  // Check all polygon vertices
+  for (const vertex of polygon) {
+    // Signed distance to the infinite line
+    const distance = (vertex.x - lineStart.x) * normalVector.x + (vertex.y - lineStart.y) * normalVector.y;
+
+    // Project onto the segment
+    const t = vertex.subtract(lineStart).dot(segmentDirection) / segmentLengthSquared;
+
+    // Check if the vertex is within the bounds of the line segment
+    if (t >= 0 && t <= 1) {
+      // Vertex intersects the infinite line within segment bounds
+      if (distance < 0) {
+        intersects = true;
+        minDistance = Math.min(minDistance, distance);
+      }
+    } else {
+      // Check distance to segment endpoints
+      const closestPoint = t < 0 ? lineStart : lineEnd;
+      const delt = vertex.subtract(closestPoint);
+      const endpointDistance = delt.magnitude();
+      if (endpointDistance < 0) {
+        intersects = true;
+        minDistance = Math.min(minDistance, -endpointDistance);
+      }
+    }
+  }
+
+  // Check all polygon edges
+  for (let i = 0; i < polygon.length; i++) {
+    const p1 = polygon[i];
+    const p2 = polygon[(i + 1) % polygon.length];
+
+    if (segmentsIntersect(lineStart, lineEnd, p1, p2)) {
+      intersects = true;
+      minDistance = Math.min(minDistance, 0); // Exact overlap detected
+    }
+  }
+
+  // If intersecting, calculate translation to resolve
+  const translation = intersects ? -minDistance : 0;
+
+  return [intersects, translation];
+}
+
 export class HitLine {
   constructor(
     private position: Vector2,
@@ -197,6 +279,15 @@ export class HitLine {
     }
 
     return [false];
+  }
+
+  public newBoxCollision(box: HitBox): [boolean, Vector2?, number?] {
+    const normal = Matrix4.fromTransformation(undefined, this.rotation).multiply(new Vector2(0, 1));
+    const ends = this.getVertices();
+
+    const [collided, overlap] = checkPolygonLineSegmentIntersectionAndResolve(ends[0], ends[1], normal, box.getCorners());
+
+    return [collided, normal, overlap];
   }
 }
 
