@@ -7,7 +7,6 @@ import {Vector2} from '../util/vector2.js';
 
 class Simulation {
   private structures: Structure[] = [];
-  private entityList: Entity[] = [];
   private spawnProbability: number = 1;
   private vampireTypes: string[] = ["grunt"];
 
@@ -32,6 +31,7 @@ class Simulation {
     if (randomVampire === "grunt") {
       // spawn grunt
     }
+    // all the other guys
 
   }
 
