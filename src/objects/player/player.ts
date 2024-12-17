@@ -1,12 +1,12 @@
-import {Entity} from "../entity.js";
-import {Tool} from "./tool.js";
-import {Vector2} from "../../util/vector2.js";
-import {SpriteModel} from "../../sprites/spritemodel.js";
-import {PlayerController} from "./controller.js";
-import { HitLine, HitBox, HitPoly } from "../../physics/collisions.js";
+import {Entity} from '../entity.js';
+import {Tool} from './tool.js';
+import {Vector2} from '../../util/vector2.js';
+import {SpriteModel} from '../../sprites/spritemodel.js';
+import {PlayerController} from './controller.js';
+import {HitLine, HitBox, HitPoly} from '../../physics/collisions.js';
 
 export class Player extends Entity {
-  private tool: Tool = new Tool("GUN!", 1);
+  private tool: Tool = new Tool('GUN!', 1);
   private tools: Tool[] = [];
   private maximumTools: number = 1;
 
@@ -39,7 +39,7 @@ export class Player extends Entity {
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    for (let i = 0; i < this.tools.length; i++) {
+    for (let i: number = 0; i < this.tools.length; i++) {
       this.tools[i].update(deltaTime);
     }
 
@@ -47,32 +47,40 @@ export class Player extends Entity {
       this.attack();
     }
 
+<<<<<<< HEAD
     const poly = new HitPoly(this.position, this.rotation,
       new Vector2(-0.5, -0.5),
       new Vector2(-0.5, 0.5),
       new Vector2(0.5, 0.5),
       new Vector2(0.5, -0.5)
     );
+=======
+    // const poly = new HitPoly(this.position, this.rotation,
+    //   new Vector2(-0.5, -0.5),
+    //   new Vector2(0.5, -0.5),
+    //   new Vector2(0, 0.5)
+    // );
+>>>>>>> 55f490286ac77a5bfeed08e72bc4f1b5ffb542ff
 
-    const barriers = [
-      new HitLine(new Vector2(0, 2), Math.PI, 4),
-      new HitLine(new Vector2(0, -2), 0, 4),
-      new HitLine(new Vector2(2, 0), -Math.PI/2, 4),
-      new HitLine(new Vector2(-2, 0), Math.PI/2, 4)
-    ];
+    // const barriers = [
+    //   new HitLine(new Vector2(0, 2), Math.PI, 4),
+    //   new HitLine(new Vector2(0, -2), 0, 4),
+    //   new HitLine(new Vector2(2, 0), -Math.PI/2, 4),
+    //   new HitLine(new Vector2(-2, 0), Math.PI/2, 4)
+    // ];
 
-    for (let i = 0; i < 4; i++) {
-      const barrier = barriers[i];
-      const [colliding, overlap] = barrier.checkPolyCollision(poly);
+    // for (let i = 0; i < 4; i++) {
+    //   const barrier = barriers[i];
+    //   const [colliding, overlap] = barrier.checkPolyCollision(poly);
 
-      if (colliding) this.position = this.position.add(barrier.getNormal().multiply(overlap));
-    }
+    //   if (colliding) this.position = this.position.add(barrier.getNormal().multiply(overlap));
+    // }
 
     this.updateSprite();
   }
 
   protected attack(): void {
     this.tool.use();
-    this.sprite.playAnimation("shoot");
+    this.sprite.playAnimation('shoot');
   }
 }

@@ -18,16 +18,36 @@ export class Assets {
   private assets: Map<string, SpriteSheet> = new Map();
 
   constructor() {
-    const player: SpriteSheet = new SpriteSheet(1, 1, 11, 3, 4, 'res/assets/player.png');
-    player.createAnimation("idle", [0], 1, true, 0);
-    player.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
-    player.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
-    this.assets.set("player", player);
+    const player: SpriteSheet = new SpriteSheet(
+      1,
+      1,
+      11,
+      3,
+      4,
+      'res/assets/player.png'
+    );
+    player.createAnimation('idle', [0], 1, true, 0);
+    player.createAnimation(
+      'walking',
+      [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5],
+      1,
+      true,
+      1
+    );
+    player.createAnimation('shoot', [0, 1, 2, 1], 0.3, false, 2);
+    this.assets.set('player', player);
 
-    this.assets.set("grunt", player);
+    this.assets.set('grunt', player);
 
-    const wall: SpriteSheet = new SpriteSheet(4, 4, 1, 1, 1, "res/assets/WallTile.png");
-    this.assets.set("wall", wall);
+    const wall: SpriteSheet = new SpriteSheet(
+      4,
+      4,
+      1,
+      1,
+      1,
+      'res/assets/WallTile.png'
+    );
+    this.assets.set('wall', wall);
   }
 
   public getSprite(name: string): SpriteSheet {
@@ -67,7 +87,7 @@ export class Game extends Gameloop {
 
     this._player = new Player(model, controller);
 
-    this.simulation = new Simulation(new Vector2(5, 5));
+    this.simulation = new Simulation(new Vector2(20, 20));
   }
 
   public static get instance(): Game {
@@ -106,7 +126,6 @@ export class Game extends Gameloop {
 
   protected update(deltaTime: number): void {
     this.simulation.update(deltaTime);
-
     this.canvas.update(deltaTime);
   }
 

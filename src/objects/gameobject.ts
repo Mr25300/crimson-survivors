@@ -1,5 +1,5 @@
-import { SpriteModel } from "../sprites/spritemodel.js";
-import { Vector2 } from "../util/vector2.js";
+import {SpriteModel} from '../sprites/spritemodel.js';
+import {Vector2} from '../util/vector2.js';
 
 export class GameObject {
   public position: Vector2 = new Vector2();

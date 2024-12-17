@@ -1,8 +1,8 @@
-import {Vector2} from "../util/vector2.js";
-import {SpriteModel} from "../sprites/spritemodel.js";
-import { GameObject } from "./gameobject.js";
-import { HitBox } from "../physics/collisions.js";
-import { Game } from "../core/game.js";
+import {Vector2} from '../util/vector2.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
+import {GameObject} from './gameobject.js';
+import {HitBox} from '../physics/collisions.js';
+import {Game} from '../core/game.js';
 
 export abstract class Entity extends GameObject {
   private accelTime: number = 0.2;
@@ -22,7 +22,7 @@ export abstract class Entity extends GameObject {
   ) {
     super(sprite, width, height);
 
-    this.sprite.playAnimation("idle");
+    this.sprite.playAnimation('idle');
 
     this.health = maxHealth;
 
@@ -40,7 +40,9 @@ export abstract class Entity extends GameObject {
     const acceleration: Vector2 = difference.divide(this.accelTime);
 
     const velDisplacement: Vector2 = this.velocity.multiply(deltaTime);
-    const accelDisplacement: Vector2 = acceleration.multiply(deltaTime ** 2 / 2);
+    const accelDisplacement: Vector2 = acceleration.multiply(
+      deltaTime ** 2 / 2
+    );
 
     this.position = this.position.add(velDisplacement).add(accelDisplacement);
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
@@ -48,10 +50,13 @@ export abstract class Entity extends GameObject {
     this.rotation = this.faceDirection.angle();
 
     if (this.moveDirection.magnitude() > 0) {
-      if (!this.sprite.isAnimationPlaying("walking")) this.sprite.playAnimation("walking");
-
+      if (!this.sprite.isAnimationPlaying('walking')) {
+        this.sprite.playAnimation('walking');
+      }
     } else {
-      if (this.sprite.isAnimationPlaying("walking")) this.sprite.stopAnimation("walking");
+      if (this.sprite.isAnimationPlaying('walking')) {
+        this.sprite.stopAnimation('walking');
+      }
     }
 
     for (const structure of Game.instance.structures) {
