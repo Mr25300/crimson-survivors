@@ -38,7 +38,7 @@ export class Assets {
 export class Game extends Gameloop {
   private static _instance: Game;
 
-  private simulation: Simulation = new Simulation(new Vector2(1,1));
+  private simulation: Simulation;
   private _canvas: Canvas = new Canvas();
   private _camera: Camera = new Camera();
   private _assets: Assets;
@@ -52,16 +52,20 @@ export class Game extends Gameloop {
     super();
 
     this.canvas.init().then(() => {
-      this._assets = new Assets();
-
-      const model: SpriteModel = this._assets.getSprite("player").createModel();
-      const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
-
-      this._player = new Player(model, controller);
-
-      
+      this.init();
       this.start();
     });
+  }
+
+  private init(): void {
+    this._assets = new Assets();
+
+    const model: SpriteModel = this._assets.getSprite("player").createModel();
+    const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
+
+    this._player = new Player(model, controller);
+
+    this.simulation = new Simulation(new Vector2(5, 5));
   }
 
   public static get instance(): Game {
@@ -99,8 +103,6 @@ export class Game extends Gameloop {
   }
 
   protected update(deltaTime: number): void {
-    this._player.input();
-    this._player.update(deltaTime);
     this.simulation.update(deltaTime);
 
     this.canvas.update(deltaTime);

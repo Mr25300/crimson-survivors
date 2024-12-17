@@ -12,8 +12,6 @@ export class Simulation {
   private spawnProbability: number = 1;
   private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
   private necroCount: number = 0;
-  private canvas: Canvas = Game.instance.canvas;
-  private userCharacter: Player = Game.instance.player;
 
   constructor(
     private gameBound: Vector2
@@ -60,7 +58,8 @@ export class Simulation {
       this.spawnVampire();
     }
 
-    this.userCharacter.update(deltaTime);
+    Game.instance.player.input();
+    Game.instance.player.update(deltaTime);
     // do collision for user
 
     // do melee attack hitboxes and create projectiles from attacks
