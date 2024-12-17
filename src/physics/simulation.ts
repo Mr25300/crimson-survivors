@@ -1,4 +1,4 @@
-import { Grunt } from '../objects/enemy/grunt.js';
+import {Grunt} from '../objects/enemy/grunt.js';
 import {Entity} from '../objects/entity.js';
 import {Player} from '../objects/player/player.js';
 import {Structure} from '../objects/structure.js';
@@ -8,7 +8,7 @@ import {Vector2} from '../util/vector2.js';
 class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = ["grunt"];
+  private vampireTypes: string[] = ['grunt'];
 
   constructor(
     private canvas: Canvas,
@@ -26,13 +26,12 @@ class Simulation {
       Math.random() * this.gameBound.y - this.gameBound.y / 2
     );
 
-    const randomIndex = Math.floor(Math.random() * this.vampireTypes.length);
-    const randomVampire = this.vampireTypes[randomIndex];
-    if (randomVampire === "grunt") {
+    const randomIndex: number = Math.floor(Math.random() * this.vampireTypes.length);
+    const randomVampire: string = this.vampireTypes[randomIndex];
+    if (randomVampire === 'grunt') {
       // spawn grunt
     }
     // all the other guys
-
   }
 
   public update(deltaTime: number): void {
@@ -48,8 +47,11 @@ class Simulation {
       this.spawnVampire();
     }
 
-    // read input
+    this.userCharacter.update(deltaTime);
+    // do collision for user
+
     // do melee attack hitboxes and create projectiles from attacks
+
     // simulate projectile physics and collisions
     // simulate entity physics
     // check structure collisions and reposition entities if colliding
