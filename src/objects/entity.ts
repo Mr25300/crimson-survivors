@@ -25,8 +25,6 @@ export abstract class Entity extends GameObject {
     this.sprite.playAnimation("idle");
 
     this.health = maxHealth;
-
-    Entity.activeList.push(this);
   }
 
   public getHitbox(): HitBox {
@@ -67,7 +65,7 @@ export abstract class Entity extends GameObject {
 
   protected abstract attack(): void;
 
-  public destroy() {
-    Entity.activeList.splice(Entity.activeList.indexOf(this));
+  public destroy(): void {
+    
   }
 }

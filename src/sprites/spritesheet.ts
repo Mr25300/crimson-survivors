@@ -1,3 +1,4 @@
+import { Game } from "../core/game.js";
 import {ShaderProgram} from "../rendering/shaderprogram.js";
 import {Matrix4} from "../util/matrix4.js";
 import {SpriteModel} from "./spritemodel.js";
@@ -10,7 +11,6 @@ export class SpriteSheet {
   private animations: Map<string, AnimationInfo> = new Map();
 
   constructor( // ADD Z-LEVEL TO SPRITESHEET
-    private shader: ShaderProgram,
     private width: number,
     private height: number,
     private spriteCount: number,
@@ -30,8 +30,8 @@ export class SpriteSheet {
       spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
     }
 
-    this.texture = this.shader.createTexture(imagePath);
-    this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
+    this.texture = Game.instance.canvas.shader.createTexture(imagePath);
+    this.coordBuffer = Game.instance.canvas.shader.createBuffer(new Float32Array(spriteCoords));
   }
 
   public get buffer(): WebGLBuffer {
@@ -51,7 +51,7 @@ export class SpriteSheet {
   }
 
   public createModel(): SpriteModel {
-    const model = new SpriteModel(this.shader, this);
+    const model = new SpriteModel(this);
 
     this.models.push(model);
 
@@ -59,13 +59,13 @@ export class SpriteSheet {
   }
 
   public bind(): void {
-    this.shader.bindTexture(this.texture);
-    this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
+    Game.instance.canvas.shader.bindTexture(this.texture);
+    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
   }
 
   public destroy(): void {
-    this.shader.deleteTexture(this.texture);
-    this.shader.deleteBuffer(this.coordBuffer);
+    Game.instance.canvas.shader.deleteTexture(this.texture);
+    Game.instance.canvas.shader.deleteBuffer(this.coordBuffer);
   }
 }
 

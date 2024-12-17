@@ -1,39 +1,32 @@
+import { Game } from "../core/game.js";
 import {ShaderProgram} from "../rendering/shaderprogram.js";
 import {Matrix4} from "../util/matrix4.js";
 import {Vector2} from "../util/vector2.js";
 import {AnimationInfo, SpriteSheet} from "./spritesheet.js";
 
 export class SpriteModel {
-  public static activeModels: Map<SpriteSheet, SpriteModel[]>;
-
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
-  private currentSprite: number = 0;
+  private currentGrid: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
 
   constructor(
-    private shader: ShaderProgram,
     private sprite: SpriteSheet
   ) {
-    let models = SpriteModel.activeModels.get(sprite);
+    let models = Game.instance.spriteModels.get(sprite);
 
     if (!models) {
       models = [];
 
-      SpriteModel.activeModels.set(sprite, models);
+      Game.instance.spriteModels.set(sprite, models);
     }
 
     models.push(this);
   }
 
-  public setTransformation(position: Vector2, rotation: number): void {
-    this.position = position;
-    this.rotation = rotation;
-  }
-
-  public setCurrentSprite(n: number): void {
-    this.currentSprite = n;
+  public setSpriteGrid(n: number): void {
+    this.currentGrid = n;
   }
 
   public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation | null {
@@ -78,18 +71,27 @@ export class SpriteModel {
     }
   }
 
+  public setTransformation(position: Vector2, rotation: number): void {
+    this.position = position;
+    this.rotation = rotation;
+  }
+
+  public getTransformation(): Matrix4 {
+    return Matrix4.fromTransformation(this.position, this.rotation);
+  }
+
   public bind(): void {
-    this.shader.setAttribBuffer("textureCoord", this.sprite.buffer, 2, 0, this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-    this.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
+    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.buffer, 2, 0, this.currentGrid * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
+    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
   }
 
   public destroy(): void {
-    const models = SpriteModel.activeModels.get(this.sprite)!;
+    const models = Game.instance.spriteModels.get(this.sprite)!;
 
     models.splice(models.indexOf(this));
 
     if (models.length === 0) {
-      SpriteModel.activeModels.delete(this.sprite);
+      Game.instance.spriteModels.delete(this.sprite);
     }
   }
 }
@@ -124,7 +126,7 @@ export class SpriteAnimation {
     const percentThrough = this.timePassed / this.info.duration;
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
 
-    this.model.setCurrentSprite(this.info.frames[frameIndex]);
+    this.model.setSpriteGrid(this.info.frames[frameIndex]);
   }
 
   public stop() {

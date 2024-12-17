@@ -5,20 +5,21 @@ import {SpriteSheet} from "../sprites/spritesheet.js";
 import {Vector2} from "../util/vector2.js";
 import {Camera} from "./camera.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
+import { Game } from "../core/game.js";
 
 export class Canvas {
-  private canvas: HTMLCanvasElement;
+  private element: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
-  private shader: ShaderProgram;
+  private _shader: ShaderProgram;
 
   private screenUnitScale: number = 1 / 10;
   private height: number;
   private width: number;
   private aspectRatio: number;
 
-  constructor(private camera: Camera) {
-    this.canvas = document.getElementById("gameScreen") as HTMLCanvasElement;
-    this.gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
+  constructor() {
+    this.element = document.getElementById("gameScreen") as HTMLCanvasElement;
+    this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
 
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -29,8 +30,8 @@ export class Canvas {
 
     new ResizeObserver(() => {
       this.updateDimenstions();
-      
-    }).observe(this.canvas);
+
+    }).observe(this.element);
   }
 
   public async init(): Promise<void> {
@@ -39,16 +40,20 @@ export class Canvas {
       Util.loadShaderFile("res/shaders/fragment.glsl")
 
     ]).then(([vertSource, fragSource]) => {
-      this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
-      this.shader.use();
-      this.shader.createAttrib("vertexPos");
-      this.shader.createAttrib("textureCoord");
-      this.shader.createUniform("screenProjection");
-      this.shader.createUniform("spriteScale");
-      this.shader.createUniform("modelTransform");
+      this._shader = new ShaderProgram(this.gl, vertSource, fragSource);
+      this._shader.use();
+      this._shader.createAttrib("vertexPos");
+      this._shader.createAttrib("textureCoord");
+      this._shader.createUniform("screenProjection");
+      this._shader.createUniform("spriteScale");
+      this._shader.createUniform("modelTransform");
 
       this.createUniversalVertexBuffer();
     });
+  }
+
+  public get shader(): ShaderProgram {
+    return this._shader;
   }
 
   /**
@@ -63,27 +68,25 @@ export class Canvas {
   }
 
   private updateDimenstions(): void {
-    this.width = this.canvas.clientWidth;
-    this.height = this.canvas.clientHeight;
+    this.width = this.element.clientWidth;
+    this.height = this.element.clientHeight;
 
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    this.element.width = this.width;
+    this.element.height = this.height;
     this.aspectRatio = this.width / this.height;
+
     this.gl.viewport(0, 0, this.width, this.height);
   }
 
-  public pixelsToCoordinates(pPosition: Vector2): Vector2 {
-    const difference = new Vector2(
-      pPosition.x - this.width / 2,
-      this.height / 2 - pPosition.y
-    );
-    const scaledDiff = difference.divide(this.screenUnitScale * this.height);
+  public pixelsToCoordinates(pixels: Vector2): Vector2 {
+    const delta = new Vector2(pixels.x - this.width / 2, this.height / 2 - pixels.y);
+    const scaledDelta = delta.divide(this.screenUnitScale * this.height);
 
-    return scaledDiff.add(this.camera.position);
+    return Game.instance.camera.position.add(scaledDelta);
   }
 
   public update(deltaTime: number): void {
-    SpriteModel.activeModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
+    Game.instance.spriteModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
       for (const model of models) {
         model.update(deltaTime);
       }
@@ -98,7 +101,7 @@ export class Canvas {
 
     this.shader.setUniformMatrix4("screenProjection", screenMatrix.values);
 
-    SpriteModel.activeModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
+    Game.instance.spriteModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
       sprite.bind();
 
       for (const model of models) {
