@@ -2,7 +2,7 @@ import { Game, Assets } from '../core/game.js';
 import {Grunt} from '../objects/enemy/grunt.js';
 import {Entity} from '../objects/entity.js';
 import {Player} from '../objects/player/player.js';
-import {Structure} from '../objects/structure.js';
+import {Structure} from '../objects/barrier.js';
 import {Canvas} from '../rendering/canvas.js';
 import { SpriteModel } from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';

@@ -8,7 +8,7 @@ import { Player } from '../objects/player/player.js';
 import { PlayerController } from '../objects/player/controller.js';
 import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
-import { Structure } from '../objects/structure.js';
+import { Structure } from '../objects/barrier.js';
 import { Simulation } from '../physics/simulation.js';
 
 export class Assets {
@@ -62,6 +62,8 @@ export class Game extends Gameloop {
 
     const model: SpriteModel = this._assets.getSprite("player").createModel();
     const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
+
+    const testModel: SpriteModel = this._assets.getSprite("wall").createModel();
 
     this._player = new Player(model, controller);
 

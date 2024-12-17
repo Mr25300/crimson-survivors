@@ -49,8 +49,9 @@ export class Player extends Entity {
 
     const poly = new HitPoly(this.position, this.rotation,
       new Vector2(-0.5, -0.5),
-      new Vector2(0.5, -0.5),
-      new Vector2(0, 0.5)
+      new Vector2(-0.5, 0.5),
+      new Vector2(0.5, 0.5),
+      new Vector2(0.5, -0.5)
     );
 
     const barriers = [

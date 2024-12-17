@@ -54,6 +54,10 @@ export abstract class Entity extends GameObject {
       if (this.sprite.isAnimationPlaying("walking")) this.sprite.stopAnimation("walking");
     }
 
+    for (const structure of Game.instance.structures) {
+      
+    }
+
     this.updateSprite();
   }
 
