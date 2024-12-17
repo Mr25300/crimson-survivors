@@ -2,10 +2,9 @@ import {Vector2} from "../util/vector2.js";
 import {SpriteModel} from "../sprites/spritemodel.js";
 import { GameObject } from "./gameobject.js";
 import { HitBox } from "../physics/collisions.js";
+import { Game } from "../core/game.js";
 
 export abstract class Entity extends GameObject {
-  public static activeList: Entity[] = [];
-
   private accelTime: number = 0.2;
   private velocity: Vector2 = new Vector2();
 
@@ -23,11 +22,11 @@ export abstract class Entity extends GameObject {
   ) {
     super(sprite, width, height);
 
-    Entity.activeList.push(this);
-
     this.sprite.playAnimation("idle");
 
     this.health = maxHealth;
+
+    Entity.activeList.push(this);
   }
 
   public getHitbox(): HitBox {

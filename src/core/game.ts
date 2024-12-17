@@ -10,10 +10,11 @@ import { Tool } from '../objects/player/tool.js';
 import { HitLine, HitBox } from '../physics/collisions.js';
 import { Entity } from '../objects/entity.js';
 
-class Game extends Gameloop {
+export class Game extends Gameloop {
   private static _instance: Game;
 
-  private canvas: Canvas;
+  private _canvas: Canvas;
+  private _camera: Camera;
 
   private playerChar: Player;
 
@@ -22,9 +23,9 @@ class Game extends Gameloop {
 
     const camera: Camera = new Camera(new Vector2());
 
-    this.canvas = new Canvas(camera);
+    this._canvas = new Canvas(camera);
 
-    void this.canvas.init().then(() => {
+    this.canvas.init().then(() => {
       const sprite: SpriteSheet = this.canvas.createSprite(1, 1, 11, 3, 4, 'res/assets/player.png');
       sprite.createAnimation("idle", [0], 1, true, 0);
       sprite.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
@@ -43,6 +44,14 @@ class Game extends Gameloop {
 
       this.start();
     });
+  }
+
+  public get canvas(): Canvas {
+    return this._canvas;
+  }
+
+  public get camera(): Camera {
+    return this._camera;
   }
 
   public static get instance(): Game {
