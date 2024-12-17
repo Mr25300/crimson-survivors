@@ -3,10 +3,10 @@ import {Tool} from "./tool.js";
 import {Vector2} from "../../util/vector2.js";
 import {SpriteModel} from "../../sprites/spritemodel.js";
 import {PlayerController} from "./controller.js";
-import { HitLine, HitBox } from "../../physics/collisions.js";
+import { HitLine, HitBox, HitPoly } from "../../physics/collisions.js";
 
 export class Player extends Entity {
-  private tool: Tool = new Tool("GUN!!!!", 1);
+  private tool: Tool = new Tool("GUN!", 1);
   private tools: Tool[] = [];
   private maximumTools: number = 1;
 
@@ -15,6 +15,8 @@ export class Player extends Entity {
     private controller: PlayerController
   ) {
     super(sprite, 0.4, 0.6, 100, 2);
+
+    this.position = new Vector2(0, 2);
   }
 
   public giveTool(tool: Tool): void {
@@ -45,22 +47,24 @@ export class Player extends Entity {
       this.attack();
     }
 
-    const box = new HitBox(this.position, this.rotation, 1, 1);
+    const poly = new HitPoly(this.position, this.rotation,
+      new Vector2(-0.5, -0.5),
+      new Vector2(0.5, -0.5),
+      new Vector2(0, 0.5)
+    );
 
     const barriers = [
-      new HitLine(new Vector2(0, 0.5), 0, 4),
-      new HitLine(new Vector2(0, -0.5), Math.PI, 1),
-      new HitLine(new Vector2(-0.5, 0), -Math.PI/2, 1),
-      new HitLine(new Vector2(0.5, 0), Math.PI/2, 1)
+      new HitLine(new Vector2(0, 2), Math.PI, 4),
+      new HitLine(new Vector2(0, -2), 0, 4),
+      new HitLine(new Vector2(2, 0), -Math.PI/2, 4),
+      new HitLine(new Vector2(-2, 0), Math.PI/2, 4)
     ];
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 4; i++) {
       const barrier = barriers[i];
-      const [detected, normal, overlap] = barrier.newBoxCollision(box);
+      const [colliding, overlap] = barrier.checkPolyCollision(poly);
 
-      if (detected && normal !== undefined && overlap !== undefined) {
-        this.position = this.position.add(normal.multiply(overlap));
-      }
+      if (colliding) this.position = this.position.add(barrier.getNormal().multiply(overlap));
     }
 
     this.updateSprite();
@@ -68,5 +72,6 @@ export class Player extends Entity {
 
   protected attack(): void {
     this.tool.use();
+    this.sprite.playAnimation("shoot");
   }
 }

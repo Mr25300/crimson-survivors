@@ -1,4 +1,3 @@
-import { HitBox } from "../physics/collisions.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 

@@ -30,8 +30,8 @@ export class SpriteSheet {
       spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
     }
 
-    this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
     this.texture = this.shader.createTexture(imagePath);
+    this.coordBuffer = this.shader.createBuffer(new Float32Array(spriteCoords));
   }
 
   public get buffer(): WebGLBuffer {
@@ -61,6 +61,11 @@ export class SpriteSheet {
   public bind(): void {
     this.shader.bindTexture(this.texture);
     this.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
+  }
+
+  public destroy(): void {
+    this.shader.deleteTexture(this.texture);
+    this.shader.deleteBuffer(this.coordBuffer);
   }
 }
 

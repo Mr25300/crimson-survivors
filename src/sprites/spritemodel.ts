@@ -4,6 +4,8 @@ import {Vector2} from "../util/vector2.js";
 import {AnimationInfo, SpriteSheet} from "./spritesheet.js";
 
 export class SpriteModel {
+  public static activeModels: Map<SpriteSheet, SpriteModel[]>;
+
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
@@ -13,7 +15,17 @@ export class SpriteModel {
   constructor(
     private shader: ShaderProgram,
     private sprite: SpriteSheet
-  ) {}
+  ) {
+    let models = SpriteModel.activeModels.get(sprite);
+
+    if (!models) {
+      models = [];
+
+      SpriteModel.activeModels.set(sprite, models);
+    }
+
+    models.push(this);
+  }
 
   public setTransformation(position: Vector2, rotation: number): void {
     this.position = position;
@@ -52,7 +64,9 @@ export class SpriteModel {
     let highestPriority: number;
     let selectedAnim: SpriteAnimation | undefined;
 
-    this.animations.forEach((anim: SpriteAnimation) => {
+    this.animations.forEach((anim: SpriteAnimation, key: string) => {
+      if (!anim.active) this.animations.delete(key);
+
       if (highestPriority === undefined || selectedAnim === undefined || anim.priority >= highestPriority) {
         highestPriority = anim.priority;
         selectedAnim = anim;
@@ -68,15 +82,31 @@ export class SpriteModel {
     this.shader.setAttribBuffer("textureCoord", this.sprite.buffer, 2, 0, this.currentSprite * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
     this.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
   }
+
+  public destroy(): void {
+    const models = SpriteModel.activeModels.get(this.sprite)!;
+
+    models.splice(models.indexOf(this));
+
+    if (models.length === 0) {
+      SpriteModel.activeModels.delete(this.sprite);
+    }
+  }
 }
 
 export class SpriteAnimation {
+  private _active = true;
+
   constructor(
     private model: SpriteModel,
     private info: AnimationInfo,
     private timePassed: number = 0,
     private speed: number = 1
   ) {}
+
+  public get active(): boolean {
+    return this._active;
+  }
 
   public get priority(): number {
     return this.info.priority;
@@ -86,9 +116,7 @@ export class SpriteAnimation {
     this.timePassed = this.timePassed + deltaTime * this.speed;
 
     if (this.timePassed > this.info.duration) {
-      if (!this.info.looped) {
-        return;
-      }
+      if (!this.info.looped) this.stop();
 
       this.timePassed %= this.info.duration;
     }
@@ -97,5 +125,9 @@ export class SpriteAnimation {
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
 
     this.model.setCurrentSprite(this.info.frames[frameIndex]);
+  }
+
+  public stop() {
+    this._active = false;
   }
 }

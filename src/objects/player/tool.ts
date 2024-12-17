@@ -22,7 +22,5 @@ export class Tool {
     if (this.debounce) return;
 
     this.debounce = true;
-
-    console.log("ATTACKED!!");
   }
 }

@@ -3,17 +3,9 @@ import {SpriteModel} from "../sprites/spritemodel.js";
 import { GameObject } from "./gameobject.js";
 import { HitBox } from "../physics/collisions.js";
 
-export class StateMachine {
-
-}
-
-export abstract class State {
-  abstract enter(): void;
-  abstract update(deltaTime: number): void;
-  abstract leave(): void;
-}
-
 export abstract class Entity extends GameObject {
+  public static activeList: Entity[] = [];
+
   private accelTime: number = 0.2;
   private velocity: Vector2 = new Vector2();
 
@@ -30,6 +22,8 @@ export abstract class Entity extends GameObject {
     protected moveSpeed: number
   ) {
     super(sprite, width, height);
+
+    Entity.activeList.push(this);
 
     this.sprite.playAnimation("idle");
 
@@ -73,4 +67,8 @@ export abstract class Entity extends GameObject {
   }
 
   protected abstract attack(): void;
+
+  public destroy() {
+    Entity.activeList.splice(Entity.activeList.indexOf(this));
+  }
 }

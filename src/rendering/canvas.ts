@@ -4,6 +4,7 @@ import {ShaderProgram} from "./shaderprogram.js";
 import {SpriteSheet} from "../sprites/spritesheet.js";
 import {Vector2} from "../util/vector2.js";
 import {Camera} from "./camera.js";
+import { SpriteModel } from "../sprites/spritemodel.js";
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
@@ -14,8 +15,6 @@ export class Canvas {
   private height: number;
   private width: number;
   private aspectRatio: number;
-
-  private sprites: SpriteSheet[] = [];
 
   constructor(private camera: Camera) {
     this.canvas = document.getElementById("gameScreen") as HTMLCanvasElement;
@@ -30,6 +29,7 @@ export class Canvas {
 
     new ResizeObserver(() => {
       this.updateDimenstions();
+      
     }).observe(this.canvas);
   }
 
@@ -37,6 +37,7 @@ export class Canvas {
     await Promise.all([
       Util.loadShaderFile("res/shaders/vertex.glsl"),
       Util.loadShaderFile("res/shaders/fragment.glsl")
+
     ]).then(([vertSource, fragSource]) => {
       this.shader = new ShaderProgram(this.gl, vertSource, fragSource);
       this.shader.use();
@@ -61,29 +62,6 @@ export class Canvas {
     this.shader.setAttribBuffer("vertexPos", vertexBuffer, 2, 0, 0);
   }
 
-  public createSprite(
-    width: number,
-    height: number,
-    spriteCount: number,
-    columns: number,
-    rows: number,
-    imagePath: string
-  ): SpriteSheet {
-    const sprite = new SpriteSheet(
-      this.shader,
-      width,
-      height,
-      spriteCount,
-      columns,
-      rows,
-      imagePath
-    );
-
-    this.sprites.push(sprite);
-
-    return sprite;
-  }
-
   private updateDimenstions(): void {
     this.width = this.canvas.clientWidth;
     this.height = this.canvas.clientHeight;
@@ -105,36 +83,29 @@ export class Canvas {
   }
 
   public update(deltaTime: number): void {
-    for (const sprite of this.sprites) {
-      for (const model of sprite.models) {
+    SpriteModel.activeModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
+      for (const model of models) {
         model.update(deltaTime);
       }
-    }
+    });
   }
 
   public render(): void {
     this.gl.clearColor(0, 0, 0, 1);
-    this.gl.clear(
-      this.gl.COLOR_BUFFER_BIT |
-        this.gl.DEPTH_BUFFER_BIT |
-        this.gl.STENCIL_BUFFER_BIT
-    );
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const screenMatrix = Matrix4.fromScale(
-      (this.screenUnitScale * 2) / this.aspectRatio,
-      this.screenUnitScale * 2
-    );
+    const screenMatrix = Matrix4.fromScale((this.screenUnitScale * 2) / this.aspectRatio, this.screenUnitScale * 2);
 
     this.shader.setUniformMatrix4("screenProjection", screenMatrix.values);
 
-    for (const sprite of this.sprites) {
+    SpriteModel.activeModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
       sprite.bind();
 
-      for (const model of sprite.models) {
+      for (const model of models) {
         model.bind();
 
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
       }
-    }
+    });
   }
 }
