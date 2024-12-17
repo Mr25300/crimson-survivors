@@ -1,10 +1,10 @@
-import { Game, Assets } from '../core/game.js';
+import {Game, Assets} from '../core/game.js';
 import {Grunt} from '../objects/enemy/grunt.js';
 import {Entity} from '../objects/entity.js';
 import {Player} from '../objects/player/player.js';
 import {Structure} from '../objects/structure.js';
 import {Canvas} from '../rendering/canvas.js';
-import { SpriteModel } from '../sprites/spritemodel.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
 
 export class Simulation {
@@ -12,10 +12,9 @@ export class Simulation {
   private spawnProbability: number = 1;
   private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
   private necroCount: number = 0;
+  private gruntList: Grunt[] = [];
 
-  constructor(
-    private gameBound: Vector2
-  ) {
+  constructor(private gameBound: Vector2) {
     for (let i: number = 0; i < 20; i++) {
       this.spawnVampire;
     }
@@ -27,11 +26,15 @@ export class Simulation {
       Math.random() * this.gameBound.y - this.gameBound.y / 2
     );
 
-    const randomIndex: number = Math.floor(Math.random() * this.vampireTypes.length);
+    const randomIndex: number = Math.floor(
+      Math.random() * this.vampireTypes.length
+    );
     const randomVampire: string = this.vampireTypes[randomIndex];
     if (randomVampire === 'grunt') {
-      const model: SpriteModel = Game.instance.assets.getSprite('grunt').createModel();
-      const grunt = new Grunt(randomPositionVector, model);
+      const model: SpriteModel = Game.instance.assets
+        .getSprite('grunt')
+        .createModel();
+      const grunt: Grunt = new Grunt(randomPositionVector, model);
       // // spawn grunt
       // } else if (randomVampire === 'thrower') {
       // // spawn thrower
@@ -56,6 +59,10 @@ export class Simulation {
     }
     if (Math.random() < this.spawnProbability) {
       this.spawnVampire();
+    }
+    for (let i: number = 0; i < this.gruntList.length; i++) {
+      const element: Grunt = this.gruntList[i];
+      element.pathFind(Game.instance.player.position);
     }
 
     Game.instance.player.input();
