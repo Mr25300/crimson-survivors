@@ -10,11 +10,34 @@ import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
 
+export class Assets {
+  private _playerSprite: SpriteSheet;
+  private _wallTile: SpriteSheet;
+
+  private assets: Map<string, SpriteSheet> = new Map();
+
+  constructor() {
+    const player: SpriteSheet = new SpriteSheet(1, 1, 11, 3, 4, 'res/assets/player.png');
+    player.createAnimation("idle", [0], 1, true, 0);
+    player.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
+    player.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
+    this.assets.set("player", player);
+
+    const wall: SpriteSheet = new SpriteSheet(4, 4, 1, 1, 1, "res/assets/WallTile.png");
+    this.assets.set("wall", wall);
+  }
+
+  public getSprite(name: string): SpriteSheet {
+    return this.assets.get(name)!;
+  }
+}
+
 export class Game extends Gameloop {
   private static _instance: Game;
 
   private _canvas: Canvas = new Canvas();
   private _camera: Camera = new Camera();
+  private _assets: Assets;
 
   private _spriteModels: Map<SpriteSheet, SpriteModel[]> = new Map();
   private _player: Player;
@@ -25,19 +48,12 @@ export class Game extends Gameloop {
     super();
 
     this.canvas.init().then(() => {
-      const sprite: SpriteSheet = new SpriteSheet(1, 1, 11, 3, 4, 'res/assets/player.png');
-      sprite.createAnimation("idle", [0], 1, true, 0);
-      sprite.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
-      sprite.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
+      this._assets = new Assets();
 
-      const model: SpriteModel = sprite.createModel();
+      const model: SpriteModel = this._assets.getSprite("player").createModel();
       const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
 
       this._player = new Player(model, controller);
-
-      const sprite2: SpriteSheet = new SpriteSheet(4, 4, 1, 1, 1, "res/assets/WallTile.png");
-      const model2: SpriteModel = sprite2.createModel();
-      model2.setTransformation(new Vector2(), 0);
 
       this.start();
     });
@@ -55,6 +71,10 @@ export class Game extends Gameloop {
 
   public get camera(): Camera {
     return this._camera;
+  }
+
+  public get assets(): Assets {
+    return this._assets;
   }
 
   public get spriteModels(): Map<SpriteSheet, SpriteModel[]> {
