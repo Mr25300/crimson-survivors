@@ -23,6 +23,8 @@ export class Assets {
     player.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
     this.assets.set("player", player);
 
+    this.assets.set("grunt", player);
+
     const wall: SpriteSheet = new SpriteSheet(4, 4, 1, 1, 1, "res/assets/WallTile.png");
     this.assets.set("wall", wall);
   }
