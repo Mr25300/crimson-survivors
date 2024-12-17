@@ -1,14 +1,17 @@
+import { Game, Assets } from '../core/game.js';
 import {Grunt} from '../objects/enemy/grunt.js';
 import {Entity} from '../objects/entity.js';
 import {Player} from '../objects/player/player.js';
 import {Structure} from '../objects/structure.js';
 import {Canvas} from '../rendering/canvas.js';
+import { SpriteModel } from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
 
 class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = ['grunt'];
+  private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
+  private necroCount: number = 0;
 
   constructor(
     private canvas: Canvas,
@@ -29,9 +32,19 @@ class Simulation {
     const randomIndex: number = Math.floor(Math.random() * this.vampireTypes.length);
     const randomVampire: string = this.vampireTypes[randomIndex];
     if (randomVampire === 'grunt') {
-      // spawn grunt
+      const model: SpriteModel = Game.instance.assets.getSprite('grunt').createModel();
+      const grunt = new Grunt(randomPositionVector, model);
+      // // spawn grunt
+      // } else if (randomVampire === 'thrower') {
+      // // spawn thrower
+      // } else if (randomVampire === 'necro') {
+      // if (this.necroCount < 2) {
+      //   // spawn
+      //   this.necroCount++;
+      // }
+      // }
+      // all the other guys
     }
-    // all the other guys
   }
 
   public update(deltaTime: number): void {
