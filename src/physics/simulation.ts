@@ -7,15 +7,15 @@ import {Canvas} from '../rendering/canvas.js';
 import { SpriteModel } from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
 
-class Simulation {
+export class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
   private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
   private necroCount: number = 0;
+  private canvas: Canvas = Game.instance.canvas;
+  private userCharacter: Player = Game.instance.player;
 
   constructor(
-    private canvas: Canvas,
-    private userCharacter: Player,
     private gameBound: Vector2
   ) {
     for (let i: number = 0; i < 20; i++) {

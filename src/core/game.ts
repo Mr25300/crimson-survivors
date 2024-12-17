@@ -9,6 +9,7 @@ import { PlayerController } from '../objects/player/controller.js';
 import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
+import { Simulation } from '../physics/simulation.js';
 
 export class Assets {
   private _playerSprite: SpriteSheet;
@@ -37,6 +38,7 @@ export class Assets {
 export class Game extends Gameloop {
   private static _instance: Game;
 
+  private simulation: Simulation = new Simulation(new Vector2(1,1));
   private _canvas: Canvas = new Canvas();
   private _camera: Camera = new Camera();
   private _assets: Assets;
@@ -57,6 +59,7 @@ export class Game extends Gameloop {
 
       this._player = new Player(model, controller);
 
+      
       this.start();
     });
   }
@@ -98,6 +101,7 @@ export class Game extends Gameloop {
   protected update(deltaTime: number): void {
     this._player.input();
     this._player.update(deltaTime);
+    this.simulation.update(deltaTime);
 
     this.canvas.update(deltaTime);
   }
