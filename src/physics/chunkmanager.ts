@@ -21,30 +21,61 @@ class Quad {
   }
 }
 
-class ChunkManager {
+export class ChunkManager {
   private CHUNK_SIZE = 1;
 
-  private chunks: Record<string, Set<Entity>> = {};
+  private chunks: Map<number, Set<GameObject>> = new Map();
 
-  constructor() {
+  public getChunkKey(chunk: Vector2): number {
+    // modified cantor function to include negatives
+    const x = chunk.x < 0 ? 2 * chunk.x : -2 * chunk.x - 1;
+    const y = chunk.y < 0 ? 2 * chunk.y : -2 * chunk.y - 1;
 
+    return (x + y) * (x + y + 1) / 2 + y;
   }
 
   public chunkContainsPolygon(chunk: Vector2, polygon: Polygon): boolean {
     const chunkPos = chunk.multiply(this.CHUNK_SIZE);
+
     const chunkRect = new Rectangle(
-      chunkPos.subtract(new Vector2(this.CHUNK_SIZE/2, this.CHUNK_SIZE/2)),
-      chunkPos.add(new Vector2(this.CHUNK_SIZE/2, this.CHUNK_SIZE/2))
-    )
+      chunkPos.subtract(new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2)),
+      chunkPos.add(new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2))
+    );
 
     return chunkRect.containsPolygon(polygon);
+  }
+
+  public addToChunk(chunk: Vector2, object: GameObject): void {
+    const key = this.getChunkKey(chunk);
+    let objects = this.chunks.get(key);
+
+    if (!objects) {
+      objects = new Set();
+
+      this.chunks.set(key, objects);
+    }
+
+    objects.add(object);
+  }
+
+  public removeFromChunk(chunk: Vector2, object: GameObject): void {
+    const key = this.getChunkKey(chunk);
+    const objects = this.chunks.get(key);
+
+    if (objects) {
+      objects.delete(object);
+
+      if (objects.size === 0) this.chunks.delete(key);
+    }
   }
 
   public updateObjectChunks(object: GameObject) {
     const polygon: Polygon = object.hitShape;
 
     for (const chunk of object.getChunks()) {
-      if (!this.chunkContainsPolygon(chunk, polygon)) object.removeChunk(chunk);
+      if (!this.chunkContainsPolygon(chunk, polygon)) {
+        object.removeChunk(chunk);
+      }
     }
 
     const bounds: Rectangle = polygon.getBounds();
@@ -54,7 +85,7 @@ class ChunkManager {
     for (let x = minChunk.x; x <= maxChunk.x; x++) {
       for (let y = minChunk.y; y <= maxChunk.y; y++) {
         const chunk = new Vector2(x, y);
-        
+
         if (object.isInChunk(chunk) || !this.chunkContainsPolygon(chunk, polygon)) continue;
 
         object.addChunk(chunk);

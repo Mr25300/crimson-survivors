@@ -11,18 +11,15 @@ export class SpriteModel {
   private currentGrid: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
 
-  constructor(
-    private sprite: SpriteSheet
-  ) {
-    let models = Game.instance.spriteModels.get(sprite);
+  constructor(private sprite: SpriteSheet) {
+    let models = Game.instance.spriteModels.get(sprite) || new Set();
 
     if (!models) {
-      models = [];
-
+      models = new Set();
       Game.instance.spriteModels.set(sprite, models);
     }
 
-    models.push(this);
+    models.add(this);
   }
 
   public setSpriteGrid(n: number): void {
@@ -87,10 +84,9 @@ export class SpriteModel {
 
   public destroy(): void {
     const models = Game.instance.spriteModels.get(this.sprite)!;
+    models.delete(this);
 
-    models.splice(models.indexOf(this));
-
-    if (models.length === 0) {
+    if (models.size === 0) {
       Game.instance.spriteModels.delete(this.sprite);
     }
   }
