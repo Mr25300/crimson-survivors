@@ -19,36 +19,20 @@ export class Assets {
   private assets: Map<string, SpriteSheet> = new Map();
 
   constructor() {
-    const player: SpriteSheet = new SpriteSheet(
-      1,
-      1,
-      11,
-      3,
-      4,
-      'res/assets/player.png'
-    );
-    player.createAnimation('idle', [0], 1, true, 0);
-    player.createAnimation(
-      'walking',
-      [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5],
-      1,
-      true,
-      1
-    );
-    player.createAnimation('shoot', [0, 1, 2, 1], 0.3, false, 2);
-    this.assets.set('player', player);
+    const player: SpriteSheet = new SpriteSheet(1, 1, 11, 3, 4, "res/assets/Player.png");
+    player.createAnimation("idle", [0], 1, true, 0);
+    player.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
+    player.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
+    this.assets.set("player", player);
 
-    this.assets.set('grunt', player);
+    const grunt: SpriteSheet = new SpriteSheet(1, 1, 11, 5, 6, "res/assets/Grunt.png");
+    grunt.createAnimation("idle", [0], 1, true, 0);
+    grunt.createAnimation("walking", [3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 5, 4], 1, true, 1);
+    // grunt.createAnimation("attack")
+    this.assets.set("grunt", grunt);
 
-    const wall: SpriteSheet = new SpriteSheet(
-      4,
-      4,
-      1,
-      1,
-      1,
-      'res/assets/WallTile.png'
-    );
-    this.assets.set('wall', wall);
+    const wall: SpriteSheet = new SpriteSheet(4, 4, 1, 1, 1, "res/assets/WallTile.png");
+    this.assets.set("wall", wall);
   }
 
   public getSprite(name: string): SpriteSheet {
