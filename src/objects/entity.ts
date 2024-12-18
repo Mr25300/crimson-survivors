@@ -1,8 +1,8 @@
 import {Vector2} from '../util/vector2.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {GameObject} from './gameobject.js';
-import {HitBox} from '../physics/collisions.js';
 import {Game} from '../core/game.js';
+import { Polygon } from '../physics/collisions.js';
 
 export abstract class Entity extends GameObject {
   private accelTime: number = 0.2;
@@ -20,7 +20,8 @@ export abstract class Entity extends GameObject {
     protected maxHealth: number,
     protected moveSpeed: number
   ) {
-    super(sprite, width, height);
+    const biden = new Polygon(new Vector2(0,0), 0, [new Vector2(-0.5, -0.5), new Vector2(-0.5, 0.5), new Vector2(0.5, 0.5), new Vector2(0.5, -0.5)]);
+    super(sprite, biden);
 
     this.sprite.playAnimation('idle');
 
@@ -29,9 +30,9 @@ export abstract class Entity extends GameObject {
     Game.instance.entities.push(this);
   }
 
-  public getHitbox(): HitBox {
-    return new HitBox(this.position, this.rotation, this.width, this.height);
-  }
+  // public getHitbox(): HitBox {
+  //   return new HitBox(this.position, this.rotation, this.width, this.height);
+  // }
 
   public update(deltaTime: number): void {
     const goalVelocity: Vector2 = this.moveDirection.multiply(this.moveSpeed);
