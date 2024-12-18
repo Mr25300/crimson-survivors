@@ -14,6 +14,7 @@ export class Simulation {
   private necroCount: number = 0;
   private gruntList: Grunt[] = [];
   private spawnTimer: number = 0;
+  private mandatorySpawnCount: number = 0;
 
   constructor(private gameBound: Vector2) {
     for (let i: number = 0; i < 20; i++) {
@@ -30,7 +31,8 @@ export class Simulation {
     const randomIndex: number = Math.floor(
       Math.random() * this.vampireTypes.length
     );
-    const randomVampire: string = this.vampireTypes[randomIndex];
+    // const randomVampire: string = this.vampireTypes[randomIndex];
+    let randomVampire = 'grunt';
     if (randomVampire === 'grunt') {
       const model: SpriteModel = Game.instance.assets
         .getSprite('grunt')
@@ -54,22 +56,21 @@ export class Simulation {
   public update(deltaTime: number): void {
     this.spawnTimer += deltaTime;
     if (this.spawnTimer >= 1) {
-      console.log(this.spawnProbability);
-      this.spawnTimer = 0;
+      this.spawnTimer %= 1;
 
       // Increase the vampire spawn chance
-      this.spawnProbability += 2;
+      this.spawnProbability += 1;
 
-      // Calculate mandatory spawns
-      const mandatorySpawnCount: number = Math.floor(
-        this.spawnProbability / 100
-      );
+      if (this.spawnProbability >= 100) {
+        this.mandatorySpawnCount++;
+      } 
 
       // Adjust probability to remain within 0-100 range
       this.spawnProbability %= 100;
 
+      console.log(this.mandatorySpawnCount, this.spawnProbability);
       // Spawn mandatory vampires
-      for (let i: number = 0; i < mandatorySpawnCount; i++) {
+      for (let i: number = 0; i < this.mandatorySpawnCount; i++) {
         this.spawnVampire();
       }
 
