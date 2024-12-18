@@ -1,15 +1,15 @@
-import { Gameloop } from './gameloop.js';
-import { Canvas } from '../rendering/canvas.js';
-import { SpriteModel } from '../sprites/spritemodel.js';
-import { Camera } from '../rendering/camera.js';
-import { Vector2 } from '../util/vector2.js';
-import { SpriteSheet } from '../sprites/spritesheet.js';
-import { Player } from '../objects/player/player.js';
-import { PlayerController } from '../objects/player/controller.js';
-import { Tool } from '../objects/player/tool.js';
-import { Entity } from '../objects/entity.js';
-import { Structure } from '../objects/barrier.js';
-import { Simulation } from '../physics/simulation.js';
+import {Gameloop} from './gameloop.js';
+import {Canvas} from '../rendering/canvas.js';
+import {SpriteModel} from '../sprites/spritemodel.js';
+import {Camera} from '../rendering/camera.js';
+import {Vector2} from '../util/vector2.js';
+import {SpriteSheet} from '../sprites/spritesheet.js';
+import {Player} from '../objects/player/player.js';
+import {PlayerController} from '../objects/player/controller.js';
+import {Tool} from '../objects/player/tool.js';
+import {Entity} from '../objects/entity.js';
+import {Structure} from '../objects/barrier.js';
+import {Simulation} from '../physics/simulation.js';
 
 export class Assets {
   private _playerSprite: SpriteSheet;
@@ -80,14 +80,20 @@ export class Game extends Gameloop {
   private init(): void {
     this._assets = new Assets();
 
-    const model: SpriteModel = this._assets.getSprite("player").createModel();
-    const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
+    const model: SpriteModel = this._assets.getSprite('player').createModel();
+    const controller: PlayerController = new PlayerController(
+      this.canvas,
+      'w',
+      'a',
+      's',
+      'd'
+    );
 
-    const testModel: SpriteModel = this._assets.getSprite("wall").createModel();
+    const testModel: SpriteModel = this._assets.getSprite('wall').createModel();
 
     this._player = new Player(model, controller);
 
-    this.simulation = new Simulation(new Vector2(20, 20));
+    this.simulation = new Simulation(new Vector2(1, 1));
   }
 
   public static get instance(): Game {

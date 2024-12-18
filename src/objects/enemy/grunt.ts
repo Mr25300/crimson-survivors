@@ -12,6 +12,7 @@ export class Grunt extends Entity {
     public sprite: SpriteModel
   ) {
     super(sprite, 1, 1, 30, 0.5);
+    this.position = position;
     sprite.setTransformation(position, this.rotation);
     this.setFaceDirection(new Vector2(1, 0));
     this.setMoveDirection(new Vector2(1, 0));

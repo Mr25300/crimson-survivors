@@ -13,6 +13,7 @@ export class Simulation {
   private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
   private necroCount: number = 0;
   private gruntList: Grunt[] = [];
+  private spawnTimer: number = 0;
 
   constructor(private gameBound: Vector2) {
     for (let i: number = 0; i < 20; i++) {
@@ -35,6 +36,8 @@ export class Simulation {
         .getSprite('grunt')
         .createModel();
       const grunt: Grunt = new Grunt(randomPositionVector, model);
+      this.gruntList.push(grunt);
+
       // // spawn grunt
       // } else if (randomVampire === 'thrower') {
       // // spawn thrower
@@ -49,20 +52,36 @@ export class Simulation {
   }
 
   public update(deltaTime: number): void {
-    // increase the vampire spawn chance
-    this.spawnProbability += 1;
-    // spawn the ones that are mandatory
-    const mandatorySpawnCount: number = Math.floor(this.spawnProbability / 100);
-    this.spawnProbability = (this.spawnProbability % 100) / 100;
-    for (let i: number = 0; i < mandatorySpawnCount; i++) {
-      this.spawnVampire();
-    }
-    if (Math.random() < this.spawnProbability) {
-      this.spawnVampire();
+    this.spawnTimer += deltaTime;
+    if (this.spawnTimer >= 1) {
+      console.log(this.spawnProbability);
+      this.spawnTimer = 0;
+
+      // Increase the vampire spawn chance
+      this.spawnProbability += 2;
+
+      // Calculate mandatory spawns
+      const mandatorySpawnCount: number = Math.floor(
+        this.spawnProbability / 100
+      );
+
+      // Adjust probability to remain within 0-100 range
+      this.spawnProbability %= 100;
+
+      // Spawn mandatory vampires
+      for (let i: number = 0; i < mandatorySpawnCount; i++) {
+        this.spawnVampire();
+      }
+
+      // Handle additional vampire spawn based on remaining probability
+      if (Math.random() < this.spawnProbability / 100) {
+        this.spawnVampire();
+      }
     }
     for (let i: number = 0; i < this.gruntList.length; i++) {
       const element: Grunt = this.gruntList[i];
       element.pathFind(Game.instance.player.position);
+      element.update(deltaTime);
     }
 
     Game.instance.player.input();
