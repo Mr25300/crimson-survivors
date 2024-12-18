@@ -60,7 +60,7 @@ export abstract class Entity extends GameObject {
     }
 
     for (const structure of Game.instance.structures) {
-      
+
     }
 
     this.updateSprite();

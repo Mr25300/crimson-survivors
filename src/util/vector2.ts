@@ -62,4 +62,8 @@ export class Vector2 {
   public cross(vec: Vector2): number {
     return this._x * vec._y - this._y * vec._x;
   }
+
+  public round(): Vector2 {
+    return new Vector2(Math.round(this._x), Math.round(this._y));
+  }
 }

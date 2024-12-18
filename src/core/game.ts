@@ -10,6 +10,7 @@ import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/barrier.js';
 import { Simulation } from '../physics/simulation.js';
+import { GameObject } from '../objects/gameobject.js';
 
 export class Assets {
   private _playerSprite: SpriteSheet;
@@ -64,6 +65,7 @@ export class Game extends Gameloop {
   private _assets: Assets;
 
   private _spriteModels: Map<SpriteSheet, SpriteModel[]> = new Map();
+  private _gameObjects: GameObject[] = [];
   private _player: Player;
   private _entities: Entity[] = [];
   private _structures: Structure[] = [];
@@ -110,6 +112,10 @@ export class Game extends Gameloop {
 
   public get spriteModels(): Map<SpriteSheet, SpriteModel[]> {
     return this._spriteModels;
+  }
+
+  public get gameObjects(): GameObject[] {
+    return this._gameObjects;
   }
 
   public get player(): Player {

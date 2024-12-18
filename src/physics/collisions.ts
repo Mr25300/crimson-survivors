@@ -1,73 +1,59 @@
 import {Matrix4} from '../util/matrix4.js';
 import {Vector2} from '../util/vector2.js';
 
+export class CollisionHandler {
+  public static getNormals(vertices: Vector2[]): Vector2[] {
+    const normals: Vector2[] = [];
+
+    for (let i = 0; i < vertices.length; i++) {
+      const vertex1 = vertices[i];
+      const vertex2 = vertices[(i + 1) % vertices.length];
+      const edgeParallel = vertex2.subtract(vertex1).unit();
+      const edgePerpendicular = new Vector2(-edgeParallel.y, edgeParallel.x);
+
+      normals.push(edgePerpendicular);
+    }
+
+    return normals;
+  }
+
+  public static getProjectedRange(vertices: Vector2[], axis: Vector2): [number, number] {
+    let min = Infinity;
+    let max = -Infinity;
+
+    for (const vertex of vertices) {
+      const dot = vertex.dot(axis);
+
+      min = Math.min(min, dot);
+      max = Math.max(max, dot);
+    }
+
+    return [min, max];
+  }
+
+  public static polygonIntersection(poly1: Polygon, poly2: Polygon): boolean {
+    const vertices1 = poly1.getVertices();
+    const vertices2 = poly2.getVertices();
+
+    const axes = [...CollisionHandler.getNormals(vertices1), ...CollisionHandler.getNormals(vertices2)];
+
+    for (const axis of axes) {
+      const [min1, max1] = CollisionHandler.getProjectedRange(vertices1, axis);
+      const [min2, max2] = CollisionHandler.getProjectedRange(vertices2, axis);
+
+      if (min2 > max1 || min1 > max2) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
 export class HitObject {
   public visualize() {
     
   } 
-}
-
-export class HitRay {
-  constructor(
-    public position: Vector2,
-    public direction: Vector2
-  ) {}
-
-  public getRadIntersection(circle: HitCircle): [boolean, Vector2?, Vector2?] {
-    const relativeRay: Vector2 = this.position.subtract(circle.position);
-
-    const lineM: number = this.direction.y / this.direction.x; // slope of line
-    const lineB: number = relativeRay.y - relativeRay.x * lineM; // vertical translation of line
-
-    // (mx + b)^2 = r^2 - x^2 --> 0 = (m^2 + 1)x^2 + (2mb)x + (b^2 - r^2)
-    const a: number = lineM ** 2 + 1;
-    const b: number = 2 * lineM * lineB;
-    const c: number = lineB ** 2 - circle.radius ** 2;
-    const discriminant: number = Math.sqrt(b ** 2 - 4 * a * c);
-
-    if (isNaN(discriminant)) return [false];
-
-    const x0: number = (-b - discriminant) / (2 * a);
-    const x1: number = (-b + discriminant) / (2 * a);
-
-    const rayX0: number = Math.min(relativeRay.x, relativeRay.x + this.direction.x);
-    const rayX1: number = Math.max(relativeRay.x, relativeRay.x + this.direction.x);
-
-    if (x0 >= rayX0 && x1 <= rayX1) {
-      const xIntersection: number = this.direction.x < 0 ? x1 : x0;
-      const pointIntersection: Vector2 = new Vector2(
-        xIntersection,
-        xIntersection * lineM + lineB
-      );
-
-      return [
-        true,
-        pointIntersection.add(circle.position),
-        pointIntersection.unit()
-      ];
-    }
-
-    return [false];
-  }
-}
-
-export class HitRadius {
-  constructor(
-    public position: Vector2,
-    public radius: number
-  ) {}
-
-  public collidesWith(box: HitBox): boolean {
-    const corners: Vector2[] = box.getCorners();
-
-    for (let i: number = 0; i < 4; i++) {
-      const distance = corners[i].subtract(this.position).magnitude();
-
-      if (distance <= this.radius) return true;
-    }
-
-    return false;
-  }
 }
 
 export class HitLine {
@@ -99,10 +85,10 @@ export class HitLine {
     return ends;
   }
 
-  public checkPolyCollision(poly: HitPoly): [boolean, number] {
+  public checkPolyCollision(poly: Polygon): [boolean, number] {
     const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, -this.rotation);
 
-    const corners: Vector2[] = poly.getCorners();
+    const corners: Vector2[] = poly.getVertices();
 
     let cornerIndex: number = 0;
 
@@ -150,55 +136,68 @@ export class HitLine {
   }
 }
 
-export class HitPoly {
-  private corners: Vector2[];
-
+export class Polygon {
   constructor(
     private position: Vector2,
     private rotation: number,
-    ...corners: Vector2[]
-  ) {
-    this.corners = corners;
+    private vertices: Vector2[]
+  ) {}
+
+  public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
+    const vertices = [
+      new Vector2(-width/2, -height/2),
+      new Vector2(-width/2, height/2),
+      new Vector2(width/2, height/2),
+      new Vector2(width/2, -height/2)
+    ];
+
+    return new Polygon(position, rotation, vertices);
   }
 
-  public getCorners(): Vector2[] {
-    const rotMatrix = Matrix4.fromTransformation(this.position, this.rotation);
-    const corners: Vector2[] = [];
+  public setTransformation(position: Vector2, rotation: number) {
+    this.position = position;
+    this.rotation = rotation;
+  }
 
-    for (let i = 0; i < this.corners.length; i++) {
-      corners[i] = rotMatrix.multiply(this.corners[i]);
+  public getVertices(): Vector2[] {
+    const transformation = Matrix4.fromTransformation(this.position, this.rotation);
+    const vertices: Vector2[] = [];
+
+    for (let i = 0; i < this.vertices.length; i++) {
+      vertices[i] = transformation.multiply(this.vertices[i]);
     }
 
-    return corners;
+    return vertices;
+  }
+
+  public getBounds(): Rectangle {
+    const vertices = this.getVertices();
+
+    let min = new Vector2(Infinity, Infinity);
+    let max = new Vector2(-Infinity, -Infinity);
+
+    for (const vertex of vertices) {
+      if (vertex.x < min.x) min = new Vector2(vertex.x, min.y);
+      if (vertex.x > max.x) max = new Vector2(vertex.x, min.y);
+      if (vertex.y < min.y) min = new Vector2(min.x, vertex.y);
+      if (vertex.y > max.y) max = new Vector2(max.x, vertex.y);
+    }
+
+    return new Rectangle(min, max);
   }
 }
 
-export class HitBox {
+export class Rectangle {
   constructor(
-    private _position: Vector2,
-    private _rotation: number,
-    private _width: number,
-    private _height: number
+    private _min: Vector2,
+    private _max: Vector2
   ) {}
 
-  public get position(): Vector2 {
-    return this._position;
+  public get min(): Vector2 {
+    return this._min;
   }
 
-  public getCorners(): Vector2[] {
-    const corners: Vector2[] = [
-      new Vector2(-this._width / 2, -this._height / 2),
-      new Vector2(-this._width / 2, this._height / 2),
-      new Vector2(this._width / 2, this._height / 2),
-      new Vector2(this._width / 2, -this._height / 2)
-    ];
-
-    const rotationMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this._rotation);
-
-    for (let i: number = 0; i < 4; i++) {
-      corners[i] = rotationMatrix.multiply(corners[i]).add(this.position);
-    }
-
-    return corners;
+  public get max(): Vector2 {
+    return this._max;
   }
 }
