@@ -10,7 +10,7 @@ import {Vector2} from '../util/vector2.js';
 export class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = ['grunt', 'thrower', 'necro'];
+  private vampireTypes: string[] = ['grunt', 'kronku', 'necro', 'patrol'];
   private necroCount: number = 0;
   private gruntList: Grunt[] = [];
   private spawnTimer: number = 0;
@@ -31,8 +31,7 @@ export class Simulation {
     const randomIndex: number = Math.floor(
       Math.random() * this.vampireTypes.length
     );
-    // const randomVampire: string = this.vampireTypes[randomIndex];
-    let randomVampire = 'grunt';
+    const randomVampire: string = this.vampireTypes[randomIndex];
     if (randomVampire === 'grunt') {
       const model: SpriteModel = Game.instance.assets
         .getSprite('grunt')
