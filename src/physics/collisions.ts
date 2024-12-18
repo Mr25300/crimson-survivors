@@ -48,12 +48,31 @@ export class CollisionHandler {
 
     return true;
   }
+
+  public static linesIntersect(line1: Line, line2: Line): boolean {
+    const [a, b] = [line1.start, line1.end];
+    const [c, d] = [line2.start, line2.end];
+
+    // Line direction vectors
+    const dir1 = b.subtract(a);
+    const dir2 = d.subtract(c);
+
+    // Determinant
+    const det = dir1.x * dir2.y - dir1.y * dir2.x;
+
+    if (det === 0) return false; // Parallel or collinear
+
+    // Compute t and u
+    const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
+    const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
+
+    // Check if intersection occurs within both segments
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+  }
 }
 
-export class HitObject {
-  public visualize() {
-    
-  } 
+export abstract class HitObject {
+  public abstract visualize(): void;
 }
 
 export class HitLine {
@@ -187,6 +206,42 @@ export class Polygon {
   }
 }
 
+export class Line {
+  constructor(
+    private _start: Vector2,
+    private _end: Vector2
+  ) {}
+
+  public get start(): Vector2 {
+    return this._start;
+  }
+
+  public get end(): Vector2 {
+    return this._end;
+  }
+
+  public intersects(line: Line): boolean {
+    const [a, b] = [this._start, this._end];
+    const [c, d] = [line._start, line._end];
+
+    // Line direction vectors
+    const dir1 = b.subtract(a);
+    const dir2 = d.subtract(c);
+
+    // Determinant
+    const det = dir1.x * dir2.y - dir1.y * dir2.x;
+
+    if (det === 0) return false; // Parallel or collinear
+
+    // Compute t and u
+    const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
+    const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
+
+    // Check if intersection occurs within both segments
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+  }
+}
+
 export class Rectangle {
   constructor(
     private _min: Vector2,
@@ -199,5 +254,54 @@ export class Rectangle {
 
   public get max(): Vector2 {
     return this._max;
+  }
+
+  public getVertices(): Vector2[] {
+    return [
+      this._min,
+      new Vector2(this._min.x, this._max.y),
+      this._max,
+      new Vector2(this._max.x, this._min.x)
+    ];
+  }
+
+  public containsPoint(point: Vector2) {
+    return point.x >= this._min.x && point.x <= this._min.x && point.y >= this._min.y && point.y <= this._max.y;
+  }
+
+  public simpleContainCheck(polygon: Polygon): boolean {
+    const vertices = polygon.getVertices();
+
+    for (const vertex of vertices) {
+      if (this.containsPoint(vertex)) return true;
+    }
+
+    return false;
+  }
+
+  public containsPolygon(polygon: Polygon): boolean {
+    const vertices = polygon.getVertices();
+
+    for (const vertex of vertices) {
+      if (this.containsPoint(vertex)) return true;
+    }
+
+    const rectVertices = this.getVertices();
+
+    for (let i = 0; i < 4; i++) {
+      const corner1 = rectVertices[i];
+      const corner2 = rectVertices[(i + 1) % 4];
+      const rectEdge: Line = new Line(corner1, corner2);
+
+      for (let i = 0; i < vertices.length; i++) {
+        const vertex1: Vector2 = vertices[i];
+        const vertex2: Vector2 = vertices[(i + 1) % vertices.length];
+        const line: Line = new Line(vertex1, vertex2);
+  
+        if (line.intersects(rectEdge)) return true;
+      }
+    }
+
+    return false;
   }
 }
