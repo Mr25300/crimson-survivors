@@ -82,14 +82,20 @@ export class Game extends Gameloop {
   private init(): void {
     this._assets = new Assets();
 
-    const model: SpriteModel = this._assets.getSprite("player").createModel();
-    const controller: PlayerController = new PlayerController(this.canvas, 'w', 'a', 's', 'd');
+    const model: SpriteModel = this._assets.getSprite('player').createModel();
+    const controller: PlayerController = new PlayerController(
+      this.canvas,
+      'w',
+      'a',
+      's',
+      'd'
+    );
 
-    const testModel: SpriteModel = this._assets.getSprite("wall").createModel();
+    const testModel: SpriteModel = this._assets.getSprite('wall').createModel();
 
     this._player = new Player(model, controller);
 
-    this.simulation = new Simulation(new Vector2(20, 20));
+    this.simulation = new Simulation(new Vector2(1, 1));
   }
 
   public static get instance(): Game {

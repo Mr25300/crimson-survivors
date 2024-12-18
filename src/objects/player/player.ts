@@ -47,20 +47,11 @@ export class Player extends Entity {
       this.attack();
     }
 
-<<<<<<< HEAD
-    const poly = new HitPoly(this.position, this.rotation,
-      new Vector2(-0.5, -0.5),
-      new Vector2(-0.5, 0.5),
-      new Vector2(0.5, 0.5),
-      new Vector2(0.5, -0.5)
-    );
-=======
     // const poly = new HitPoly(this.position, this.rotation,
     //   new Vector2(-0.5, -0.5),
     //   new Vector2(0.5, -0.5),
     //   new Vector2(0, 0.5)
     // );
->>>>>>> 55f490286ac77a5bfeed08e72bc4f1b5ffb542ff
 
     // const barriers = [
     //   new HitLine(new Vector2(0, 2), Math.PI, 4),
