@@ -1,9 +1,8 @@
-import {Util} from "../util/util.js";
-import {Matrix4} from "../util/matrix4.js";
-import {ShaderProgram} from "./shaderprogram.js";
-import {SpriteSheet} from "../sprites/spritesheet.js";
-import {Vector2} from "../util/vector2.js";
-import {Camera} from "./camera.js";
+import { Util } from "../util/util.js";
+import { Matrix4 } from "../util/matrix4.js";
+import { ShaderProgram } from "./shaderprogram.js";
+import { SpriteSheet } from "../sprites/spritesheet.js";
+import { Vector2 } from "../util/vector2.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Game } from "../core/game.js";
 
@@ -13,7 +12,7 @@ export class Canvas {
 
   public readonly shader: ShaderProgram;
 
-  private screenUnitScale: number = 1 / 10;
+  private screenUnitScale: number = 1 / 5;
   private height: number;
   private width: number;
   private aspectRatio: number;

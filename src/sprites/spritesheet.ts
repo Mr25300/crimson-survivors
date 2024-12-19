@@ -5,10 +5,11 @@ import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
   private spriteCoords: Float32Array;
+  private zTransform: number;
 
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
-  
+
   private animations: Map<string, AnimationInfo> = new Map();
 
   constructor( // ADD Z-LEVEL TO SPRITESHEET
@@ -17,7 +18,8 @@ export class SpriteSheet {
     private spriteCount: number,
     private columns: number,
     private rows: number,
-    private imagePath: string
+    private imagePath: string,
+    zOrder: number
   ) {
     const spriteCoords: number[] = [];
 
@@ -32,6 +34,7 @@ export class SpriteSheet {
     }
 
     this.spriteCoords = new Float32Array(spriteCoords);
+    this.zTransform = -Math.tanh(zOrder);
   }
 
   public init(): void {
@@ -39,13 +42,15 @@ export class SpriteSheet {
     this.coordBuffer = Game.instance.canvas.shader.createBuffer(this.spriteCoords);
   }
 
-  public get buffer(): WebGLBuffer {
+  public getBuffer(): WebGLBuffer {
     return this.coordBuffer;
   }
 
-  // public createModel() {
-  //   return new Model(this);
-  // }
+  public createModel(): SpriteModel {
+    const model = new SpriteModel(this);
+
+    return model;
+  }
 
   public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): void {
     this.animations.set(name, new AnimationInfo(frames, duration, looped, priority));
@@ -55,15 +60,9 @@ export class SpriteSheet {
     return this.animations.get(name);
   }
 
-  public createModel(): SpriteModel {
-    const model = new SpriteModel(this);
-
-    return model;
-  }
-
   public bind(): void {
     Game.instance.canvas.shader.bindTexture(this.texture);
-    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height).values);
+    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height, this.zTransform).values);
   }
 
   public destroy(): void {

@@ -75,7 +75,7 @@ export class SpriteModel {
   }
 
   public bind(): void {
-    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.buffer, 2, 0, this.currentGrid * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
+    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.getBuffer(), 2, 0, this.currentGrid * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
     Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
   }
 

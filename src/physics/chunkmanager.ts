@@ -6,7 +6,7 @@ class Quad {
   constructor(
     private start: Vector2,
     private end: Vector2,
-  ) { }
+  ) {}
 
   public getSubdivisions(): Quad[] {
     const middleX = (this.start.x + this.end.x) / 2;
@@ -15,7 +15,7 @@ class Quad {
     return [
       new Quad(this.start, new Vector2(middleX, middleY)),
       new Quad(this.start, new Vector2())
-    ]
+    ];
   }
 }
 

@@ -11,12 +11,12 @@ export class Matrix4 {
     return new Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
   }
 
-  public static fromScale(xScale: number, yScale: number): Matrix4 {
+  public static fromScale(xScale: number, yScale: number, z: number = 0): Matrix4 {
     return new Matrix4(
       xScale, 0, 0, 0,
       0, yScale, 0, 0,
       0, 0, 1, 0,
-      0, 0, 0, 1
+      0, 0, z, 1
     );
   }
 

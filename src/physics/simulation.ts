@@ -1,11 +1,8 @@
-import {Game} from '../core/game.js';
-import {Grunt} from '../objects/enemy/grunt.js';
-import {Entity} from '../objects/entity.js';
-import {Player} from '../objects/player/player.js';
-import {Structure} from '../objects/structure.js';
-import {Canvas} from '../rendering/canvas.js';
-import {SpriteModel} from '../sprites/spritemodel.js';
-import {Vector2} from '../util/vector2.js';
+import { Game } from '../core/game.js';
+import { Grunt } from '../objects/enemy/grunt.js';
+import { Structure } from '../objects/structure.js';
+import { SpriteModel } from '../sprites/spritemodel.js';
+import { Vector2 } from '../util/vector2.js';
 
 export class Simulation {
   private structures: Structure[] = [];
@@ -16,7 +13,7 @@ export class Simulation {
   private spawnTimer: number = 0;
   private mandatorySpawnCount: number = 0;
 
-  private gameBound: Vector2 = new Vector2(100, 100);
+  private gameBound: Vector2 = new Vector2(5, 5);
 
   constructor() {
     for (let i: number = 0; i < 20; i++) {
@@ -62,7 +59,7 @@ export class Simulation {
 
       if (this.spawnProbability >= 100) {
         this.mandatorySpawnCount++;
-      } 
+      }
 
       // Adjust probability to remain within 0-100 range
       this.spawnProbability %= 100;
