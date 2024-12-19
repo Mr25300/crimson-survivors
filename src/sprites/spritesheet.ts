@@ -4,10 +4,11 @@ import {Matrix4} from "../util/matrix4.js";
 import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
+  private spriteCoords: Float32Array;
+
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
-
-  public models: SpriteModel[] = [];
+  
   private animations: Map<string, AnimationInfo> = new Map();
 
   constructor( // ADD Z-LEVEL TO SPRITESHEET
@@ -16,7 +17,7 @@ export class SpriteSheet {
     private spriteCount: number,
     private columns: number,
     private rows: number,
-    imagePath: string
+    private imagePath: string
   ) {
     const spriteCoords: number[] = [];
 
@@ -30,8 +31,12 @@ export class SpriteSheet {
       spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
     }
 
-    this.texture = Game.instance.canvas.shader.createTexture(imagePath);
-    this.coordBuffer = Game.instance.canvas.shader.createBuffer(new Float32Array(spriteCoords));
+    this.spriteCoords = new Float32Array(spriteCoords);
+  }
+
+  public init(): void {
+    this.texture = Game.instance.canvas.shader.createTexture(this.imagePath);
+    this.coordBuffer = Game.instance.canvas.shader.createBuffer(this.spriteCoords);
   }
 
   public get buffer(): WebGLBuffer {
@@ -52,8 +57,6 @@ export class SpriteSheet {
 
   public createModel(): SpriteModel {
     const model = new SpriteModel(this);
-
-    this.models.push(model);
 
     return model;
   }

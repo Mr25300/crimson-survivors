@@ -1,4 +1,4 @@
-import {Game, Assets} from '../core/game.js';
+import {Game} from '../core/game.js';
 import {Grunt} from '../objects/enemy/grunt.js';
 import {Entity} from '../objects/entity.js';
 import {Player} from '../objects/player/player.js';
@@ -35,11 +35,11 @@ export class Simulation {
     );
     const randomVampire: string = this.vampireTypes[randomIndex];
     if (randomVampire === 'grunt') {
-      const model: SpriteModel = Game.instance.assets
-        .getSprite('grunt')
-        .createModel();
-      const grunt: Grunt = new Grunt(randomPositionVector, model);
-      this.gruntList.push(grunt);
+      // const model: SpriteModel = Game.instance.assets
+      //   .getSprite('grunt')
+      //   .createModel();
+      // const grunt: Grunt = new Grunt(randomPositionVector, model);
+      // this.gruntList.push(grunt);
 
       // // spawn grunt
       // } else if (randomVampire === 'thrower') {
@@ -82,12 +82,12 @@ export class Simulation {
     }
     for (let i: number = 0; i < this.gruntList.length; i++) {
       const element: Grunt = this.gruntList[i];
-      element.pathFind(Game.instance.player.position);
+      // element.pathFind(Game.instance.player.position);
       element.update(deltaTime);
     }
 
-    Game.instance.player.input();
-    Game.instance.player.update(deltaTime);
+    // Game.instance.player.input();
+    // Game.instance.player.update(deltaTime);
     // do collision for user
 
     // do melee attack hitboxes and create projectiles from attacks

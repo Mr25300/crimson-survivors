@@ -1,8 +1,8 @@
 import { Game } from "../core/game.js";
-import {ShaderProgram} from "../rendering/shaderprogram.js";
-import {Matrix4} from "../util/matrix4.js";
-import {Vector2} from "../util/vector2.js";
-import {AnimationInfo, SpriteSheet} from "./spritesheet.js";
+import { ShaderProgram } from "../rendering/shaderprogram.js";
+import { Matrix4 } from "../util/matrix4.js";
+import { Vector2 } from "../util/vector2.js";
+import { AnimationInfo, SpriteSheet } from "./spritesheet.js";
 
 export class SpriteModel {
   private position: Vector2 = new Vector2();
@@ -12,14 +12,11 @@ export class SpriteModel {
   private animations: Map<string, SpriteAnimation> = new Map();
 
   constructor(private sprite: SpriteSheet) {
-    let models = Game.instance.spriteModels.get(sprite) || new Set();
-
-    if (!models) {
-      models = new Set();
-      Game.instance.spriteModels.set(sprite, models);
+    if (!Game.instance.spriteModels.has(sprite)) {
+      Game.instance.spriteModels.set(sprite, new Set());
     }
 
-    models.add(this);
+    Game.instance.spriteModels.get(sprite)!.add(this);
   }
 
   public setSpriteGrid(n: number): void {
@@ -100,7 +97,7 @@ export class SpriteAnimation {
     private info: AnimationInfo,
     private timePassed: number = 0,
     private speed: number = 1
-  ) {}
+  ) { }
 
   public get active(): boolean {
     return this._active;

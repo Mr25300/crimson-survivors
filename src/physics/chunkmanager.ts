@@ -1,8 +1,6 @@
-import { Game } from "../core/game";
-import { Entity } from "../objects/entity";
-import { GameObject } from "../objects/gameobject";
-import { Vector2 } from "../util/vector2";
-import { CollisionHandler, Polygon, Rectangle } from "./collisions";
+import { GameObject } from "../objects/gameobject.js";
+import { Vector2 } from "../util/vector2.js";
+import { Polygon, Rectangle } from "./collisions.js";
 
 class Quad {
   constructor(

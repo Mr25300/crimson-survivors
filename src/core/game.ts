@@ -40,12 +40,14 @@ export class SpriteManager {
     }
   }
 
-  public get(name: SpriteName): SpriteSheet {
-    return this.sprites[name];
+  public init(): void {
+    for (const name in this.sprites) {
+      this.sprites[name as SpriteName].init();
+    }
   }
 
   public create(name: SpriteName): SpriteModel {
-    return this.get(name).createModel();
+    return this.sprites[name].createModel();
   }
 }
 
@@ -58,23 +60,25 @@ export class Game extends Gameloop {
   public readonly teams: string[] = [];
   public readonly structures: Structure[] = [];
 
-  public readonly spriteManager: SpriteManager = new SpriteManager();
-  public readonly simulation: Simulation = new Simulation();
-  public readonly chunkManager: ChunkManager = new ChunkManager();
-  public readonly canvas: Canvas = new Canvas();
-  public readonly camera: Camera = new Camera();
+  public readonly canvas: Canvas;
+  public readonly camera: Camera;
+  public readonly spriteManager: SpriteManager;
+  public readonly simulation: Simulation;
+  public readonly chunkManager: ChunkManager;
 
   private constructor() {
     super();
 
+    this.canvas = new Canvas();
+    this.camera = new Camera();
+    this.spriteManager = new SpriteManager();
+    this.simulation = new Simulation();
+    this.chunkManager = new ChunkManager();
+
     // create all classes as necessary
     // add init methods for canvas, shader, and all sprites
 
-
-    this.canvas.init().then(() => {
-      this.init();
-      this.start();
-    });
+    this.init();
   }
 
   public static get instance(): Game {
@@ -84,12 +88,18 @@ export class Game extends Gameloop {
   }
 
   private async init(): Promise<void> {
-    const model: SpriteModel = this.spriteManager.create("player");
-    const controller: PlayerController = new PlayerController(this.canvas, "w", "a", "s", "d");
+    await this.canvas.init();
+
+    this.spriteManager.init();
+
+    this.start();
+
+    // const model: SpriteModel = this.sprites.create("player");
+    // const controller: PlayerController = new PlayerController(this.canvas, "w", "a", "s", "d");
 
     const wall: SpriteModel = this.spriteManager.create("wall");
 
-    new Player(model, controller);
+    // new Player(model, controller);
   }
 
   protected update(deltaTime: number): void {

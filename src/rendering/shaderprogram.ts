@@ -8,33 +8,28 @@ export class ShaderProgram {
   private attribLocations: Map<string, GLint> = new Map();
   private uniformLocations: Map<string, WebGLUniformLocation> = new Map();
 
-  constructor(
-    private gl: WebGL2RenderingContext,
-    vertSource: string,
-    fragSource: string
-  ) {
+  constructor(private gl: WebGL2RenderingContext) {
     const program = gl.createProgram();
 
     if (program == null) throw new Error("Failed to create program.");
 
     this.program = program;
-    this.vertShader = this.createShader(gl.VERTEX_SHADER, vertSource);
-    this.fragShader = this.createShader(gl.FRAGMENT_SHADER, fragSource);
+  }
 
-    gl.linkProgram(program);
+  public init(vertSource: string, fragSource: string) {
+    this.vertShader = this.createShader(this.gl.VERTEX_SHADER, vertSource);
+    this.fragShader = this.createShader(this.gl.FRAGMENT_SHADER, fragSource);
 
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error(
-        "Failed to link shader program: " + gl.getProgramInfoLog(program)
-      );
+    this.gl.linkProgram(this.program);
+
+    if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+      console.error("Failed to link shader program: " + this.gl.getProgramInfoLog(this.program));
     }
 
-    gl.validateProgram(program);
+    this.gl.validateProgram(this.program);
 
-    if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-      console.error(
-        "Failed to validate shader program: " + gl.getProgramInfoLog(program)
-      );
+    if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) {
+      console.error("Failed to validate shader program: " + this.gl.getProgramInfoLog(this.program));
     }
   }
 

@@ -10,7 +10,8 @@ import { Game } from "../core/game.js";
 export class Canvas {
   private element: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
-  private _shader: ShaderProgram;
+
+  public readonly shader: ShaderProgram;
 
   private screenUnitScale: number = 1 / 10;
   private height: number;
@@ -20,6 +21,7 @@ export class Canvas {
   constructor() {
     this.element = document.getElementById("gameScreen") as HTMLCanvasElement;
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
+    this.shader = new ShaderProgram(this.gl);
 
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -40,20 +42,16 @@ export class Canvas {
       Util.loadShaderFile("res/shaders/fragment.glsl")
 
     ]).then(([vertSource, fragSource]) => {
-      this._shader = new ShaderProgram(this.gl, vertSource, fragSource);
-      this._shader.use();
-      this._shader.createAttrib("vertexPos");
-      this._shader.createAttrib("textureCoord");
-      this._shader.createUniform("screenProjection");
-      this._shader.createUniform("spriteScale");
-      this._shader.createUniform("modelTransform");
+      this.shader.init(vertSource, fragSource);
+      this.shader.use();
+      this.shader.createAttrib("vertexPos");
+      this.shader.createAttrib("textureCoord");
+      this.shader.createUniform("screenProjection");
+      this.shader.createUniform("spriteScale");
+      this.shader.createUniform("modelTransform");
 
       this.createUniversalVertexBuffer();
     });
-  }
-
-  public get shader(): ShaderProgram {
-    return this._shader;
   }
 
   /**
@@ -86,7 +84,7 @@ export class Canvas {
   }
 
   public update(deltaTime: number): void {
-    Game.instance.spriteModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
+    Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       for (const model of models) {
         model.update(deltaTime);
       }
@@ -101,7 +99,7 @@ export class Canvas {
 
     this.shader.setUniformMatrix4("screenProjection", screenMatrix.values);
 
-    Game.instance.spriteModels.forEach((models: SpriteModel[], sprite: SpriteSheet) => {
+    Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       sprite.bind();
 
       for (const model of models) {
