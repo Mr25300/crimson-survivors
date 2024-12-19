@@ -66,6 +66,8 @@ export class Game extends Gameloop {
   public readonly simulation: Simulation;
   public readonly chunkManager: ChunkManager;
 
+  public player: Player;
+
   private constructor() {
     super();
 
@@ -94,12 +96,12 @@ export class Game extends Gameloop {
 
     this.start();
 
-    // const model: SpriteModel = this.sprites.create("player");
-    // const controller: PlayerController = new PlayerController(this.canvas, "w", "a", "s", "d");
+    const model: SpriteModel = this.spriteManager.create("player");
+    const controller: PlayerController = new PlayerController(this.canvas, "w", "a", "s", "d");
 
     const wall: SpriteModel = this.spriteManager.create("wall");
 
-    // new Player(model, controller);
+    this.player = new Player(model, controller);
   }
 
   protected update(deltaTime: number): void {
