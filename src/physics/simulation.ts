@@ -1,5 +1,6 @@
 import { Game } from '../core/game.js';
 import { Grunt } from '../objects/enemy/grunt.js';
+import { Necro } from '../objects/enemy/necro.js';
 import { Structure } from '../objects/structure.js';
 import { SpriteModel } from '../sprites/spritemodel.js';
 import { Vector2 } from '../util/vector2.js';
@@ -7,9 +8,8 @@ import { Vector2 } from '../util/vector2.js';
 export class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = ['grunt', 'kronku', 'necro', 'patrol'];
+  private vampireTypes: string[] = [ 'necro'];
   private necroCount: number = 0;
-  private gruntList: Grunt[] = [];
   private spawnTimer: number = 0;
   private mandatorySpawnCount: number = 0;
 
@@ -34,19 +34,13 @@ export class Simulation {
     if (randomVampire === 'grunt') {
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
       const grunt: Grunt = new Grunt(randomPositionVector, model);
-      this.gruntList.push(grunt);
-
       // // spawn grunt
       // } else if (randomVampire === 'thrower') {
       // // spawn thrower
-      // } else if (randomVampire === 'necro') {
-      // if (this.necroCount < 2) {
-      //   // spawn
-      //   this.necroCount++;
-      // }
-      // }
-      // all the other guys
-    }
+      } else if (randomVampire === 'necro') {
+      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const necro: Necro = new Necro(randomPositionVector, model);
+      }
   }
 
   public update(deltaTime: number): void {
@@ -74,14 +68,12 @@ export class Simulation {
         this.spawnVampire();
       }
     }
-    for (let i: number = 0; i < this.gruntList.length; i++) {
-      const element: Grunt = this.gruntList[i];
-      element.pathFind(Game.instance.player.position);
+    for (const element of Game.instance.entities){
+      element.brain();
       element.update(deltaTime);
     }
 
-    Game.instance.player.input();
-    Game.instance.player.update(deltaTime);
+
     // do collision for user
 
     // do melee attack hitboxes and create projectiles from attacks

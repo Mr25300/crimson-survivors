@@ -19,7 +19,7 @@ export abstract class GameObject {
   }
 
   public updateSelf() {
-    this.hitShape.setTransformation(this.position, this.rotation);
+    // this.hitShape.setTransformation(this.position, this.rotation);
     this.sprite.setTransformation(this.position, this.rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);

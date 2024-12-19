@@ -75,4 +75,7 @@ export class Player extends Entity {
     this.tool.use();
     this.sprite.playAnimation('shoot');
   }
+  public brain(): void {
+    this.input();
+  }
 }

@@ -1,10 +1,8 @@
-import { Game } from '../../core/game.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
-import { Grunt } from './grunt.js';
 
-export class Necro extends Entity {
+export class Batspawner extends Entity {
   protected attack(): void {
     throw new Error('Method not implemented.');
   }
@@ -29,22 +27,5 @@ export class Necro extends Entity {
     } else {
       this.setMoveDirection(new Vector2(0, 0));
     }
-  }
-  private spawnRandom() {
-    if (Math.random() < 0.5) {
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
-    } else {
-      /// FIX THIS RIGHT NOW
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const necro: Necro = new Necro(this.position.add(randomVector), model);
-    }
-
-  }
-  public brain(): void {
-    this.pathFind(Game.instance.player.position);
-    this.spawnRandom();
   }
 }

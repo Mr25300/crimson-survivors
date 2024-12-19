@@ -75,9 +75,12 @@ export abstract class Entity extends GameObject {
     this.moveDirection = direction.unit();
   }
 
-  protected abstract attack(): void;
+  public abstract brain(): void;
+  public abstract attack(): void;
 
   public destroy(): void {
     Game.instance.entities.delete(this);
   }
+
+
 }
