@@ -27,7 +27,7 @@ export abstract class Entity extends GameObject {
 
     this.health = maxHealth;
 
-    Game.instance.entities.push(this);
+    Game.instance.entities.add(this);
   }
 
   // public getHitbox(): HitBox {
@@ -64,7 +64,7 @@ export abstract class Entity extends GameObject {
 
     }
 
-    this.updateSprite();
+    this.updateSelf();
   }
 
   public setFaceDirection(direction: Vector2): void {
@@ -78,6 +78,6 @@ export abstract class Entity extends GameObject {
   protected abstract attack(): void;
 
   public destroy(): void {
-    Game.instance.entities.splice(Game.instance.entities.indexOf(this));
+    Game.instance.entities.delete(this);
   }
 }

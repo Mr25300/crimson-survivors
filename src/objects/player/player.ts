@@ -3,9 +3,10 @@ import {Tool} from './tool.js';
 import {Vector2} from '../../util/vector2.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {PlayerController} from './controller.js';
-import {HitLine, HitBox, HitPoly} from '../../physics/collisions.js';
 
 export class Player extends Entity {
+  public name: string = "Player"; // testing
+  
   private tool: Tool = new Tool('GUN!', 1);
   private tools: Tool[] = [];
   private maximumTools: number = 1;
@@ -67,7 +68,7 @@ export class Player extends Entity {
     //   if (colliding) this.position = this.position.add(barrier.getNormal().multiply(overlap));
     // }
 
-    this.updateSprite();
+    this.updateSelf();
   }
 
   protected attack(): void {

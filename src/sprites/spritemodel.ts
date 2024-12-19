@@ -12,11 +12,11 @@ export class SpriteModel {
   private animations: Map<string, SpriteAnimation> = new Map();
 
   constructor(private sprite: SpriteSheet) {
-    if (!Game.instance.spriteModels.has(sprite)) {
-      Game.instance.spriteModels.set(sprite, new Set());
-    }
+    const objects = Game.instance.spriteModels.get(sprite) || new Set();
 
-    Game.instance.spriteModels.get(sprite)!.add(this);
+    if (objects.size === 0) Game.instance.spriteModels.set(sprite, objects);
+
+    objects.add(this);
   }
 
   public setSpriteGrid(n: number): void {

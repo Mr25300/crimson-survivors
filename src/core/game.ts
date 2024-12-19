@@ -55,10 +55,10 @@ export class Game extends Gameloop {
   private static _instance: Game;
 
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
-  public readonly gameObjects: GameObject[] = [];
-  public readonly entities: Entity[] = [];
-  public readonly teams: string[] = [];
-  public readonly structures: Structure[] = [];
+  public readonly gameObjects: Set<GameObject> = new Set();
+  public readonly entities: Set<Entity> = new Set();
+  public readonly teams: Set<string> = new Set();
+  public readonly structures: Set<Structure> = new Set();
 
   public readonly canvas: Canvas;
   public readonly camera: Camera;

@@ -26,10 +26,23 @@ export class ChunkManager {
 
   public getChunkKey(chunk: Vector2): number {
     // modified cantor function to include negatives
-    const x = chunk.x < 0 ? 2 * chunk.x : -2 * chunk.x - 1;
-    const y = chunk.y < 0 ? 2 * chunk.y : -2 * chunk.y - 1;
+    const x: number = chunk.x < 0 ? 2 * chunk.x : -2 * chunk.x - 1;
+    const y: number = chunk.y < 0 ? 2 * chunk.y : -2 * chunk.y - 1;
 
     return (x + y) * (x + y + 1) / 2 + y;
+  }
+
+  public getChunkFromKey(key: number): Vector2 {
+    const w = Math.floor((Math.sqrt(8 * key + 1) - 1) / 2);
+    const t = w * (w + 1) / 2;
+
+    const y = key - t;
+    const x = w - y;
+
+    const decodedX = x % 2 === 0 ? x / 2 : -(x + 1) / 2;
+    const decodedY = y % 2 === 0 ? y / 2 : -(y + 1) / 2;
+
+    return new Vector2(decodedX, decodedY);
   }
 
   public chunkContainsPolygon(chunk: Vector2, polygon: Polygon): boolean {
@@ -43,36 +56,31 @@ export class ChunkManager {
     return chunkRect.containsPolygon(polygon);
   }
 
-  public addToChunk(chunk: Vector2, object: GameObject): void {
-    const key = this.getChunkKey(chunk);
-    let objects = this.chunks.get(key);
+  public addToChunk(chunkKey: number, object: GameObject): void {
+    const objects: Set<GameObject> = this.chunks.get(chunkKey) || new Set();
 
-    if (!objects) {
-      objects = new Set();
-
-      this.chunks.set(key, objects);
-    }
+    if (objects.size === 0) this.chunks.set(chunkKey, objects);
 
     objects.add(object);
   }
 
-  public removeFromChunk(chunk: Vector2, object: GameObject): void {
-    const key = this.getChunkKey(chunk);
-    const objects = this.chunks.get(key);
+  public removeFromChunk(chunkKey: number, object: GameObject): void {
+    const objects = this.chunks.get(chunkKey)!;
 
-    if (objects) {
-      objects.delete(object);
-
-      if (objects.size === 0) this.chunks.delete(key);
-    }
+    objects.delete(object);
+    
+    if (objects.size === 0) this.chunks.delete(chunkKey);
   }
 
-  public updateObjectChunks(object: GameObject) {
+  public updateObjectChunks(object: GameObject): void {
     const polygon: Polygon = object.hitShape;
 
-    for (const chunk of object.getChunks()) {
+    for (const chunkKey of object.chunks) {
+      const chunk = this.getChunkFromKey(chunkKey);
+
       if (!this.chunkContainsPolygon(chunk, polygon)) {
-        object.removeChunk(chunk);
+        object.removeChunk(chunkKey);
+        this.removeFromChunk(chunkKey, object);
       }
     }
 
@@ -83,11 +91,20 @@ export class ChunkManager {
     for (let x = minChunk.x; x <= maxChunk.x; x++) {
       for (let y = minChunk.y; y <= maxChunk.y; y++) {
         const chunk = new Vector2(x, y);
+        const chunkKey = this.getChunkKey(chunk);
 
-        if (object.isInChunk(chunk) || !this.chunkContainsPolygon(chunk, polygon)) continue;
+        if (object.isInChunk(chunkKey) || !this.chunkContainsPolygon(chunk, polygon)) continue;
 
-        object.addChunk(chunk);
+        object.addChunk(chunkKey);
+        this.addToChunk(chunkKey, object);
       }
+    }
+  }
+
+  public clearObjectChunks(object: GameObject): void {
+    for (const chunkKey of object.chunks) {
+      object.removeChunk(chunkKey);
+      this.removeFromChunk(chunkKey, object);
     }
   }
 }

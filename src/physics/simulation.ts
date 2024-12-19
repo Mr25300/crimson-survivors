@@ -63,8 +63,7 @@ export class Simulation {
 
       // Adjust probability to remain within 0-100 range
       this.spawnProbability %= 100;
-
-      console.log(this.mandatorySpawnCount, this.spawnProbability);
+      
       // Spawn mandatory vampires
       for (let i: number = 0; i < this.mandatorySpawnCount; i++) {
         this.spawnVampire();

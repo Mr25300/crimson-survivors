@@ -1,3 +1,5 @@
+import { Game } from '../core/game.js';
+import { ChunkManager } from '../physics/chunkmanager.js';
 import { Polygon } from '../physics/collisions.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
@@ -5,69 +7,37 @@ import {Vector2} from '../util/vector2.js';
 export abstract class GameObject {
   public abstract name: string;
 
-  public readonly chunks: Map<number, number[]>; // ask if readonly can be used
+  public readonly chunks: Set<number> = new Set();
 
   constructor(
-    public sprite: SpriteModel,
-    public hitShape: Polygon,
+    public readonly sprite: SpriteModel,
+    public readonly hitShape: Polygon,
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
-    this.updateSprite();
+    this.updateSelf();
   }
 
-  public getChunks(): Vector2[] {
-    const chunks: Vector2[] = [];
-
-    this.chunks.forEach((column: number[], x: number) => {
-      for (const y of column) {
-        chunks.push(new Vector2(x, y));
-      }
-    })
-
-    return chunks;
-  }
-
-  public isInChunk(chunk: Vector2): boolean {
-    const column = this.chunks.get(chunk.x);
-
-    if (column && column.indexOf(chunk.y) >= 0) return true;
-
-    return false;
-  }
-
-  public addChunk(chunk: Vector2): void {
-    let column = this.chunks.get(chunk.x);
-
-    if (!column) {
-      column = [];
-
-      this.chunks.set(chunk.x, column);
-    }
-
-    column.push(chunk.y);
-  }
-
-  public removeChunk(chunk: Vector2): void {
-    if (this.isInChunk(chunk)) {
-      const column = this.chunks.get(chunk.x)!;
-      
-      column.splice(column.indexOf(chunk.y));
-
-      if (column.length === 0) this.chunks.delete(chunk.x);
-    }
-  }
-
-  public updateChunkLocations(): void {
-
-  }
-
-  public updateSprite(): void {
+  public updateSelf() {
     this.hitShape.setTransformation(this.position, this.rotation);
     this.sprite.setTransformation(this.position, this.rotation);
+
+    Game.instance.chunkManager.updateObjectChunks(this);
+  }
+
+  public isInChunk(chunkKey: number): boolean {
+    return this.chunks.has(chunkKey);
+  }
+
+  public addChunk(chunkKey: number): void {
+    this.chunks.add(chunkKey);
+  }
+
+  public removeChunk(chunkKey: number): void {
+    this.chunks.delete(chunkKey);
   }
 
   public destroy(): void {
-
+    Game.instance.chunkManager.clearObjectChunks(this);
   }
 }
