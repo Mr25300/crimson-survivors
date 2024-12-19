@@ -44,7 +44,6 @@ export class Necro extends Entity {
 
   }
   public brain(): void {
-    this.pathFind(Game.instance.player.position);
     this.spawnRandom();
   }
 }

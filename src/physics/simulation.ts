@@ -8,7 +8,7 @@ import { Vector2 } from '../util/vector2.js';
 export class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = [ 'necro'];
+  private vampireTypes: string[] = ['grunt','necro'];
   private necroCount: number = 0;
   private spawnTimer: number = 0;
   private mandatorySpawnCount: number = 0;
@@ -67,9 +67,12 @@ export class Simulation {
       if (Math.random() < this.spawnProbability / 100) {
         this.spawnVampire();
       }
+      for (const element of Game.instance.entities){
+        element.brain();
+      }
     }
     for (const element of Game.instance.entities){
-      element.brain();
+      element.pathFind(Game.instance.player.position);
       element.update(deltaTime);
     }
 

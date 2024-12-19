@@ -75,6 +75,7 @@ export abstract class Entity extends GameObject {
     this.moveDirection = direction.unit();
   }
 
+  public abstract pathFind(playerLocation: Vector2): void;
   public abstract brain(): void;
   public abstract attack(): void;
 
