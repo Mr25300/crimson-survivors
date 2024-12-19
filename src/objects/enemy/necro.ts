@@ -31,15 +31,26 @@ export class Necro extends Entity {
     }
   }
   private spawnRandom() {
-    if (Math.random() < 0.5) {
+    const spawningIndex = Math.random() * 100;
+    if (spawningIndex <= 10) {
+      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const randomVector = new Vector2(Math.random(), Math.random());
+      const necro: Necro = new Necro(this.position.add(randomVector), model);
+    } else if (spawningIndex <= 35){
+      /// FIX THIS RIGHT NOW
+      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const randomVector = new Vector2(Math.random(), Math.random());
+      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
+    } else if (spawningIndex <= 60) {
+      // FIX THIS SPAWN KRONKU
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
       const randomVector = new Vector2(Math.random(), Math.random());
       const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
     } else {
-      /// FIX THIS RIGHT NOW
+      // FIX THIS SPAWN BATS
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
       const randomVector = new Vector2(Math.random(), Math.random());
-      const necro: Necro = new Necro(this.position.add(randomVector), model);
+      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
     }
 
   }
