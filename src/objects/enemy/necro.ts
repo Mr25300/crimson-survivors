@@ -3,6 +3,8 @@ import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
 import { Grunt } from './grunt.js';
+import { Kronku } from './kronku.js';
+import { Patrol } from './patrol.js';
 
 export class Necro extends Entity {
   protected attack(): void {
@@ -13,7 +15,7 @@ export class Necro extends Entity {
     position: Vector2,
     public sprite: SpriteModel
   ) {
-    super(sprite, 1, 1, 30, 0.5);
+    super(sprite, 1, 1, 70, 0.1);
     this.position = position;
     sprite.setTransformation(position, this.rotation);
     this.setFaceDirection(new Vector2(1, 0));
@@ -33,19 +35,18 @@ export class Necro extends Entity {
   private spawnRandom() {
     const spawningIndex = Math.random() * 100;
     if (spawningIndex <= 10) {
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const model: SpriteModel = Game.instance.spriteManager.create("necro");
       const randomVector = new Vector2(Math.random(), Math.random());
       const necro: Necro = new Necro(this.position.add(randomVector), model);
     } else if (spawningIndex <= 35){
-      /// FIX THIS RIGHT NOW
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const model: SpriteModel = Game.instance.spriteManager.create("patrol");
       const randomVector = new Vector2(Math.random(), Math.random());
-      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
+      const patrol: Patrol = new Patrol(this.position.add(randomVector), model);
     } else if (spawningIndex <= 60) {
       // FIX THIS SPAWN KRONKU
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const model: SpriteModel = Game.instance.spriteManager.create("kronku");
       const randomVector = new Vector2(Math.random(), Math.random());
-      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
+      const kronku : Kronku = new Kronku(this.position.add(randomVector), model);
     } else {
       // FIX THIS SPAWN BATS
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
@@ -56,5 +57,6 @@ export class Necro extends Entity {
   }
   public brain(): void {
     this.spawnRandom();
+    this.sprite.playAnimation("spawning");
   }
 }

@@ -27,7 +27,7 @@ export class SpriteModel {
     const info = this.sprite.getAnimation(name);
 
     if (!info) {
-      console.error(`Sprite animation "name" does not exist.`);
+      console.error(`Sprite animation ${name} does not exist.`);
 
       return null;
     }
