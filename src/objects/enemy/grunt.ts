@@ -1,3 +1,4 @@
+import { Game } from '../../core/game.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
@@ -27,5 +28,8 @@ export class Grunt extends Entity {
     } else {
       this.setMoveDirection(new Vector2(0, 0));
     }
+  }
+  public brain(): void {
+    this.pathFind(Game.instance.player.position);
   }
 }

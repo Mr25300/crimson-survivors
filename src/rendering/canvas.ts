@@ -12,7 +12,7 @@ export class Canvas {
 
   public readonly shader: ShaderProgram;
 
-  private screenUnitScale: number = 1 / 5;
+  private screenUnitScale: number = 1 / 10;
   private height: number;
   private width: number;
   private aspectRatio: number;

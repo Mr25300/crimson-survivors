@@ -1,3 +1,4 @@
+import { Game } from '../../core/game.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
@@ -11,7 +12,7 @@ export class Patrol extends Entity {
     position: Vector2,
     public sprite: SpriteModel
   ) {
-    super(sprite, 1, 1, 30, 0.5);
+    super(sprite, 1, 1, 50, 1);
     this.position = position;
     sprite.setTransformation(position, this.rotation);
     this.setFaceDirection(new Vector2(1, 0));
@@ -27,5 +28,17 @@ export class Patrol extends Entity {
     } else {
       this.setMoveDirection(new Vector2(0, 0));
     }
+  }
+  private buildWall(playerLocation: Vector2): void {
+    const randomNumber = Math.random();
+    // 5% chance we build a wall
+    if (randomNumber <= 0.05) {
+    this.sprite.playAnimation("deport");
+      // build a wall
+    }
+
+  }
+  public brain() {
+    this.buildWall(Game.instance.player.position);
   }
 }

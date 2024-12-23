@@ -1,5 +1,9 @@
 import { Game } from '../core/game.js';
+import { Batspawner } from '../objects/enemy/batspawner.js';
 import { Grunt } from '../objects/enemy/grunt.js';
+import { Kronku } from '../objects/enemy/kronku.js';
+import { Necro } from '../objects/enemy/necro.js';
+import { Patrol } from '../objects/enemy/patrol.js';
 import { Structure } from '../objects/structure.js';
 import { SpriteModel } from '../sprites/spritemodel.js';
 import { Vector2 } from '../util/vector2.js';
@@ -7,18 +11,13 @@ import { Vector2 } from '../util/vector2.js';
 export class Simulation {
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
-  private vampireTypes: string[] = ['grunt', 'kronku', 'necro', 'patrol'];
-  private necroCount: number = 0;
-  private gruntList: Grunt[] = [];
+  private vampireTypes: string[] = ['grunt','necro', 'patrol', 'kronku', 'batspawner'];
   private spawnTimer: number = 0;
   private mandatorySpawnCount: number = 0;
 
   private gameBound: Vector2 = new Vector2(5, 5);
 
   constructor() {
-    for (let i: number = 0; i < 20; i++) {
-      this.spawnVampire;
-    }
   }
 
   private spawnVampire(): void {
@@ -34,18 +33,19 @@ export class Simulation {
     if (randomVampire === 'grunt') {
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
       const grunt: Grunt = new Grunt(randomPositionVector, model);
-      this.gruntList.push(grunt);
-
-      // // spawn grunt
-      // } else if (randomVampire === 'thrower') {
-      // // spawn thrower
-      // } else if (randomVampire === 'necro') {
-      // if (this.necroCount < 2) {
-      //   // spawn
-      //   this.necroCount++;
-      // }
-      // }
-      // all the other guys
+    } else if (randomVampire === 'necro') {
+      const model: SpriteModel = Game.instance.spriteManager.create("necro");
+      const necro: Necro = new Necro(randomPositionVector, model);
+    } else if (randomVampire === 'patrol') {
+      const model: SpriteModel = Game.instance.spriteManager.create("patrol");
+      const patrol: Patrol = new Patrol(randomPositionVector, model);
+    } else if (randomVampire === 'kronku') {
+      const model: SpriteModel = Game.instance.spriteManager.create("kronku"); 
+      const kronku: Kronku = new Kronku(randomPositionVector, model);
+    } else if (randomVampire === 'batspawner') {
+      // FIX THIS
+      const model: SpriteModel = Game.instance.spriteManager.create("batspawner"); 
+      const batspawner : Batspawner = new Batspawner(randomPositionVector, model);
     }
   }
 
@@ -63,7 +63,7 @@ export class Simulation {
 
       // Adjust probability to remain within 0-100 range
       this.spawnProbability %= 100;
-      
+
       // Spawn mandatory vampires
       for (let i: number = 0; i < this.mandatorySpawnCount; i++) {
         this.spawnVampire();
@@ -73,15 +73,17 @@ export class Simulation {
       if (Math.random() < this.spawnProbability / 100) {
         this.spawnVampire();
       }
+      for (const element of Game.instance.entities){
+        element.brain();
+      }
     }
-    for (let i: number = 0; i < this.gruntList.length; i++) {
-      const element: Grunt = this.gruntList[i];
+    document.title = Game.instance.entities.size.toString();
+    for (const element of Game.instance.entities){
       element.pathFind(Game.instance.player.position);
       element.update(deltaTime);
     }
 
-    Game.instance.player.input();
-    Game.instance.player.update(deltaTime);
+
     // do collision for user
 
     // do melee attack hitboxes and create projectiles from attacks

@@ -78,4 +78,6 @@ export abstract class Entity extends GameObject {
   public destroy(): void {
     Game.instance.entities.delete(this);
   }
+
+
 }

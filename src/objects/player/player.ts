@@ -30,7 +30,7 @@ export class Player extends Entity {
     this.tool = this.tools[index];
   }
 
-  public input(): void {
+  public pathFind(): void {
     const mousePos: Vector2 = this.controller.getMousePosition();
 
     this.setFaceDirection(mousePos.subtract(this.position).unit());
@@ -73,5 +73,7 @@ export class Player extends Entity {
 
   protected attack(): void {
     this.tool.use(this);
+  }
+  public brain(): void {
   }
 }
