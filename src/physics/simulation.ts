@@ -7,23 +7,28 @@ import { Patrol } from '../objects/enemy/patrol.js';
 import { Structure } from '../objects/structure.js';
 import { SpriteModel } from '../sprites/spritemodel.js';
 import { Vector2 } from '../util/vector2.js';
+import { Rectangle } from './collisions.js';
 
 export class Simulation {
+  public readonly bounds: Rectangle = new Rectangle(
+    new Vector2(-10, -10),
+    new Vector2(10, 10)
+  );
+
   private structures: Structure[] = [];
   private spawnProbability: number = 1;
   private vampireTypes: string[] = ['grunt','necro', 'patrol', 'kronku', 'batspawner'];
   private spawnTimer: number = 0;
   private mandatorySpawnCount: number = 0;
 
-  private gameBound: Vector2 = new Vector2(5, 5);
-
   constructor() {
+
   }
 
   private spawnVampire(): void {
     const randomPositionVector: Vector2 = new Vector2(
-      Math.random() * this.gameBound.x - this.gameBound.x / 2,
-      Math.random() * this.gameBound.y - this.gameBound.y / 2
+      this.bounds.min.x + (this.bounds.max.x - this.bounds.min.x) * Math.random(),
+      this.bounds.min.y + (this.bounds.max.y - this.bounds.min.y) * Math.random()
     );
 
     const randomIndex: number = Math.floor(
@@ -50,38 +55,38 @@ export class Simulation {
   }
 
   public update(deltaTime: number): void {
-    this.spawnTimer += deltaTime;
-    if (this.spawnTimer >= 1) {
-      this.spawnTimer %= 1;
+    // this.spawnTimer += deltaTime;
+    // if (this.spawnTimer >= 1) {
+    //   this.spawnTimer %= 1;
 
-      // Increase the vampire spawn chance
-      this.spawnProbability += 1;
+    //   // Increase the vampire spawn chance
+    //   this.spawnProbability += 1;
 
-      if (this.spawnProbability >= 100) {
-        this.mandatorySpawnCount++;
-      }
+    //   if (this.spawnProbability >= 100) {
+    //     this.mandatorySpawnCount++;
+    //   }
 
-      // Adjust probability to remain within 0-100 range
-      this.spawnProbability %= 100;
+    //   // Adjust probability to remain within 0-100 range
+    //   this.spawnProbability %= 100;
 
-      // Spawn mandatory vampires
-      for (let i: number = 0; i < this.mandatorySpawnCount; i++) {
-        this.spawnVampire();
-      }
+    //   // Spawn mandatory vampires
+    //   for (let i: number = 0; i < this.mandatorySpawnCount; i++) {
+    //     this.spawnVampire();
+    //   }
 
-      // Handle additional vampire spawn based on remaining probability
-      if (Math.random() < this.spawnProbability / 100) {
-        this.spawnVampire();
-      }
-      for (const element of Game.instance.entities){
-        element.brain();
-      }
-    }
-    document.title = Game.instance.entities.size.toString();
-    for (const element of Game.instance.entities){
-      element.pathFind(Game.instance.player.position);
-      element.update(deltaTime);
-    }
+    //   // Handle additional vampire spawn based on remaining probability
+    //   if (Math.random() < this.spawnProbability / 100) {
+    //     this.spawnVampire();
+    //   }
+    //   for (const element of Game.instance.entities){
+    //     element.brain();
+    //   }
+    // }
+    // document.title = Game.instance.entities.size.toString();
+    // for (const element of Game.instance.entities){
+    //   element.pathFind(Game.instance.player.position);
+    //   element.update(deltaTime);
+    // }
 
 
     // do collision for user

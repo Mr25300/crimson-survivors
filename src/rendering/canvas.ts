@@ -27,10 +27,10 @@ export class Canvas {
 
     this.gl.enable(this.gl.DEPTH_TEST);
 
-    this.updateDimenstions();
+    this.updateDimensions();
 
     new ResizeObserver(() => {
-      this.updateDimenstions();
+      this.updateDimensions();
 
     }).observe(this.element);
   }
@@ -64,7 +64,7 @@ export class Canvas {
     this.shader.setAttribBuffer("vertexPos", vertexBuffer, 2, 0, 0);
   }
 
-  private updateDimenstions(): void {
+  private updateDimensions(): void {
     this.width = this.element.clientWidth;
     this.height = this.element.clientHeight;
 
@@ -82,6 +82,12 @@ export class Canvas {
     return Game.instance.camera.position.add(scaledDelta);
   }
 
+  public getScreenRange(): Vector2 {
+    const range = 1 / this.screenUnitScale / 2;
+
+    return new Vector2(range * this.aspectRatio, range);
+  }
+
   public update(deltaTime: number): void {
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       for (const model of models) {
@@ -94,9 +100,9 @@ export class Canvas {
     this.gl.clearColor(0, 0, 0, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const screenMatrix = Matrix4.fromScale((this.screenUnitScale * 2) / this.aspectRatio, this.screenUnitScale * 2);
+    const projectionMatrix = Matrix4.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
 
-    this.shader.setUniformMatrix4("screenProjection", screenMatrix.values);
+    this.shader.setUniformMatrix4("screenProjection", projectionMatrix.glFormat());
 
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       sprite.bind();

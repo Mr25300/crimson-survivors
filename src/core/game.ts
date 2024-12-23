@@ -5,7 +5,7 @@ import { Camera } from '../rendering/camera.js';
 import { Vector2 } from '../util/vector2.js';
 import { SpriteSheet } from '../sprites/spritesheet.js';
 import { Player } from '../objects/player/player.js';
-import { PlayerController } from '../objects/player/controller.js';
+import { Controller } from '../objects/player/inputhandler.js';
 import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
@@ -53,7 +53,6 @@ export class SpriteManager {
     batspawner.createAnimation("idle", [0], 1, true, 0);
     batspawner.createAnimation("walking", [0], 1, true, 1);
 
-
     this.sprites = {
       player: player,
       grunt: grunt,
@@ -86,25 +85,17 @@ export class Game extends Gameloop {
   public readonly teams: Map<string, Team> = new Map();
   public readonly structures: Set<Structure> = new Set();
 
-  public readonly canvas: Canvas;
-  public readonly camera: Camera;
-  public readonly spriteManager: SpriteManager;
-  public readonly simulation: Simulation;
-  public readonly chunkManager: ChunkManager;
+  public readonly canvas: Canvas = new Canvas();
+  public readonly camera: Camera = new Camera();
+  public readonly controller: Controller = new Controller();
+  public readonly spriteManager: SpriteManager = new SpriteManager();
+  public readonly simulation: Simulation = new Simulation();
+  public readonly chunkManager: ChunkManager = new ChunkManager();
 
   public player: Player;
 
   private constructor() {
     super();
-
-    this.canvas = new Canvas();
-    this.camera = new Camera();
-    this.spriteManager = new SpriteManager();
-    // this.simulation = new Simulation();
-    this.chunkManager = new ChunkManager();
-
-    // create all classes as necessary
-    // add init methods for canvas, shader, and all sprites
 
     this.init();
   }
@@ -122,9 +113,6 @@ export class Game extends Gameloop {
 
     this.start();
 
-    const model: SpriteModel = this.spriteManager.create("player");
-    const controller: PlayerController = new PlayerController(this.canvas, "w", "a", "s", "d");
-
     const floorWidth = 10; // Number of tiles wide
     const floorHeight = 10; // Number of tiles high
 
@@ -137,22 +125,15 @@ export class Game extends Gameloop {
       }
     }
 
-    const testObject = new TestObject(model,
-      new Polygon([
-        new Vector2(-0.5, -1),
-        new Vector2(-0.5, 1),
-        new Vector2(0.5, 1),
-        new Vector2(0.5, -1)
-      ]),
-      new Vector2(0, 0), Math.PI/2
-    );
+    this.player = new Player();
 
-    console.log(testObject.chunks);
-
-    // this.player = new Player(model, controller);
+    this.camera.setSubject(this.player);
   }
 
   protected update(deltaTime: number): void {
+    this.player.input();
+    this.player.update(deltaTime);
+    this.camera.update(deltaTime);
     // this.simulation.update(deltaTime);
     this.canvas.update(deltaTime);
   }

@@ -5,7 +5,6 @@ import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
   private spriteCoords: Float32Array;
-  private zTransform: number;
 
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
@@ -19,7 +18,7 @@ export class SpriteSheet {
     private columns: number,
     private rows: number,
     private imagePath: string,
-    zOrder: number
+    private zOrder: number
   ) {
     const spriteCoords: number[] = [];
 
@@ -34,7 +33,6 @@ export class SpriteSheet {
     }
 
     this.spriteCoords = new Float32Array(spriteCoords);
-    this.zTransform = -Math.tanh(zOrder);
   }
 
   public init(): void {
@@ -61,8 +59,10 @@ export class SpriteSheet {
   }
 
   public bind(): void {
+    const matrix = Matrix4.fromSpriteInfo(this.width, this.height, this.zOrder);
+    
     Game.instance.canvas.shader.bindTexture(this.texture);
-    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height, this.zTransform).values);
+    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", matrix.glFormat());
   }
 
   public destroy(): void {

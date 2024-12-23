@@ -2,7 +2,8 @@ import {Entity} from '../entity.js';
 import {Tool} from './tool.js';
 import {Vector2} from '../../util/vector2.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
-import {PlayerController} from './controller.js';
+import { Game } from '../../core/game.js';
+import { Polygon } from '../../physics/collisions.js';
 
 export class Player extends Entity {
   public name: string = "Player"; // testing
@@ -11,13 +12,19 @@ export class Player extends Entity {
   private tools: Tool[] = [];
   private maximumTools: number = 1;
 
-  constructor(
-    sprite: SpriteModel,
-    private controller: PlayerController
-  ) {
-    super(sprite, 0.4, 0.6, 100, 2);
-
-    this.position = new Vector2(0, 2);
+  constructor() {
+    super(
+      Game.instance.spriteManager.create("player"),
+      new Polygon([
+        new Vector2(-0.3, -0.4),
+        new Vector2(-0.3, 0),
+        new Vector2(-0.1, 0.3),
+        new Vector2(0.1, 0.3),
+        new Vector2(0.3, 0),
+        new Vector2(0.3, -0.4)
+      ]),
+      3
+    );
   }
 
   public giveTool(tool: Tool): void {
@@ -30,23 +37,16 @@ export class Player extends Entity {
     this.tool = this.tools[index];
   }
 
-  public pathFind(): void {
-    const mousePos: Vector2 = this.controller.getMousePosition();
-
-    this.setFaceDirection(mousePos.subtract(this.position).unit());
-    this.setMoveDirection(this.controller.getMoveDirection());
-  }
-
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    for (let i: number = 0; i < this.tools.length; i++) {
-      this.tools[i].update(deltaTime);
-    }
+    // for (let i: number = 0; i < this.tools.length; i++) {
+    //   this.tools[i].update(deltaTime);
+    // }
 
-    if (this.controller.isMouseDown()) {
-      this.attack();
-    }
+    // if (this.controller.isMouseDown()) {
+    //   this.attack();
+    // }
 
     // const poly = new HitPoly(this.position, this.rotation,
     //   new Vector2(-0.5, -0.5),
@@ -71,9 +71,21 @@ export class Player extends Entity {
     this.updateCoordinates(this.position, this.rotation);
   }
 
-  protected attack(): void {
-    this.tool.use(this);
+  public input(): void {
+    let moveDir = new Vector2();
+
+    if (Game.instance.controller.isControlActive("moveU")) moveDir = moveDir.add(new Vector2(0, 1));
+    if (Game.instance.controller.isControlActive("moveD")) moveDir = moveDir.add(new Vector2(0, -1));
+    if (Game.instance.controller.isControlActive("moveL")) moveDir = moveDir.add(new Vector2(-1, 0));
+    if (Game.instance.controller.isControlActive("moveR")) moveDir = moveDir.add(new Vector2(1, 0));
+
+    const aimDir = Game.instance.controller.getAimPosition().subtract(this.position);
+
+    this.setMoveDirection(moveDir);
+    this.setFaceDirection(aimDir);
   }
-  public brain(): void {
+
+  public attack(): void {
+    this.tool.use(this);
   }
 }

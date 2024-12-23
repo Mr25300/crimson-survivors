@@ -75,8 +75,10 @@ export class SpriteModel {
   }
 
   public bind(): void {
+    const matrix = Matrix4.fromTransformation(this.position, this.rotation);
+    
     Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.getBuffer(), 2, 0, this.currentGrid * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation).values);
+    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", matrix.glFormat());
   }
 
   public destroy(): void {

@@ -90,8 +90,12 @@ export class CollisionHandler {
   }
 }
 
-export abstract class HitObject {
-  public abstract visualize(): void;
+export abstract class CollisionObject {
+  public abstract objectType: string;
+
+  public visualize() {
+    // add to array in game to render hitboxes
+  }
 }
 
 export class HitLine {
@@ -109,15 +113,15 @@ export class HitLine {
   }
 
   public getNormal(): Vector2 {
-    return Matrix4.fromTransformation(undefined, this.rotation).multiply(new Vector2(0, 1));
+    return Matrix4.fromRotation(this.rotation).apply(new Vector2(0, 1));
   }
 
   public getVertices(): Vector2[] {
-    const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, this.rotation);
+    const rotMatrix: Matrix4 = Matrix4.fromTransformation(this.position, this.rotation);
     const ends = [new Vector2(-this.length/2), new Vector2(this.length/2)];
 
     for (let i = 0; i < 2; i++) {
-      ends[i] = rotMatrix.multiply(ends[i]).add(this.position);
+      ends[i] = rotMatrix.apply(ends[i]);
     }
 
     return ends;
@@ -131,7 +135,7 @@ export class HitLine {
     let cornerIndex: number = 0;
 
     for (let i = 0; i < corners.length; i++) {
-      const relativeCorner: Vector2 = rotMatrix.multiply(corners[i].subtract(this.position));
+      const relativeCorner: Vector2 = rotMatrix.apply(corners[i].subtract(this.position));
 
       corners[i] = relativeCorner;
 
@@ -198,11 +202,11 @@ export class Polygon {
   }
 
   public getVertices(): Vector2[] {
-    const transformation = Matrix4.fromTransformation(this.position, this.rotation);
+    const matrix = Matrix4.fromTransformation(this.position, this.rotation);
     const vertices: Vector2[] = [];
 
     for (let i = 0; i < this.vertices.length; i++) {
-      vertices[i] = transformation.multiply(this.vertices[i]);
+      vertices[i] = matrix.apply(this.vertices[i]);
     }
 
     return vertices;
@@ -322,5 +326,19 @@ export class Rectangle {
     }
 
     return false;
+  }
+
+  public getInnerRectOverlap(innerRect: Rectangle): Vector2 {
+    let overlap: Vector2 = new Vector2();
+
+    const minDiff = innerRect._min.subtract(this._min);
+    const maxDiff = innerRect._max.subtract(this._max);
+
+    if (minDiff.x < 0) overlap = overlap.add(new Vector2(minDiff.x, 0));
+    if (maxDiff.x > 0) overlap = overlap.add(new Vector2(maxDiff.x, 0));
+    if (minDiff.y < 0) overlap = overlap.add(new Vector2(0, minDiff.y));
+    if (maxDiff.y > 0) overlap = overlap.add(new Vector2(0, maxDiff.y));
+
+    return overlap;
   }
 }

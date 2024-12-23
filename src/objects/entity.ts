@@ -42,6 +42,8 @@ export abstract class Entity extends GameObject {
     this.position = this.position.add(velDisplacement).add(accelDisplacement);
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
 
+    console.log("ENTITY RUNNING");
+
     this.rotation = this.faceDirection.angle(); // WHY IS THIS CRASHING??!?!?!
 
     if (this.moveDirection.magnitude() > 0) {
@@ -65,6 +67,7 @@ export abstract class Entity extends GameObject {
     this.moveDirection = direction.unit();
   }
 
+  public abstract input(): void;
   public abstract attack(): void;
 
   public get team(): Team | null {
@@ -78,6 +81,4 @@ export abstract class Entity extends GameObject {
   public destroy(): void {
     Game.instance.entities.delete(this);
   }
-
-
 }
