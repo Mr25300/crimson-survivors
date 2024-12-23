@@ -29,8 +29,7 @@ export class Simulation {
     const randomIndex: number = Math.floor(
       Math.random() * this.vampireTypes.length
     );
-    // const randomVampire: string = this.vampireTypes[randomIndex];
-    const randomVampire: string = 'batspawner';
+    const randomVampire: string = this.vampireTypes[randomIndex];
     if (randomVampire === 'grunt') {
       const model: SpriteModel = Game.instance.spriteManager.create("grunt");
       const grunt: Grunt = new Grunt(randomPositionVector, model);
