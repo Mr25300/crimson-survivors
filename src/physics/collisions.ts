@@ -1,7 +1,26 @@
+import { Game } from '../core/game.js';
+import { Entity } from '../objects/entity.js';
+import { GameObject } from '../objects/gameobject.js';
 import {Matrix4} from '../util/matrix4.js';
 import {Vector2} from '../util/vector2.js';
 
 export class CollisionHandler {
+  public static getEntityAttackList(attacker: Entity, attackShape: Polygon): GameObject[] {
+    const entities: Entity[] = [];
+
+    for (const object of Game.instance.gameObjects) {
+      if (object.name === "Entity") {
+        const entity: Entity = object as Entity;
+
+        if (attacker.team === entity.team) continue;
+
+        entities.push(entity);
+      }
+    }
+
+    return entities;
+  }
+
   public static getNormals(vertices: Vector2[]): Vector2[] {
     const normals: Vector2[] = [];
 
@@ -157,9 +176,9 @@ export class HitLine {
 
 export class Polygon {
   constructor(
-    private position: Vector2,
-    private rotation: number,
-    private vertices: Vector2[]
+    private vertices: Vector2[],
+    private position: Vector2 = new Vector2(),
+    private rotation: number = 0
   ) {}
 
   public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
@@ -170,7 +189,7 @@ export class Polygon {
       new Vector2(width/2, -height/2)
     ];
 
-    return new Polygon(position, rotation, vertices);
+    return new Polygon(vertices, position, rotation);
   }
 
   public setTransformation(position: Vector2, rotation: number) {
@@ -197,7 +216,7 @@ export class Polygon {
 
     for (const vertex of vertices) {
       if (vertex.x < min.x) min = new Vector2(vertex.x, min.y);
-      if (vertex.x > max.x) max = new Vector2(vertex.x, min.y);
+      if (vertex.x > max.x) max = new Vector2(vertex.x, max.y);
       if (vertex.y < min.y) min = new Vector2(min.x, vertex.y);
       if (vertex.y > max.y) max = new Vector2(max.x, vertex.y);
     }

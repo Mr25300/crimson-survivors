@@ -68,11 +68,10 @@ export class Player extends Entity {
     //   if (colliding) this.position = this.position.add(barrier.getNormal().multiply(overlap));
     // }
 
-    this.updateSelf();
+    this.updateCoordinates(this.position, this.rotation);
   }
 
   protected attack(): void {
-    this.tool.use();
-    this.sprite.playAnimation('shoot');
+    this.tool.use(this);
   }
 }

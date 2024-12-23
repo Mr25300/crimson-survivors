@@ -1,3 +1,5 @@
+import { Entity } from "../entity";
+
 export class Tool {
   private timePassed: number = 0;
   private debounce: boolean = false;
@@ -18,9 +20,11 @@ export class Tool {
     }
   }
 
-  public use(): void {
+  public use(user: Entity): void {
     if (this.debounce) return;
 
     this.debounce = true;
+    
+    user.sprite.playAnimation("shoot");
   }
 }

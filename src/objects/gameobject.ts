@@ -15,12 +15,15 @@ export abstract class GameObject {
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
-    this.updateSelf();
+    this.updateCoordinates(position, rotation);
   }
 
-  public updateSelf() {
-    this.hitShape.setTransformation(this.position, this.rotation);
-    this.sprite.setTransformation(this.position, this.rotation);
+  public updateCoordinates(position: Vector2, rotation: number): void {
+    this.position = position;
+    this.rotation = rotation;
+
+    this.hitShape.setTransformation(position, rotation);
+    this.sprite.setTransformation(position, rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);
   }
@@ -40,4 +43,8 @@ export abstract class GameObject {
   public destroy(): void {
     Game.instance.chunkManager.clearObjectChunks(this);
   }
+}
+
+export class TestObject extends GameObject {
+  public readonly name: "Test";
 }

@@ -10,8 +10,10 @@ import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
 import { Simulation } from '../physics/simulation.js';
-import { GameObject } from '../objects/gameobject.js';
+import { GameObject, TestObject } from '../objects/gameobject.js';
 import { ChunkManager } from '../physics/chunkmanager.js';
+import { Polygon } from '../physics/collisions.js';
+import { Team } from '../objects/team.js';
 
 type SpriteName = "player" | "grunt" | "wall" | "floor";
 
@@ -37,7 +39,7 @@ export class SpriteManager {
       grunt: grunt,
       floor: floor,
       wall: wall
-    }
+    };
   }
 
   public init(): void {
@@ -57,7 +59,7 @@ export class Game extends Gameloop {
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
   public readonly gameObjects: Set<GameObject> = new Set();
   public readonly entities: Set<Entity> = new Set();
-  public readonly teams: Set<string> = new Set();
+  public readonly teams: Map<string, Team> = new Map();
   public readonly structures: Set<Structure> = new Set();
 
   public readonly canvas: Canvas;
@@ -74,7 +76,7 @@ export class Game extends Gameloop {
     this.canvas = new Canvas();
     this.camera = new Camera();
     this.spriteManager = new SpriteManager();
-    this.simulation = new Simulation();
+    // this.simulation = new Simulation();
     this.chunkManager = new ChunkManager();
 
     // create all classes as necessary
@@ -104,11 +106,23 @@ export class Game extends Gameloop {
       wall.setTransformation(new Vector2(0, i - 5 + 0.5), 0);
     }
 
-    this.player = new Player(model, controller);
+    const testObject = new TestObject(model,
+      new Polygon([
+        new Vector2(-0.5, -1),
+        new Vector2(-0.5, 1),
+        new Vector2(0.5, 1),
+        new Vector2(0.5, -1)
+      ]),
+      new Vector2(0, 0), Math.PI/2
+    );
+
+    console.log(testObject.chunks);
+
+    // this.player = new Player(model, controller);
   }
 
   protected update(deltaTime: number): void {
-    this.simulation.update(deltaTime);
+    // this.simulation.update(deltaTime);
     this.canvas.update(deltaTime);
   }
 
