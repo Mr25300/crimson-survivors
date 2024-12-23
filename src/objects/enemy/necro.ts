@@ -2,6 +2,7 @@ import { Game } from '../../core/game.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
+import { Batspawner } from './batspawner.js';
 import { Grunt } from './grunt.js';
 import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
@@ -48,10 +49,9 @@ export class Necro extends Entity {
       const randomVector = new Vector2(Math.random(), Math.random());
       const kronku : Kronku = new Kronku(this.position.add(randomVector), model);
     } else {
-      // FIX THIS SPAWN BATS
-      const model: SpriteModel = Game.instance.spriteManager.create("grunt");
+      const model: SpriteModel = Game.instance.spriteManager.create("batspawner");
       const randomVector = new Vector2(Math.random(), Math.random());
-      const grunt: Grunt = new Grunt(this.position.add(randomVector), model);
+      const batspawner : Batspawner = new Batspawner(this.position.add(randomVector), model);
     }
 
   }
