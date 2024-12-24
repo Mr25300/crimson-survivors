@@ -1,10 +1,12 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import { Vector2 } from '../../util/vector2.js';
+import { Cooldown } from '../cooldown.js';
 import { Entity } from '../entity.js';
 import { Grunt } from './grunt.js';
 
 export class Batspawner extends Entity {
+  private attackCooldown: Cooldown = new Cooldown(1);
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("batspawner"),
@@ -24,12 +26,15 @@ export class Batspawner extends Entity {
 
   private spawnBats(): void {
     const randomVector = new Vector2(Math.random(), Math.random());
-
-    new Grunt(randomVector);
+    new Grunt(this.position.add(randomVector));
   }
 
-  public handleBehavior(): void {
-    this.spawnBats();
+  public handleBehavior(deltaTime: number): void {
+   this.attackCooldown.update(deltaTime);
+    if (!this.attackCooldown.active) {
+      this.attackCooldown.activate();
+      this.spawnBats();
+    }
   }
 
   public attack(): void {

@@ -26,7 +26,8 @@ export class Simulation {
     const randomIndex: number = Math.floor(
       Math.random() * this.vampireTypes.length
     );
-    const randomVampire: string = this.vampireTypes[randomIndex];
+    // const randomVampire: string = this.vampireTypes[randomIndex];
+    const randomVampire: string = "patrol"; 
 
     if (randomVampire === "grunt") new Grunt(randomPosition);
     else if (randomVampire === 'necro') new Necro(randomPosition);
@@ -52,7 +53,7 @@ export class Simulation {
     }
 
     for (const element of Game.instance.entities){
-      element.handleBehavior();
+      element.handleBehavior(deltaTime);
     }
 
     for (const element of Game.instance.entities){

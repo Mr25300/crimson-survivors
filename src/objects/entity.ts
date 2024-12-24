@@ -70,7 +70,7 @@ export abstract class Entity extends GameObject {
     this.moveDirection = direction.unit();
   }
 
-  public abstract handleBehavior(): void;
+  public abstract handleBehavior(deltaTime: number): void;
   public abstract attack(): void;
 
   public get team(): Team | null {
