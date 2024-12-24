@@ -3,7 +3,7 @@ import { Polygon } from '../../physics/collisions.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Cooldown } from '../cooldown.js';
 import { Entity } from '../entity.js';
-import { Grunt } from './grunt.js';
+import { Bat } from './bat.js';
 
 export class Batspawner extends Entity {
   private attackCooldown: Cooldown = new Cooldown(1);
@@ -26,7 +26,7 @@ export class Batspawner extends Entity {
 
   private spawnBats(): void {
     const randomVector = new Vector2(Math.random(), Math.random());
-    new Grunt(this.position.add(randomVector));
+    new Bat(this.position.add(randomVector));
   }
 
   public handleBehavior(deltaTime: number): void {
