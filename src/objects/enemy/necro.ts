@@ -21,7 +21,8 @@ export class Necro extends Entity {
         new Vector2(0.3, -0.4)
       ]),
       2,
-      spawnPosition
+      spawnPosition,
+      60
     );
   }
 

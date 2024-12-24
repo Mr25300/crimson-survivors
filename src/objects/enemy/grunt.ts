@@ -1,6 +1,5 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
 
@@ -17,7 +16,8 @@ export class Grunt extends Entity {
         new Vector2(0.3, -0.4)
       ]),
       2,
-      spawnPosition
+      spawnPosition,
+      50
     );
   }
 

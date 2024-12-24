@@ -20,7 +20,8 @@ export abstract class Entity extends GameObject {
     sprite: SpriteModel,
     hitShape: Polygon,
     private moveSpeed: number,
-    position: Vector2
+    position: Vector2,
+    private health: number
   ) {
     super(sprite, hitShape, position);
 
