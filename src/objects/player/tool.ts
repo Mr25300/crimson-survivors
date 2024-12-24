@@ -1,31 +1,25 @@
+import { Cooldown } from "../cooldown";
 import { Entity } from "../entity";
 
 export class Tool {
-  private timePassed: number = 0;
-  private debounce: boolean = false;
+  private cooldown: Cooldown;
 
   constructor(
     private name: string,
-    private cooldown: number = 0,
-  ) {}
+    cooldownDuration: number = 0,
+  ) {
+    this.cooldown = new Cooldown(cooldownDuration);
+  }
 
   public update(deltaTime: number) {
-    if (this.debounce) {
-      this.timePassed += deltaTime;
-
-      if (this.timePassed >= this.cooldown) {
-        this.debounce = false;
-        this.timePassed = 0;
-      }
-    }
+    this.cooldown.update(deltaTime);
   }
 
   public use(user: Entity): void {
-    console.log("TEST");
-    if (this.debounce) return;
+    if (!this.cooldown.active) {
+      this.cooldown.activate();
 
-    this.debounce = true;
-    
-    user.sprite.playAnimation("shoot");
+      user.sprite.playAnimation("shoot");
+    }
   }
 }
