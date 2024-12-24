@@ -4,8 +4,6 @@ import { Grunt } from '../objects/enemy/grunt.js';
 import { Kronku } from '../objects/enemy/kronku.js';
 import { Necro } from '../objects/enemy/necro.js';
 import { Patrol } from '../objects/enemy/patrol.js';
-import { Structure } from '../objects/structure.js';
-import { SpriteModel } from '../sprites/spritemodel.js';
 import { Vector2 } from '../util/vector2.js';
 import { Rectangle } from './collisions.js';
 

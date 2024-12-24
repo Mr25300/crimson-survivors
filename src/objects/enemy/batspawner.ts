@@ -1,6 +1,5 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import { SpriteModel } from '../../sprites/spritemodel.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Entity } from '../entity.js';
 import { Grunt } from './grunt.js';
@@ -18,12 +17,12 @@ export class Batspawner extends Entity {
         new Vector2(0.3, -0.4)
       ]),
       2,
-      spawnPosition
+      spawnPosition,
+      1
     );
   }
 
   private spawnBats(): void {
-    const model: SpriteModel = Game.instance.spriteManager.create("grunt");
     const randomVector = new Vector2(Math.random(), Math.random());
 
     new Grunt(randomVector);

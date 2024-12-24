@@ -1,7 +1,6 @@
 import {Entity} from '../entity.js';
 import {Tool} from './tool.js';
 import {Vector2} from '../../util/vector2.js';
-import {SpriteModel} from '../../sprites/spritemodel.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 
@@ -22,7 +21,8 @@ export class Player extends Entity {
         new Vector2(0.3, -0.4)
       ]),
       3,
-      new Vector2()
+      new Vector2(),
+      100
     );
 
     this.giveTool(new Tool("Gun", 1));
