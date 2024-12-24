@@ -26,8 +26,7 @@ export class Simulation {
     const randomIndex: number = Math.floor(
       Math.random() * this.vampireTypes.length
     );
-    // const randomVampire: string = this.vampireTypes[randomIndex];
-    const randomVampire: string = "patrol"; 
+    const randomVampire: string = this.vampireTypes[randomIndex];
 
     if (randomVampire === "grunt") new Grunt(randomPosition);
     else if (randomVampire === 'necro') new Necro(randomPosition);
