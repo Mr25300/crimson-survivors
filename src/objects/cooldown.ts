@@ -10,12 +10,13 @@ export class Cooldown {
       this.timePassed += deltaTime;
 
       if (this.timePassed >= this.duration) {
-        this._active = false
+        this._active = false;
       }
     }
   }
 
   public activate(): void {
+    this.timePassed = 0;
     this._active = true;
   }
 

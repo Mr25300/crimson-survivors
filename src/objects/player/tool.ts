@@ -1,5 +1,5 @@
-import { Cooldown } from "../cooldown";
-import { Entity } from "../entity";
+import { Cooldown } from "../cooldown.js";
+import { Entity } from "../entity.js";
 
 export class Tool {
   private cooldown: Cooldown;
