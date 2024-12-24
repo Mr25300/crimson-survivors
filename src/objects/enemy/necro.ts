@@ -1,4 +1,5 @@
 import { Game } from '../../core/game.js';
+import { Polygon } from '../../physics/collisions.js';
 import {SpriteModel} from '../../sprites/spritemodel.js';
 import {Vector2} from '../../util/vector2.js';
 import {Entity} from '../entity.js';
@@ -8,55 +9,47 @@ import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
 
 export class Necro extends Entity {
-  protected attack(): void {
-    throw new Error('Method not implemented.');
+  constructor(spawnPosition: Vector2) {
+    super(
+      Game.instance.spriteManager.create("batspawner"),
+      new Polygon([
+        new Vector2(-0.3, -0.4),
+        new Vector2(-0.3, 0),
+        new Vector2(-0.1, 0.3),
+        new Vector2(0.1, 0.3),
+        new Vector2(0.3, 0),
+        new Vector2(0.3, -0.4)
+      ]),
+      2,
+      spawnPosition
+    );
   }
-  private detectionRadius: number = 5;
-  constructor(
-    position: Vector2,
-    public sprite: SpriteModel
-  ) {
-    super(sprite, 1, 1, 70, 0.1);
-    this.position = position;
-    sprite.setTransformation(position, this.rotation);
-    this.setFaceDirection(new Vector2(1, 0));
-    this.setMoveDirection(new Vector2(1, 0));
-  }
-  public pathFind(playerLocation: Vector2): void {
-    // if in range
-    if (
-      playerLocation.subtract(this.position).magnitude() <= this.detectionRadius
-    ) {
-      this.setFaceDirection(playerLocation.subtract(this.position).unit());
-      this.setMoveDirection(playerLocation.subtract(this.position).unit());
-    } else {
-      this.setMoveDirection(new Vector2(0, 0));
-    }
-  }
+
   private spawnRandom() {
     const spawningIndex = Math.random() * 100;
-    if (spawningIndex <= 10) {
-      const model: SpriteModel = Game.instance.spriteManager.create("necro");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const necro: Necro = new Necro(this.position.add(randomVector), model);
-    } else if (spawningIndex <= 35){
-      const model: SpriteModel = Game.instance.spriteManager.create("patrol");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const patrol: Patrol = new Patrol(this.position.add(randomVector), model);
-    } else if (spawningIndex <= 60) {
-      // FIX THIS SPAWN KRONKU
-      const model: SpriteModel = Game.instance.spriteManager.create("kronku");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const kronku : Kronku = new Kronku(this.position.add(randomVector), model);
-    } else {
-      const model: SpriteModel = Game.instance.spriteManager.create("batspawner");
-      const randomVector = new Vector2(Math.random(), Math.random());
-      const batspawner : Batspawner = new Batspawner(this.position.add(randomVector), model);
-    }
+    const randomVector = new Vector2(Math.random(), Math.random());
+    const randomPosition = this.position.add(randomVector);
 
+    if (spawningIndex <= 0.1) {
+      const necro: Necro = new Necro(randomPosition);
+
+    } else if (spawningIndex <= 0.35) {
+      const patrol: Patrol = new Patrol(randomPosition);
+
+    } else if (spawningIndex <= 0.6) {
+      const kronku : Kronku = new Kronku(randomPosition);
+
+    } else {
+      const batspawner : Batspawner = new Batspawner(randomPosition);
+    }
   }
-  public brain(): void {
+
+  public handleBehavior(): void {
     this.spawnRandom();
     this.sprite.playAnimation("spawning");
+  }
+
+  public attack(): void {
+
   }
 }

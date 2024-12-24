@@ -131,10 +131,8 @@ export class Game extends Gameloop {
   }
 
   protected update(deltaTime: number): void {
-    this.player.input();
-    this.player.update(deltaTime);
+    this.simulation.update(deltaTime);
     this.camera.update(deltaTime);
-    // this.simulation.update(deltaTime);
     this.canvas.update(deltaTime);
   }
 

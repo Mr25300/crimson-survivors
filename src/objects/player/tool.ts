@@ -21,6 +21,7 @@ export class Tool {
   }
 
   public use(user: Entity): void {
+    console.log("TEST");
     if (this.debounce) return;
 
     this.debounce = true;

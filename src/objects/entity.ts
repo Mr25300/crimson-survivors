@@ -12,14 +12,17 @@ export abstract class Entity extends GameObject {
   private moveDirection: Vector2 = new Vector2();
   private faceDirection: Vector2 = new Vector2();
 
+  public name: string = "Entity";
+
   private _team: Team | null = null;
 
   constructor(
     sprite: SpriteModel,
     hitShape: Polygon,
-    private moveSpeed: number
+    private moveSpeed: number,
+    position: Vector2
   ) {
-    super(sprite, hitShape);
+    super(sprite, hitShape, position);
 
     this.sprite.playAnimation('idle');
 
@@ -42,17 +45,16 @@ export abstract class Entity extends GameObject {
     this.position = this.position.add(velDisplacement).add(accelDisplacement);
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
 
-    console.log("ENTITY RUNNING");
-
     this.rotation = this.faceDirection.angle(); // WHY IS THIS CRASHING??!?!?!
 
     if (this.moveDirection.magnitude() > 0) {
-      if (!this.sprite.isAnimationPlaying('walking')) {
-        this.sprite.playAnimation('walking');
+      if (!this.sprite.isAnimationPlaying("walking")) {
+        this.sprite.playAnimation("walking");
       }
+
     } else {
-      if (this.sprite.isAnimationPlaying('walking')) {
-        this.sprite.stopAnimation('walking');
+      if (this.sprite.isAnimationPlaying("walking")) {
+        this.sprite.stopAnimation("walking");
       }
     }
 
@@ -67,7 +69,7 @@ export abstract class Entity extends GameObject {
     this.moveDirection = direction.unit();
   }
 
-  public abstract input(): void;
+  public abstract handleBehavior(): void;
   public abstract attack(): void;
 
   public get team(): Team | null {
