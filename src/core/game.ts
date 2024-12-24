@@ -5,7 +5,7 @@ import { Camera } from '../rendering/camera.js';
 import { Vector2 } from '../util/vector2.js';
 import { SpriteSheet } from '../sprites/spritesheet.js';
 import { Player } from '../objects/player/player.js';
-import { Controller } from '../objects/player/inputhandler.js';
+import { Controller } from '../objects/player/controller.js';
 import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
