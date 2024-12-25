@@ -10,9 +10,9 @@ import { Tool } from '../objects/player/tool.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
 import { Simulation } from '../physics/simulation.js';
-import { GameObject, TestObject } from '../objects/gameobject.js';
+import { GameObject } from '../objects/gameobject.js';
 import { ChunkManager } from '../physics/chunkmanager.js';
-import { Polygon } from '../physics/collisions.js';
+import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from '../objects/team.js';
 
 type SpriteName = "player" | "grunt" | "kronku" | "necro" | "patrol" | "batspawner" | "wall" | "floor";
@@ -79,6 +79,7 @@ export class SpriteManager {
 export class Game extends Gameloop {
   private static _instance: Game;
 
+  public readonly collisionObjects: Set<CollisionObject> = new Set();
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
   public readonly gameObjects: Set<GameObject> = new Set();
   public readonly entities: Set<Entity> = new Set();

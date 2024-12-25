@@ -93,8 +93,13 @@ export class CollisionHandler {
 export abstract class CollisionObject {
   public abstract objectType: string;
 
-  public visualize() {
+  public show() {
+    Game.instance.collisionObjects.add(this);
     // add to array in game to render hitboxes
+  }
+
+  public hide() {
+    Game.instance.collisionObjects.delete(this);
   }
 }
 
@@ -178,12 +183,16 @@ export class HitLine {
   }
 }
 
-export class Polygon {
+export class Polygon extends CollisionObject {
+  public objectType: string = "Polygon";
+
   constructor(
     private vertices: Vector2[],
     private position: Vector2 = new Vector2(),
     private rotation: number = 0
-  ) {}
+  ) {
+    super();
+  }
 
   public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
     const vertices = [

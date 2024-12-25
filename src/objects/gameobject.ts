@@ -44,7 +44,3 @@ export abstract class GameObject {
     Game.instance.chunkManager.clearObjectChunks(this);
   }
 }
-
-export class TestObject extends GameObject {
-  public readonly name: "Test";
-}
