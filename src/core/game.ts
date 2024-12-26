@@ -11,7 +11,7 @@ import { Structure } from '../objects/structure.js';
 import { Simulation } from '../physics/simulation.js';
 import { GameObject } from '../objects/gameobject.js';
 import { ChunkManager } from '../physics/chunkmanager.js';
-import { CollisionObject, Line, Polygon } from '../physics/collisions.js';
+import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from '../objects/team.js';
 import { SpriteManager } from './spritemanager.js';
 
@@ -70,14 +70,6 @@ export class Game extends Gameloop {
       new Vector2(2, 0),
       0
     );
-
-    const l1 = new Line(new Vector2(0, 0.5), new Vector2(0.5, 0));
-    const l2 = new Line(new Vector2(0.4, 0), new Vector2(0.4, 0.6));
-
-    console.log(l2.getRotation());
-
-    console.log(l1.intersects(l2));
-    console.log(l2.getRelativeOverlap(l1));
 
     this.start();
   }

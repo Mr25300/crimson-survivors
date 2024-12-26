@@ -38,7 +38,7 @@ export abstract class CollisionObject {
   private _vertexCount: number;
 
   constructor(
-    private type: string,
+    public readonly type: string,
     protected position: Vector2 = new Vector2(),
     protected rotation: number = 0
   ) {}
@@ -67,17 +67,18 @@ export abstract class CollisionObject {
     return new Rectangle(new Vector2(minX, minY), new Vector2(maxX, maxY));
   }
 
-  public abstract getNormals(): Vector2[];
+  public abstract getNormals(reference: CollisionObject): Vector2[];
   public abstract getProjectedRange(axis: Vector2): [number, number];
   public abstract getCenter(): Vector2;
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {
-    const normals1 = this.getNormals();
-    const normals2 = object.getNormals();
+    const normals1 = this.getNormals(object);
+    const normals2 = object.getNormals(this);
 
     let overlap: number = Infinity;
     let normal: Vector2 = new Vector2();
 
+    // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
     for (const axis of [...normals2, ...normals1]) {
       const [min1, max1] = this.getProjectedRange(axis);
       const [min2, max2] = object.getProjectedRange(axis);
@@ -134,18 +135,59 @@ export abstract class CollisionObject {
 }
 
 export class Circle extends CollisionObject {
-  // use direction of center of circle towards the nearest vertex as another axis to check for SAT
+  constructor(
+    private radius: number,
+    private offset: Vector2,
+    position?: Vector2,
+    rotation?: number
+  ) {
+    super("Circle", position, rotation);
+  }
+
+  public getCenter(): Vector2 {
+    return this.getTransformationMatrix().apply(this.offset);
+  }
+
+  public getNormals(reference: CollisionObject): Vector2[] {
+    const normals: Vector2[] = [];
+
+    if (reference.type === "Circle") {
+      const circle: Circle = reference as Circle;
+
+      normals.push(this.getCenter().subtract(circle.getCenter()));
+
+    } else if (reference.type === "Polygon") {
+      const poly: Polygon = reference as Polygon;
+
+      normals.push(poly.getClosestVertex(this.getCenter()));
+    }
+
+    return normals;
+  }
+
+  public getProjectedRange(axis: Vector2): [number, number] {
+    const dotPosition = this.getCenter().dot(axis);
+
+    const min = dotPosition - this.radius;
+    const max = dotPosition + this.radius;
+
+    return [min, max];
+  }
+
+  public getVerticesForRendering(): Vector2[] {
+    throw new Error('Method not implemented.');
+  }
 }
 
 export class Polygon extends CollisionObject {
   private _transformedVertices: Vector2[] = [];
 
   constructor(
-    private _vertices: Vector2[],
+    private vertices: Vector2[],
     position?: Vector2,
     rotation?: number
   ) {
-    super(position, rotation);
+    super("Polygon", position, rotation);
 
     this.show();
   }
@@ -160,10 +202,6 @@ export class Polygon extends CollisionObject {
     ], position, rotation);
   }
 
-  public get vertices(): Vector2[] {
-    return this._vertices;
-  }
-
   public getTransformedVertices(): Vector2[] {
     if (this.verticesOutdated) {
       for (let i = 0; i < this.vertices.length; i++) {
@@ -176,8 +214,15 @@ export class Polygon extends CollisionObject {
     return this._transformedVertices;
   }
 
-  public getNearestVertex(point: Vector2): Vector2 {
+  public getCenter(): Vector2 {
+    const vertices = this.getTransformedVertices();
+    let sum: Vector2 = new Vector2();
 
+    for (const vertex of vertices) {
+      sum = sum.add(vertex);
+    }
+
+    return sum.divide(vertices.length);
   }
 
   public getNormals(): Vector2[] {
@@ -196,17 +241,6 @@ export class Polygon extends CollisionObject {
     return normals;
   }
 
-  public getAveragePosition(): Vector2 {
-    const vertices = this.getTransformedVertices();
-    let sum: Vector2 = new Vector2();
-
-    for (const vertex of vertices) {
-      sum = sum.add(vertex);
-    }
-
-    return sum.divide(vertices.length);
-  }
-
   public getProjectedRange(axis: Vector2): [number, number] {
     let min = Infinity;
     let max = -Infinity;
@@ -221,31 +255,91 @@ export class Polygon extends CollisionObject {
     return [min, max];
   }
 
-  public intersects(polygon: Polygon): [boolean, Vector2, number] {
-    const normals1 = this.getNormals();
-    const normals2 = polygon.getNormals();
+  public getClosestVertex(point: Vector2): Vector2 {
+    let minDistance: number = Infinity;
+    let closestVertex: Vector2 = new Vector2();
 
-    let overlap: number = Infinity;
-    let normal: Vector2 = new Vector2();
+    for (const vertex of this.getTransformedVertices()) {
+      const distance: number = vertex.distance(point);
 
-    for (const axis of [...normals2, ...normals1]) {
-      const [min1, max1] = this.getProjectedRange(axis);
-      const [min2, max2] = polygon.getProjectedRange(axis);
-
-      if (min2 > max1 || min1 > max2) return [false, new Vector2(), 0];
-
-      const axisOverlap = Math.min(max2 - min1, max1 - min2);
-
-      if (axisOverlap < overlap) {
-        overlap = axisOverlap;
-        normal = axis;
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestVertex = vertex;
       }
     }
 
-    const direction = this.getAveragePosition().subtract(polygon.getAveragePosition());
-    if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+    return closestVertex;
+  }
 
-    return [true, normal, overlap];
+  public getVerticesForRendering(): Vector2[] {
+    return this.vertices;
+  }
+
+  // public intersects(polygon: Polygon): [boolean, Vector2, number] {
+  //   const normals1 = this.getNormals();
+  //   const normals2 = polygon.getNormals();
+
+  //   let overlap: number = Infinity;
+  //   let normal: Vector2 = new Vector2();
+
+  //   for (const axis of [...normals2, ...normals1]) {
+  //     const [min1, max1] = this.getProjectedRange(axis);
+  //     const [min2, max2] = polygon.getProjectedRange(axis);
+
+  //     if (min2 > max1 || min1 > max2) return [false, new Vector2(), 0];
+
+  //     const axisOverlap = Math.min(max2 - min1, max1 - min2);
+
+  //     if (axisOverlap < overlap) {
+  //       overlap = axisOverlap;
+  //       normal = axis;
+  //     }
+  //   }
+
+  //   const direction = this.getCenter().subtract(polygon.getCenter());
+  //   if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+
+  //   return [true, normal, overlap];
+  // }
+}
+
+export class Line {
+  constructor(
+    private _start: Vector2,
+    private _end: Vector2
+  ) {}
+
+  public get start(): Vector2 {
+    return this._start;
+  }
+
+  public get end(): Vector2 {
+    return this._end;
+  }
+
+  public getRotation(): number {
+    return this._end.subtract(this._start).angle();
+  }
+
+  public intersects(line: Line): boolean {
+    const [a, b] = [this._start, this._end];
+    const [c, d] = [line._start, line._end];
+
+    // Line direction vectors
+    const dir1 = b.subtract(a);
+    const dir2 = d.subtract(c);
+
+    // Determinant
+    const det = dir1.x * dir2.y - dir1.y * dir2.x;
+
+    if (det === 0) return false; // Parallel or collinear
+
+    // Compute t and u
+    const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
+    const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
+
+    // Check if intersection occurs within both segments
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
   }
 }
 

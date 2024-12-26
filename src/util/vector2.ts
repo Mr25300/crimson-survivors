@@ -38,6 +38,10 @@ export class Vector2 {
   public magnitude(): number {
     return Math.sqrt(this._x ** 2 + this._y ** 2);
   }
+  
+  public distance(vec: Vector2): number {
+    return this.subtract(vec).magnitude();
+  }
 
   /**
    * Calculates the unit vector, having a magnitude of 1.
