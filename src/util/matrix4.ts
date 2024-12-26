@@ -46,13 +46,6 @@ export class Matrix4 {
     );
   }
 
-  public static fromSpriteInfo(xScale: number, yScale: number, zOrder: number): Matrix4 {
-    const zTranslateMatrix = Matrix4.fromTranslation(0, 0, -Math.tanh(zOrder));
-    const scaleMatrix = Matrix4.fromScale(xScale, yScale);
-
-    return zTranslateMatrix.multiply(scaleMatrix);
-  }
-
   public static fromTransformation(translation: Vector2 = new Vector2(), rotation: number = 0): Matrix4 {
     const rotationMatrix = Matrix4.fromRotation(rotation);
     const translationMatrix = Matrix4.fromTranslation(translation.x, translation.y, 0);

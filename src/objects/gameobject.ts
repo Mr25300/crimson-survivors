@@ -5,24 +5,23 @@ import {SpriteModel} from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
 
 export abstract class GameObject {
-  public abstract name: string;
-
   public readonly chunks: Set<number> = new Set();
 
   constructor(
+    public readonly type: string,
     public readonly sprite: SpriteModel,
-    public readonly hitShape: Polygon,
+    public readonly shape: Polygon,
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
-    this.updateCoordinates(position, rotation);
+    this.updateCoordinates(position, rotation); // fix order of priority here
   }
 
   public updateCoordinates(position: Vector2, rotation: number): void {
     this.position = position;
     this.rotation = rotation;
 
-    this.hitShape.setTransformation(position, rotation);
+    this.shape.setTransformation(position, rotation);
     this.sprite.setTransformation(position, rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);

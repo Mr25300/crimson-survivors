@@ -4,6 +4,7 @@ attribute vec2 textureCoord;
 uniform mat4 screenProjection;
 uniform mat4 spriteScale;
 uniform mat4 modelTransform;
+uniform float zOrder;
 
 varying vec2 textureVertCoord;
 
@@ -11,8 +12,14 @@ varying vec2 textureVertCoord;
 // dm = root(2)
 // z = d/dm * 2 - 1 (normalize to 1, -1)
 
+float tanh(float x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+}
+
 void main() {
-  gl_Position = screenProjection * modelTransform * spriteScale * vec4(vertexPos, 0, 1);
+  float zPosition = -tanh(zOrder);
+
+  gl_Position = screenProjection * modelTransform * spriteScale * vec4(vertexPos, zPosition, 1);
 
   textureVertCoord = textureCoord;
 }

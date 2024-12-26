@@ -4,20 +4,18 @@ import {Matrix4} from "../util/matrix4.js";
 import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
-  private spriteCoords: Float32Array;
-
   private texture: WebGLTexture;
   private coordBuffer: WebGLBuffer;
 
   private animations: Map<string, AnimationInfo> = new Map();
 
-  constructor( // ADD Z-LEVEL TO SPRITESHEET
+  constructor(
+    imagePath: string,
     private width: number,
     private height: number,
     private spriteCount: number,
     private columns: number,
     private rows: number,
-    private imagePath: string,
     private zOrder: number
   ) {
     const spriteCoords: number[] = [];
@@ -32,16 +30,12 @@ export class SpriteSheet {
       spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
     }
 
-    this.spriteCoords = new Float32Array(spriteCoords);
+    this.texture = Game.instance.canvas.createTexture(imagePath);
+    this.coordBuffer = Game.instance.canvas.createBuffer(new Float32Array(spriteCoords));
   }
 
-  public init(): void {
-    this.texture = Game.instance.canvas.shader.createTexture(this.imagePath);
-    this.coordBuffer = Game.instance.canvas.shader.createBuffer(this.spriteCoords);
-  }
-
-  public getBuffer(): WebGLBuffer {
-    return this.coordBuffer;
+  public bindCoordBuffer(cellNumber: number): void {
+    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.coordBuffer, 2, 0, cellNumber * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
   }
 
   public createModel(): SpriteModel {
@@ -59,15 +53,14 @@ export class SpriteSheet {
   }
 
   public bind(): void {
-    const matrix = Matrix4.fromSpriteInfo(this.width, this.height, this.zOrder);
-    
-    Game.instance.canvas.shader.bindTexture(this.texture);
-    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", matrix.glFormat());
+    Game.instance.canvas.bindTexture(this.texture);
+    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height));
+    Game.instance.canvas.shader.setUniformFloat("zOrder", this.zOrder);
   }
 
   public destroy(): void {
-    Game.instance.canvas.shader.deleteTexture(this.texture);
-    Game.instance.canvas.shader.deleteBuffer(this.coordBuffer);
+    Game.instance.canvas.deleteTexture(this.texture);
+    Game.instance.canvas.deleteBuffer(this.coordBuffer);
   }
 }
 

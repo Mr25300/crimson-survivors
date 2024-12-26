@@ -5,6 +5,7 @@ import { SpriteSheet } from "../sprites/spritesheet.js";
 import { Vector2 } from "../util/vector2.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Game } from "../core/game.js";
+import { CollisionObject } from "../physics/collisions.js";
 
 export class Canvas {
   private element: HTMLCanvasElement;
@@ -12,7 +13,9 @@ export class Canvas {
 
   public readonly shader: ShaderProgram;
 
-  private screenUnitScale: number = 1 / 10;
+  private spriteVertexBuffer: WebGLBuffer;
+
+  private screenUnitScale: number = 1 / 5;
   private height: number;
   private width: number;
   private aspectRatio: number;
@@ -36,32 +39,100 @@ export class Canvas {
   }
 
   public async init(): Promise<void> {
-    await Promise.all([
-      Util.loadShaderFile("res/shaders/vertex.glsl"),
-      Util.loadShaderFile("res/shaders/fragment.glsl")
+    this.createUniversalSpriteVertexBuffer();
 
-    ]).then(([vertSource, fragSource]) => {
-      this.shader.init(vertSource, fragSource);
-      this.shader.use();
-      this.shader.createAttrib("vertexPos");
-      this.shader.createAttrib("textureCoord");
-      this.shader.createUniform("screenProjection");
-      this.shader.createUniform("spriteScale");
-      this.shader.createUniform("modelTransform");
+    await this.shader.initShaders("res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
 
-      this.createUniversalVertexBuffer();
-    });
+    this.shader.use();
+
+    this.shader.createAttrib("vertexPos");
+    this.shader.createAttrib("textureCoord");
+
+    this.shader.createUniform("screenProjection");
+    this.shader.createUniform("spriteScale");
+    this.shader.createUniform("modelTransform");
+    this.shader.createUniform("zOrder");
+    this.shader.createUniform("debugMode");
+  }
+
+  public createBuffer(data: Float32Array): WebGLBuffer {
+    const buffer = this.gl.createBuffer();
+
+    if (buffer == null) {
+      throw new Error("Failed to create buffer.");
+    }
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+
+    return buffer;
+  }
+
+  public deleteBuffer(buffer: WebGLBuffer): void {
+    this.gl.deleteBuffer(buffer);
+  }
+
+  public createTexture(imagePath: string): WebGLTexture {
+    const image = new Image();
+    image.src = imagePath;
+
+    const texture = this.gl.createTexture();
+
+    if (texture == null) {
+      throw new Error("Failed to create texture.");
+    }
+
+    image.onload = () => {
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+
+      // let wrapMode: GLint = this.gl.CLAMP_TO_EDGE;
+
+      // if (Util.isPowerOf2(image.width) && Util.isPowerOf2(image.height)) {
+      //   wrapMode = this.gl.REPEAT;
+      // }
+
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+      // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, wrapMode);
+      // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, wrapMode);
+      // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+      // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    };
+
+    image.onerror = () => {
+      // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+
+      console.error(`Failed to load image texture ${imagePath}.`);
+    };
+
+    return texture;
+  }
+
+  public bindTexture(texture: WebGLTexture): void {
+    // fix texture binding and activeTexture thingamajig
+
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+  }
+
+  public deleteTexture(texture: WebGLTexture): void {
+    this.gl.deleteTexture(texture);
   }
 
   /**
    * Creates the universal vertex buffer to be used by all sprites, being a square with width and height 1.
    */
-  private createUniversalVertexBuffer(): void {
-    const vertexBuffer = this.shader.createBuffer(
-      new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5])
-    );
-
-    this.shader.setAttribBuffer("vertexPos", vertexBuffer, 2, 0, 0);
+  private createUniversalSpriteVertexBuffer(): void {
+    this.spriteVertexBuffer = this.createBuffer(new Float32Array([
+      -0.5, -0.5,
+      0.5, -0.5,
+      -0.5, 0.5,
+      0.5, 0.5
+    ]));
   }
 
   private updateDimensions(): void {
@@ -100,9 +171,12 @@ export class Canvas {
     this.gl.clearColor(0, 0, 0, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const projectionMatrix = Matrix4.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
+    const projectionMatrix: Matrix4 = Matrix4.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
 
-    this.shader.setUniformMatrix4("screenProjection", projectionMatrix.glFormat());
+    this.shader.use();
+    this.shader.setAttribBuffer("vertexPos", this.spriteVertexBuffer, 2, 0, 0);
+    this.shader.setUniformMatrix4("screenProjection", projectionMatrix);
+    this.shader.setUniformBool("debugMode", false);
 
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       sprite.bind();
@@ -112,6 +186,16 @@ export class Canvas {
 
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
       }
+    });
+
+    this.shader.setUniformMatrix4("spriteScale", Matrix4.identity());
+    this.shader.setUniformFloat("zOrder", 20);
+    this.shader.setUniformBool("debugMode", true);
+
+    Game.instance.collisionObjects.forEach((object: CollisionObject) => {
+      object.bind();
+      
+      this.gl.drawArrays(this.gl.LINE_LOOP, 0, object.vertexCount); // this.gl.TRIANGLE_FAN for filled in poly
     });
   }
 }

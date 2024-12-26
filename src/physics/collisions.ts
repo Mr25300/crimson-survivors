@@ -1,15 +1,22 @@
 import { Game } from '../core/game.js';
 import { Entity } from '../objects/entity.js';
 import { GameObject } from '../objects/gameobject.js';
+import { Structure } from '../objects/structure.js';
 import {Matrix4} from '../util/matrix4.js';
 import {Vector2} from '../util/vector2.js';
 
 export class CollisionHandler {
-  public static getEntityAttackList(attacker: Entity, attackShape: Polygon): GameObject[] {
+  public static getCollidingStructures(polygon: Polygon): Structure[] {
+    const structures: Structure[] = [];
+
+    return structures;
+  }
+
+  public static getEntityAttackList(attacker: Entity, attackShape: Polygon): Entity[] {
     const entities: Entity[] = [];
 
     for (const object of Game.instance.gameObjects) {
-      if (object.name === "Entity") {
+      if (object.type === "Entity") {
         const entity: Entity = object as Entity;
 
         if (attacker.team === entity.team) continue;
@@ -20,257 +27,225 @@ export class CollisionHandler {
 
     return entities;
   }
+}
 
-  public static getNormals(vertices: Vector2[]): Vector2[] {
+export abstract class CollisionObject {
+  protected matrixOutdated: boolean = true;
+  protected verticesOutdated: boolean = true;
+  private _transformationMatrix: Matrix4;
+
+  private vertexBuffer: WebGLBuffer;
+  private _vertexCount: number;
+
+  constructor(
+    private type: string,
+    protected position: Vector2 = new Vector2(),
+    protected rotation: number = 0
+  ) {}
+
+  public setTransformation(position: Vector2, rotation: number) {
+    this.position = position;
+    this.rotation = rotation;
+    this.matrixOutdated = true;
+    this.verticesOutdated = true;
+  }
+
+  protected getTransformationMatrix(): Matrix4 {
+    if (this.matrixOutdated) {
+      this.matrixOutdated = false;
+
+      this._transformationMatrix = Matrix4.fromTransformation(this.position, this.rotation);
+    }
+
+    return this._transformationMatrix;
+  }
+
+  public getBounds(): Rectangle {
+    const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
+    const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+
+    return new Rectangle(new Vector2(minX, minY), new Vector2(maxX, maxY));
+  }
+
+  public abstract getNormals(): Vector2[];
+  public abstract getProjectedRange(axis: Vector2): [number, number];
+  public abstract getCenter(): Vector2;
+
+  public intersects(object: CollisionObject): [boolean, Vector2, number] {
+    const normals1 = this.getNormals();
+    const normals2 = object.getNormals();
+
+    let overlap: number = Infinity;
+    let normal: Vector2 = new Vector2();
+
+    for (const axis of [...normals2, ...normals1]) {
+      const [min1, max1] = this.getProjectedRange(axis);
+      const [min2, max2] = object.getProjectedRange(axis);
+
+      if (min2 > max1 || min1 > max2) return [false, new Vector2(), 0];
+
+      const axisOverlap = Math.min(max2 - min1, max1 - min2);
+
+      if (axisOverlap < overlap) {
+        overlap = axisOverlap;
+        normal = axis;
+      }
+    }
+
+    const direction = this.getCenter().subtract(object.getCenter());
+    if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+
+    return [true, normal, overlap];
+  } 
+
+  public abstract getVerticesForRendering(): Vector2[];
+
+  public get vertexCount(): number {
+    return this._vertexCount;
+  }
+
+  public show(): void {
+    if (!this.vertexBuffer) {
+      const vertices = this.getVerticesForRendering();
+      const vertexArray = new Float32Array(vertices.length * 2);
+  
+      for (let i = 0; i < vertices.length; i++) {
+        const vertex = vertices[i];
+  
+        vertexArray[i * 2] = vertex.x;
+        vertexArray[i * 2 + 1] = vertex.y;
+      }
+  
+      this.vertexBuffer = Game.instance.canvas.createBuffer(vertexArray);
+      this._vertexCount = vertices.length;
+    }
+
+    Game.instance.collisionObjects.add(this);
+  }
+
+  public hide(): void {
+    Game.instance.collisionObjects.delete(this);
+  }
+
+  public bind(): void {
+    Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
+    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+  }
+}
+
+export class Circle extends CollisionObject {
+  // use direction of center of circle towards the nearest vertex as another axis to check for SAT
+}
+
+export class Polygon extends CollisionObject {
+  private _transformedVertices: Vector2[] = [];
+
+  constructor(
+    private _vertices: Vector2[],
+    position?: Vector2,
+    rotation?: number
+  ) {
+    super(position, rotation);
+
+    this.show();
+  }
+
+  public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
+    return new Polygon([
+      new Vector2(-width/2, -height/2),
+      new Vector2(-width/2, height/2),
+      new Vector2(width/2, height/2),
+      new Vector2(width/2, -height/2)
+
+    ], position, rotation);
+  }
+
+  public get vertices(): Vector2[] {
+    return this._vertices;
+  }
+
+  public getTransformedVertices(): Vector2[] {
+    if (this.verticesOutdated) {
+      for (let i = 0; i < this.vertices.length; i++) {
+        this._transformedVertices[i] = this.getTransformationMatrix().apply(this.vertices[i]);
+      }
+
+      this.verticesOutdated = false;
+    }
+
+    return this._transformedVertices;
+  }
+
+  public getNearestVertex(point: Vector2): Vector2 {
+
+  }
+
+  public getNormals(): Vector2[] {
+    const vertices: Vector2[] = this.getTransformedVertices();
     const normals: Vector2[] = [];
 
     for (let i = 0; i < vertices.length; i++) {
       const vertex1 = vertices[i];
       const vertex2 = vertices[(i + 1) % vertices.length];
-      const edgeParallel = vertex2.subtract(vertex1).unit();
-      const edgePerpendicular = new Vector2(-edgeParallel.y, edgeParallel.x);
+      const edge = vertex2.subtract(vertex1);
+      const normal = edge.perp().unit();
 
-      normals.push(edgePerpendicular);
+      normals.push(normal);
     }
 
     return normals;
   }
 
-  public static getProjectedRange(vertices: Vector2[], axis: Vector2): [number, number] {
+  public getAveragePosition(): Vector2 {
+    const vertices = this.getTransformedVertices();
+    let sum: Vector2 = new Vector2();
+
+    for (const vertex of vertices) {
+      sum = sum.add(vertex);
+    }
+
+    return sum.divide(vertices.length);
+  }
+
+  public getProjectedRange(axis: Vector2): [number, number] {
     let min = Infinity;
     let max = -Infinity;
 
-    for (const vertex of vertices) {
+    for (const vertex of this.getTransformedVertices()) {
       const dot = vertex.dot(axis);
 
-      min = Math.min(min, dot);
-      max = Math.max(max, dot);
+      if (dot < min) min = dot;
+      if (dot > max) max = dot;
     }
 
     return [min, max];
   }
 
-  public static polygonIntersection(poly1: Polygon, poly2: Polygon): boolean {
-    const vertices1 = poly1.getVertices();
-    const vertices2 = poly2.getVertices();
+  public intersects(polygon: Polygon): [boolean, Vector2, number] {
+    const normals1 = this.getNormals();
+    const normals2 = polygon.getNormals();
 
-    const axes = [...CollisionHandler.getNormals(vertices1), ...CollisionHandler.getNormals(vertices2)];
+    let overlap: number = Infinity;
+    let normal: Vector2 = new Vector2();
 
-    for (const axis of axes) {
-      const [min1, max1] = CollisionHandler.getProjectedRange(vertices1, axis);
-      const [min2, max2] = CollisionHandler.getProjectedRange(vertices2, axis);
+    for (const axis of [...normals2, ...normals1]) {
+      const [min1, max1] = this.getProjectedRange(axis);
+      const [min2, max2] = polygon.getProjectedRange(axis);
 
-      if (min2 > max1 || min1 > max2) {
-        return false;
+      if (min2 > max1 || min1 > max2) return [false, new Vector2(), 0];
+
+      const axisOverlap = Math.min(max2 - min1, max1 - min2);
+
+      if (axisOverlap < overlap) {
+        overlap = axisOverlap;
+        normal = axis;
       }
     }
 
-    return true;
-  }
+    const direction = this.getAveragePosition().subtract(polygon.getAveragePosition());
+    if (direction.dot(normal) < 0) normal = normal.multiply(-1);
 
-  public static linesIntersect(line1: Line, line2: Line): boolean {
-    const [a, b] = [line1.start, line1.end];
-    const [c, d] = [line2.start, line2.end];
-
-    // Line direction vectors
-    const dir1 = b.subtract(a);
-    const dir2 = d.subtract(c);
-
-    // Determinant
-    const det = dir1.x * dir2.y - dir1.y * dir2.x;
-
-    if (det === 0) return false; // Parallel or collinear
-
-    // Compute t and u
-    const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
-    const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
-
-    // Check if intersection occurs within both segments
-    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
-  }
-}
-
-export abstract class CollisionObject {
-  public abstract objectType: string;
-
-  public show() {
-    Game.instance.collisionObjects.add(this);
-    // add to array in game to render hitboxes
-  }
-
-  public hide() {
-    Game.instance.collisionObjects.delete(this);
-  }
-}
-
-export class HitLine {
-  constructor(
-    private position: Vector2,
-    private rotation: number,
-    private length: number
-  ) {}
-
-  static fromStartAndEnd(start: Vector2, end: Vector2): HitLine {
-    const midPoint: Vector2 = start.add(end).divide(2);
-    const difference: Vector2 = start.subtract(end);
-
-    return new HitLine(midPoint, difference.angle() + Math.PI/2, difference.magnitude());
-  }
-
-  public getNormal(): Vector2 {
-    return Matrix4.fromRotation(this.rotation).apply(new Vector2(0, 1));
-  }
-
-  public getVertices(): Vector2[] {
-    const rotMatrix: Matrix4 = Matrix4.fromTransformation(this.position, this.rotation);
-    const ends = [new Vector2(-this.length/2), new Vector2(this.length/2)];
-
-    for (let i = 0; i < 2; i++) {
-      ends[i] = rotMatrix.apply(ends[i]);
-    }
-
-    return ends;
-  }
-
-  public checkPolyCollision(poly: Polygon): [boolean, number] {
-    const rotMatrix: Matrix4 = Matrix4.fromTransformation(undefined, -this.rotation);
-
-    const corners: Vector2[] = poly.getVertices();
-
-    let cornerIndex: number = 0;
-
-    for (let i = 0; i < corners.length; i++) {
-      const relativeCorner: Vector2 = rotMatrix.apply(corners[i].subtract(this.position));
-
-      corners[i] = relativeCorner;
-
-      if (i === 0) continue;
-
-      const lastY = corners[cornerIndex].y;
-
-      if (relativeCorner.y < lastY || (relativeCorner.y == lastY && Math.abs(relativeCorner.x) <= this.length/2)) {
-        cornerIndex = i;
-      }
-    }
-
-    const bottomMost = corners[cornerIndex];
-
-    if (bottomMost.y <= 0) {
-      if (Math.abs(bottomMost.x) <= this.length/2) {
-        return [true, -bottomMost.y];
-
-      } else {
-        let cornerX = Math.min(Math.max(bottomMost.x, -this.length/2), this.length/2);
-        let adjIndex = cornerIndex;
-
-        if (cornerX < 0) adjIndex--;
-        else adjIndex = (adjIndex + 1) % corners.length;
-        if (adjIndex < 0) adjIndex += corners.length;
-
-        const adjCorner = corners[adjIndex];
-
-        if (Math.abs(adjCorner.x) <= this.length/2) {
-          const m = (bottomMost.y - adjCorner.y) / (bottomMost.x - adjCorner.x);
-          const b = bottomMost.y - m * bottomMost.x;
-          const cornerY = m * cornerX + b;
-
-          if (cornerY <= 0) return [true, -cornerY];
-        }
-      }
-    }
-
-    return [false, 0];
-  }
-}
-
-export class Polygon extends CollisionObject {
-  public objectType: string = "Polygon";
-
-  constructor(
-    private vertices: Vector2[],
-    private position: Vector2 = new Vector2(),
-    private rotation: number = 0
-  ) {
-    super();
-  }
-
-  public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
-    const vertices = [
-      new Vector2(-width/2, -height/2),
-      new Vector2(-width/2, height/2),
-      new Vector2(width/2, height/2),
-      new Vector2(width/2, -height/2)
-    ];
-
-    return new Polygon(vertices, position, rotation);
-  }
-
-  public setTransformation(position: Vector2, rotation: number) {
-    this.position = position;
-    this.rotation = rotation;
-  }
-
-  public getVertices(): Vector2[] {
-    const matrix = Matrix4.fromTransformation(this.position, this.rotation);
-    const vertices: Vector2[] = [];
-
-    for (let i = 0; i < this.vertices.length; i++) {
-      vertices[i] = matrix.apply(this.vertices[i]);
-    }
-
-    return vertices;
-  }
-
-  public getBounds(): Rectangle {
-    const vertices = this.getVertices();
-
-    let min = new Vector2(Infinity, Infinity);
-    let max = new Vector2(-Infinity, -Infinity);
-
-    for (const vertex of vertices) {
-      if (vertex.x < min.x) min = new Vector2(vertex.x, min.y);
-      if (vertex.x > max.x) max = new Vector2(vertex.x, max.y);
-      if (vertex.y < min.y) min = new Vector2(min.x, vertex.y);
-      if (vertex.y > max.y) max = new Vector2(max.x, vertex.y);
-    }
-
-    return new Rectangle(min, max);
-  }
-}
-
-export class Line {
-  constructor(
-    private _start: Vector2,
-    private _end: Vector2
-  ) {}
-
-  public get start(): Vector2 {
-    return this._start;
-  }
-
-  public get end(): Vector2 {
-    return this._end;
-  }
-
-  public intersects(line: Line): boolean {
-    const [a, b] = [this._start, this._end];
-    const [c, d] = [line._start, line._end];
-
-    // Line direction vectors
-    const dir1 = b.subtract(a);
-    const dir2 = d.subtract(c);
-
-    // Determinant
-    const det = dir1.x * dir2.y - dir1.y * dir2.x;
-
-    if (det === 0) return false; // Parallel or collinear
-
-    // Compute t and u
-    const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
-    const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
-
-    // Check if intersection occurs within both segments
-    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+    return [true, normal, overlap];
   }
 }
 
@@ -301,18 +276,8 @@ export class Rectangle {
     return point.x >= this._min.x && point.x <= this._min.x && point.y >= this._min.y && point.y <= this._max.y;
   }
 
-  public simpleContainCheck(polygon: Polygon): boolean {
-    const vertices = polygon.getVertices();
-
-    for (const vertex of vertices) {
-      if (this.containsPoint(vertex)) return true;
-    }
-
-    return false;
-  }
-
-  public containsPolygon(polygon: Polygon): boolean {
-    const vertices = polygon.getVertices();
+  public intersectsPolygon(polygon: Polygon): boolean {
+    const vertices = polygon.getTransformedVertices();
 
     for (const vertex of vertices) {
       if (this.containsPoint(vertex)) return true;
@@ -331,6 +296,28 @@ export class Rectangle {
         const line: Line = new Line(vertex1, vertex2);
   
         if (line.intersects(rectEdge)) return true;
+      }
+    }
+
+    for (let i = 0; i < vertices.length; i++) {
+      const vertex1: Vector2 = vertices[i];
+      const vertex2: Vector2 = vertices[(i + 1) % vertices.length];
+      const polyEdge: Line = new Line(vertex1, vertex2);
+
+      for (let i = 0; i < 4; i++) {
+        const corner1 = rectVertices[i];
+        const corner2 = rectVertices[(i + 1) % 4];
+        const rectEdge: Line = new Line(corner1, corner2);
+  
+        if (polyEdge.intersects(rectEdge)) return true;
+
+        if (i === 0) {
+          const linePos = corner1.add(corner2).divide(2);
+          const rotMatrix = Matrix4.fromRotation(polyEdge.getRotation())
+          const relCorner = rotMatrix.apply(corner1.subtract(linePos));
+
+          if (relCorner.y <= 0) return true;
+        }
       }
     }
 

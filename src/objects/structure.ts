@@ -1,17 +1,25 @@
-import { SpriteModel } from "../sprites/spritemodel";
-import { Vector2 } from "../util/vector2";
-import { GameObject } from "./gameobject";
+import { Game } from "../core/game.js";
+import { Polygon } from "../physics/collisions.js";
+import { SpriteModel } from "../sprites/spritemodel.js";
+import { Vector2 } from "../util/vector2.js";
+import { GameObject } from "./gameobject.js";
 
 export class Structure extends GameObject {
   constructor(
     sprite: SpriteModel,
+    shape: Polygon,
+    public canCollide: boolean,
     position: Vector2,
-    public width: number,
-    public height: number,
-    public canCollide: boolean
+    rotation: number
   ) {
-    super(sprite, width, height);
+    super("Structure", sprite, shape, position, rotation);
+    
+    Game.instance.structures.add(this);
+  }
 
-    this.position = position;
+  public override destroy() {
+    super.destroy();
+
+    Game.instance.structures.delete(this);
   }
 }

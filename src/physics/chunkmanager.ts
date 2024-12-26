@@ -2,27 +2,10 @@ import { GameObject } from "../objects/gameobject.js";
 import { Vector2 } from "../util/vector2.js";
 import { Polygon, Rectangle } from "./collisions.js";
 
-class Quad {
-  constructor(
-    private start: Vector2,
-    private end: Vector2,
-  ) {}
-
-  public getSubdivisions(): Quad[] {
-    const middleX = (this.start.x + this.end.x) / 2;
-    const middleY = (this.start.y + this.end.y) / 2;
-
-    return [
-      new Quad(this.start, new Vector2(middleX, middleY)),
-      new Quad(this.start, new Vector2())
-    ];
-  }
-}
-
 export class ChunkManager {
   private CHUNK_SIZE = 1;
 
-  private chunks: Map<number, Set<GameObject>> = new Map();
+  private chunks: Map<number, Map<string, Set<GameObject>>> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
     // modified cantor function to include negatives
@@ -53,27 +36,69 @@ export class ChunkManager {
       chunkPos.add(new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2))
     );
 
-    return chunkRect.containsPolygon(polygon);
+    return chunkRect.intersectsPolygon(polygon);
   }
 
   public addToChunk(chunkKey: number, object: GameObject): void {
-    const objects: Set<GameObject> = this.chunks.get(chunkKey) || new Set();
-
+    const objects: Map<string, Set<GameObject>> = this.chunks.get(chunkKey) || new Map();
     if (objects.size === 0) this.chunks.set(chunkKey, objects);
 
-    objects.add(object);
+    const typeObjects: Set<GameObject> = objects.get(object.type) || new Set();
+    if (typeObjects.size === 0) objects.set(object.type, typeObjects);
+
+    typeObjects.add(object);
   }
 
   public removeFromChunk(chunkKey: number, object: GameObject): void {
     const objects = this.chunks.get(chunkKey)!;
+    const typeObjects: Set<GameObject> = objects.get(object.type)!;
 
-    objects.delete(object);
+    typeObjects.delete(object);
     
+    if (typeObjects.size === 0) objects.delete(object.type);
     if (objects.size === 0) this.chunks.delete(chunkKey);
   }
 
+  public getChunksOfPolygon(polygon: Polygon): Vector2[] {
+    const chunks: Vector2[] = [];
+
+    const bounds: Rectangle = polygon.getBounds();
+    const minChunk = bounds.min.divide(this.CHUNK_SIZE).round();
+    const maxChunk = bounds.max.divide(this.CHUNK_SIZE).round();
+
+    for (let x = minChunk.x; x <= maxChunk.x; x++) {
+      for (let y = minChunk.y; y <= maxChunk.y; y++) {
+        const chunk = new Vector2(x, y);
+
+        if (this.chunkContainsPolygon(chunk, polygon)) chunks.push(chunk);
+      }
+    }
+
+    return chunks;
+  }
+
+  public getObjectsInPolygon(polygon: Polygon, objectType: string): GameObject[] {
+    const objects: GameObject[] = [];
+
+    for (const chunk of this.getChunksOfPolygon(polygon)) {
+      const chunkKey = this.getChunkKey(chunk);
+
+      const chunkObjects = this.chunks.get(chunkKey);
+      if (!chunkObjects) continue;
+
+      const typeObjects = chunkObjects.get(objectType);
+      if (!typeObjects) continue;
+
+      for (const object of typeObjects) {
+        objects.push(object);
+      }
+    }
+
+    return objects;
+  }
+
   public updateObjectChunks(object: GameObject): void {
-    const polygon: Polygon = object.hitShape;
+    const polygon: Polygon = object.shape;
 
     for (const chunkKey of object.chunks) {
       const chunk = this.getChunkFromKey(chunkKey);
@@ -84,20 +109,13 @@ export class ChunkManager {
       }
     }
 
-    const bounds: Rectangle = polygon.getBounds();
-    const minChunk = bounds.min.divide(this.CHUNK_SIZE).round();
-    const maxChunk = bounds.max.divide(this.CHUNK_SIZE).round();
+    for (const chunk of this.getChunksOfPolygon(polygon)) {
+      const chunkKey = this.getChunkKey(chunk);
 
-    for (let x = minChunk.x; x <= maxChunk.x; x++) {
-      for (let y = minChunk.y; y <= maxChunk.y; y++) {
-        const chunk = new Vector2(x, y);
-        const chunkKey = this.getChunkKey(chunk);
+      if (object.isInChunk(chunkKey)) continue;
 
-        if (object.isInChunk(chunkKey) || !this.chunkContainsPolygon(chunk, polygon)) continue;
-
-        object.addChunk(chunkKey);
-        this.addToChunk(chunkKey, object);
-      }
+      object.addChunk(chunkKey);
+      this.addToChunk(chunkKey, object);
     }
   }
 

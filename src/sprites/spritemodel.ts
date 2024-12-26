@@ -8,7 +8,7 @@ export class SpriteModel {
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
-  private currentGrid: number = 0;
+  private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
 
   constructor(private sprite: SpriteSheet) {
@@ -19,8 +19,8 @@ export class SpriteModel {
     objects.add(this);
   }
 
-  public setSpriteGrid(n: number): void {
-    this.currentGrid = n;
+  public setSpriteCell(cellNumber: number): void {
+    this.currentCell = cellNumber;
   }
 
   public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation | null {
@@ -75,10 +75,8 @@ export class SpriteModel {
   }
 
   public bind(): void {
-    const matrix = Matrix4.fromTransformation(this.position, this.rotation);
-    
-    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.getBuffer(), 2, 0, this.currentGrid * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", matrix.glFormat());
+    this.sprite.bindCoordBuffer(this.currentCell);
+    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
   }
 
   public destroy(): void {
@@ -121,7 +119,7 @@ export class SpriteAnimation {
     const percentThrough = this.timePassed / this.info.duration;
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
 
-    this.model.setSpriteGrid(this.info.frames[frameIndex]);
+    this.model.setSpriteCell(this.info.frames[frameIndex]);
   }
 
   public stop() {

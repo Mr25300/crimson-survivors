@@ -1,6 +1,6 @@
-import {Entity} from '../entity.js';
-import {Tool} from './tool.js';
-import {Vector2} from '../../util/vector2.js';
+import { Entity } from '../entity.js';
+import { Tool } from './tool.js';
+import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 
@@ -13,12 +13,12 @@ export class Player extends Entity {
     super(
       Game.instance.spriteManager.create("player"),
       new Polygon([
-        new Vector2(-0.3, -0.4),
-        new Vector2(-0.3, 0),
-        new Vector2(-0.1, 0.3),
-        new Vector2(0.1, 0.3),
-        new Vector2(0.3, 0),
-        new Vector2(0.3, -0.4)
+        new Vector2(-0.2, -0.3),
+        new Vector2(-0.2, 0),
+        new Vector2(-0.05, 0.15),
+        new Vector2(0.05, 0.15),
+        new Vector2(0.2, 0),
+        new Vector2(0.2, -0.3)
       ]),
       3,
       new Vector2(),
