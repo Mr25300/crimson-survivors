@@ -79,7 +79,7 @@ export abstract class CollisionObject {
     let normal: Vector2 = new Vector2();
 
     // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
-    for (const axis of [...normals2, ...normals1]) {
+    for (const axis of [...normals1, ...normals2]) {
       const [min1, max1] = this.getProjectedRange(axis);
       const [min2, max2] = object.getProjectedRange(axis);
 
@@ -175,7 +175,16 @@ export class Circle extends CollisionObject {
   }
 
   public getVerticesForRendering(): Vector2[] {
-    throw new Error('Method not implemented.');
+    const resolution: number = 20;
+    const vertices: Vector2[] = new Array(resolution);
+
+    for (let i = 0; i < resolution; i++) {
+      const angle = Math.PI * 2 * i / resolution;
+      const circlePoint = Matrix4.fromRotation(angle).apply(new Vector2(0, 1));
+      const vertex = circlePoint.add(this.offset);
+    }
+
+    return vertices;
   }
 }
 

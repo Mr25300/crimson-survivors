@@ -67,7 +67,7 @@ export abstract class Entity extends GameObject {
 
     const structure = Game.instance.struct;
     // for (const structure of Game.instance.chunkManager.getObjectsInPolygon(this.shape, "Structure") as Structure[]) {
-      const [collides, normal, overlap] = this.shape.intersects(structure.shape);
+      const [collides, normal, overlap] = this.hitbox.intersects(structure.hitbox);
 
       if (collides) this.position = this.position.add(normal.multiply(overlap));
     // }

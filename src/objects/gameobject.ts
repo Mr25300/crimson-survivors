@@ -1,6 +1,6 @@
 import { Game } from '../core/game.js';
 import { ChunkManager } from '../physics/chunkmanager.js';
-import { Polygon } from '../physics/collisions.js';
+import { CollisionObject, Polygon } from '../physics/collisions.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {Vector2} from '../util/vector2.js';
 
@@ -10,7 +10,7 @@ export abstract class GameObject {
   constructor(
     public readonly type: string,
     public readonly sprite: SpriteModel,
-    public readonly shape: Polygon,
+    public readonly hitbox: CollisionObject,
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
@@ -21,7 +21,7 @@ export abstract class GameObject {
     this.position = position;
     this.rotation = rotation;
 
-    this.shape.setTransformation(position, rotation);
+    this.hitbox.setTransformation(position, rotation);
     this.sprite.setTransformation(position, rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);

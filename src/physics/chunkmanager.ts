@@ -1,6 +1,6 @@
 import { GameObject } from "../objects/gameobject.js";
 import { Vector2 } from "../util/vector2.js";
-import { Polygon, Rectangle } from "./collisions.js";
+import { CollisionObject, Polygon, Rectangle } from "./collisions.js";
 
 export class ChunkManager {
   private CHUNK_SIZE = 1;
@@ -28,15 +28,12 @@ export class ChunkManager {
     return new Vector2(decodedX, decodedY);
   }
 
-  public chunkContainsPolygon(chunk: Vector2, polygon: Polygon): boolean {
+  public chunkContainsObject(chunk: Vector2, object: CollisionObject): boolean {
     const chunkPos = chunk.multiply(this.CHUNK_SIZE);
+    const chunkObject = Polygon.fromRect(chunkPos, 0, this.CHUNK_SIZE, this.CHUNK_SIZE);
+    const [collided] = object.intersects(chunkObject);
 
-    const chunkRect = new Rectangle(
-      chunkPos.subtract(new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2)),
-      chunkPos.add(new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2))
-    );
-
-    return chunkRect.intersectsPolygon(polygon);
+    return collided;
   }
 
   public addToChunk(chunkKey: number, object: GameObject): void {
@@ -59,10 +56,10 @@ export class ChunkManager {
     if (objects.size === 0) this.chunks.delete(chunkKey);
   }
 
-  public getChunksOfPolygon(polygon: Polygon): Vector2[] {
+  public getChunksOfObject(object: CollisionObject): Vector2[] {
     const chunks: Vector2[] = [];
 
-    const bounds: Rectangle = polygon.getBounds();
+    const bounds: Rectangle = object.getBounds();
     const minChunk = bounds.min.divide(this.CHUNK_SIZE).round();
     const maxChunk = bounds.max.divide(this.CHUNK_SIZE).round();
 
@@ -70,7 +67,7 @@ export class ChunkManager {
       for (let y = minChunk.y; y <= maxChunk.y; y++) {
         const chunk = new Vector2(x, y);
 
-        if (this.chunkContainsPolygon(chunk, polygon)) chunks.push(chunk);
+        if (this.chunkContainsObject(chunk, object)) chunks.push(chunk);
       }
     }
 
@@ -80,7 +77,7 @@ export class ChunkManager {
   public getObjectsInPolygon(polygon: Polygon, objectType: string): GameObject[] {
     const objects: GameObject[] = [];
 
-    for (const chunk of this.getChunksOfPolygon(polygon)) {
+    for (const chunk of this.getChunksOfObject(polygon)) {
       const chunkKey = this.getChunkKey(chunk);
 
       const chunkObjects = this.chunks.get(chunkKey);
@@ -98,18 +95,16 @@ export class ChunkManager {
   }
 
   public updateObjectChunks(object: GameObject): void {
-    const polygon: Polygon = object.shape;
-
     for (const chunkKey of object.chunks) {
       const chunk = this.getChunkFromKey(chunkKey);
 
-      if (!this.chunkContainsPolygon(chunk, polygon)) {
+      if (!this.chunkContainsObject(chunk, object.hitbox)) {
         object.removeChunk(chunkKey);
         this.removeFromChunk(chunkKey, object);
       }
     }
 
-    for (const chunk of this.getChunksOfPolygon(polygon)) {
+    for (const chunk of this.getChunksOfObject(object.hitbox)) {
       const chunkKey = this.getChunkKey(chunk);
 
       if (object.isInChunk(chunkKey)) continue;
