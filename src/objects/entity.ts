@@ -65,12 +65,14 @@ export abstract class Entity extends GameObject {
 
     this.updateCoordinates(this.position, this.rotation);
 
-    const structure = Game.instance.struct;
-    // for (const structure of Game.instance.chunkManager.getObjectsInPolygon(this.shape, "Structure") as Structure[]) {
+    const list = Game.instance.chunkManager.gameObjectQuery(this, "Structure");
+    console.log(list.length);
+
+    for (const structure of list) {
       const [collides, normal, overlap] = this.hitbox.intersects(structure.hitbox);
 
       if (collides) this.position = this.position.add(normal.multiply(overlap));
-    // }
+    }
 
     this.updateCoordinates(this.position, this.rotation);
   }

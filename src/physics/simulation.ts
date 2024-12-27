@@ -47,7 +47,7 @@ export class Simulation {
       if (Math.random() < (this.spawnProbability % 1)) spawnCount++;
 
       for (let i: number = 0; i < spawnCount; i++) {
-        this.spawnVampire();
+        // this.spawnVampire();
       }
     }
 

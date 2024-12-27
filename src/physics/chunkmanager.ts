@@ -1,4 +1,5 @@
 import { GameObject } from "../objects/gameobject.js";
+import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
 import { CollisionObject, Polygon, Rectangle } from "./collisions.js";
 
@@ -6,6 +7,7 @@ export class ChunkManager {
   private CHUNK_SIZE = 1;
 
   private chunks: Map<number, Map<string, Set<GameObject>>> = new Map();
+  private chunkCollisionObjects: Map<number, CollisionObject> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
     // modified cantor function to include negatives
@@ -19,8 +21,8 @@ export class ChunkManager {
     const w = Math.floor((Math.sqrt(8 * key + 1) - 1) / 2);
     const t = w * (w + 1) / 2;
 
-    const y = key - t;
-    const x = w - y;
+    const x = key - t;
+    const y = w - x;
 
     const decodedX = x % 2 === 0 ? x / 2 : -(x + 1) / 2;
     const decodedY = y % 2 === 0 ? y / 2 : -(y + 1) / 2;
@@ -60,11 +62,11 @@ export class ChunkManager {
     const chunks: Vector2[] = [];
 
     const bounds: Rectangle = object.getBounds();
-    const minChunk = bounds.min.divide(this.CHUNK_SIZE).round();
-    const maxChunk = bounds.max.divide(this.CHUNK_SIZE).round();
+    const minChunk = bounds.min.divide(this.CHUNK_SIZE);
+    const maxChunk = bounds.max.divide(this.CHUNK_SIZE);
 
-    for (let x = minChunk.x; x <= maxChunk.x; x++) {
-      for (let y = minChunk.y; y <= maxChunk.y; y++) {
+    for (let x = Util.roundDown(minChunk.x); x <= Util.roundUp(maxChunk.x); x++) {
+      for (let y = Util.roundDown(minChunk.y); y <= Util.roundUp(maxChunk.y); y++) {
         const chunk = new Vector2(x, y);
 
         if (this.chunkContainsObject(chunk, object)) chunks.push(chunk);
@@ -74,24 +76,42 @@ export class ChunkManager {
     return chunks;
   }
 
-  public getObjectsInPolygon(polygon: Polygon, objectType: string): GameObject[] {
-    const objects: GameObject[] = [];
+  public gameObjectQuery(gameObject: GameObject, searchType: string) {
+    const objects: Set<GameObject> = new Set();
 
-    for (const chunk of this.getChunksOfObject(polygon)) {
+    for (const chunkKey of gameObject.chunks) {
+      const chunkObjects = this.chunks.get(chunkKey);
+      if (!chunkObjects) continue;
+
+      const typeObjects = chunkObjects.get(searchType);
+      if (!typeObjects) continue;
+
+      for (const object of typeObjects) {
+        objects.add(object);
+      }
+    }
+
+    return Array.from(objects);
+  }
+
+  public collisionObjectQuery(collisionObject: CollisionObject, searchType: string): GameObject[] {
+    const objects: Set<GameObject> = new Set();
+
+    for (const chunk of this.getChunksOfObject(collisionObject)) {
       const chunkKey = this.getChunkKey(chunk);
 
       const chunkObjects = this.chunks.get(chunkKey);
       if (!chunkObjects) continue;
 
-      const typeObjects = chunkObjects.get(objectType);
+      const typeObjects = chunkObjects.get(searchType);
       if (!typeObjects) continue;
 
       for (const object of typeObjects) {
-        objects.push(object);
+        objects.add(object);
       }
     }
 
-    return objects;
+    return Array.from(objects);
   }
 
   public updateObjectChunks(object: GameObject): void {

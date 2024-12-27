@@ -14,6 +14,7 @@ import { ChunkManager } from '../physics/chunkmanager.js';
 import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from '../objects/team.js';
 import { SpriteManager } from './spritemanager.js';
+import { Util } from '../util/util.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -54,11 +55,7 @@ export class Game extends Gameloop {
 
     await this._canvas.init();
 
-    const player: Player = new Player();
-    this.player = player;
-    this._camera.setSubject(player);
-
-    this.struct = new Structure(
+    new Structure(
       this._spriteManager.create("floor"),
       new Polygon([
         new Vector2(-0.5, -0.5),
@@ -70,6 +67,29 @@ export class Game extends Gameloop {
       new Vector2(2, 0),
       0
     );
+
+    new Structure(
+      this._spriteManager.create("floor"),
+      new Polygon([
+        new Vector2(-0.5, -0.5),
+        new Vector2(-0.5, 0.5),
+        new Vector2(0.5, 0.5),
+        new Vector2(0.5, -0.5)
+      ]),
+      true,
+      new Vector2(1, 1),
+      0
+    );
+
+    const player: Player = new Player();
+    this.player = player;
+    this._camera.setSubject(this.player);
+
+    const cant1 = this._chunkManager.getChunkKey(new Vector2(1, 0));
+    const cant2 = this._chunkManager.getChunkKey(new Vector2(0, 1))
+
+    console.log(cant1, this._chunkManager.getChunkFromKey(cant1));
+    console.log(cant2, this._chunkManager.getChunkFromKey(cant2));
 
     this.start();
   }

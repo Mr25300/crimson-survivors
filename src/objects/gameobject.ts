@@ -7,6 +7,8 @@ import {Vector2} from '../util/vector2.js';
 export abstract class GameObject {
   public readonly chunks: Set<number> = new Set();
 
+  public prevBounds: CollisionObject;
+
   constructor(
     public readonly type: string,
     public readonly sprite: SpriteModel,
@@ -14,6 +16,7 @@ export abstract class GameObject {
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
+    this.hitbox.show();
     this.updateCoordinates(position, rotation); // fix order of priority here
   }
 
@@ -25,6 +28,11 @@ export abstract class GameObject {
     this.sprite.setTransformation(position, rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);
+
+    const bounds = this.hitbox.getBounds();
+
+    if (this.prevBounds) this.prevBounds.destroy();
+    this.prevBounds = Polygon.fromRect(bounds.min.add(bounds.max).divide(2), 0, bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y);
   }
 
   public isInChunk(chunkKey: number): boolean {

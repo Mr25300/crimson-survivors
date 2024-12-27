@@ -1,3 +1,5 @@
+import { Util } from "./util.js";
+
 /**
  * Represents a vector in 2d space.
  */
@@ -71,7 +73,7 @@ export class Vector2 {
     return new Vector2(-this._y, this._x);
   }
 
-  public round(): Vector2 {
-    return new Vector2(Math.round(this._x), Math.round(this._y));
+  public lerp(goal: Vector2, t: number) {
+    return new Vector2(Util.lerp(this._x, goal._x, t), Util.lerp(this._y, goal._y, t));
   }
 }

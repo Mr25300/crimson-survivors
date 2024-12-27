@@ -132,6 +132,12 @@ export abstract class CollisionObject {
     Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
     Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
   }
+
+  public destroy() {
+    this.hide();
+
+    Game.instance.canvas.deleteBuffer(this.vertexBuffer);
+  }
 }
 
 export class Circle extends CollisionObject {
@@ -197,8 +203,6 @@ export class Polygon extends CollisionObject {
     rotation?: number
   ) {
     super("Polygon", position, rotation);
-
-    this.show();
   }
 
   public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
