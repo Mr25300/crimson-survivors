@@ -4,7 +4,7 @@ import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 import { GameObject } from "./gameobject.js";
 
-export class Structure extends GameObject {
+export abstract class Structure extends GameObject {
   constructor(
     sprite: SpriteModel,
     hitbox: CollisionObject,

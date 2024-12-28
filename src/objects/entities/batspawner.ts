@@ -1,12 +1,12 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import { Vector2 } from '../../util/vector2.js';
-import { Cooldown } from '../cooldown.js';
+import { Timer } from '../timer.js';
 import { Entity } from '../entity.js';
 import { Bat } from './bat.js';
 
 export class Batspawner extends Entity {
-  private attackCooldown: Cooldown = new Cooldown(1);
+  private attackCooldown: Timer = new Timer(1);
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("batspawner"),

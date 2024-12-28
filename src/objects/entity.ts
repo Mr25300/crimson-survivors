@@ -63,7 +63,7 @@ export abstract class Entity extends GameObject {
     // use existing chunk list of gameobject
     // getObjectsInPolygon is stupid, make it more general name
 
-    this.updateCoordinates(this.position, this.rotation);
+    this.updateObject();
 
     const list = Game.instance.chunkManager.gameObjectQuery(this, "Structure");
     console.log(list.length);
@@ -74,7 +74,7 @@ export abstract class Entity extends GameObject {
       if (collides) this.position = this.position.add(normal.multiply(overlap));
     }
 
-    this.updateCoordinates(this.position, this.rotation);
+    this.updateObject();
   }
 
   public get faceDirection(): Vector2 {

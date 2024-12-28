@@ -1,9 +1,9 @@
 import { Game } from '../core/game.js';
-import { Batspawner } from '../objects/enemy/batspawner.js';
-import { Grunt } from '../objects/enemy/grunt.js';
-import { Kronku } from '../objects/enemy/kronku.js';
-import { Necro } from '../objects/enemy/necro.js';
-import { Patrol } from '../objects/enemy/patrol.js';
+import { Batspawner } from '../objects/entities/batspawner.js';
+import { Grunt } from '../objects/entities/grunt.js';
+import { Kronku } from '../objects/entities/kronku.js';
+import { Necro } from '../objects/entities/necro.js';
+import { Patrol } from '../objects/entities/patrol.js';
 import { Vector2 } from '../util/vector2.js';
 import { Rectangle } from './collisions.js';
 
@@ -51,12 +51,16 @@ export class Simulation {
       }
     }
 
-    for (const element of Game.instance.entities){
-      element.handleBehavior(deltaTime);
+    for (const projectile of Game.instance.projectiles) {
+      projectile.update(deltaTime);
     }
 
-    for (const element of Game.instance.entities){
-      element.update(deltaTime);
+    for (const entity of Game.instance.entities) {
+      entity.handleBehavior(deltaTime);
+    }
+
+    for (const entity of Game.instance.entities) {
+      entity.update(deltaTime);
     }
 
     // do collision for user

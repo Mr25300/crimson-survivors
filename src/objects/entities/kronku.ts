@@ -1,11 +1,11 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Cooldown } from '../cooldown.js';
+import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
 
 export class Kronku extends Entity {
-  private attackCooldown: Cooldown;
+  private attackCooldown: Timer;
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("kronku"),
@@ -21,7 +21,7 @@ export class Kronku extends Entity {
       spawnPosition,
       5
     );
-    this.attackCooldown = new Cooldown(1);
+    this.attackCooldown = new Timer(1);
   }
 
   public pathFind(playerLocation: Vector2): void {

@@ -4,7 +4,7 @@ import { Rectangle } from "../physics/collisions.js";
 import {Vector2} from "../util/vector2.js";
 
 export class Camera {
-  private lerpAlpha: number = 0.9;
+  private lerpAlpha: number = 10;
   private _position: Vector2 = new Vector2();
   private goalPosition: Vector2 = new Vector2();
 
@@ -19,7 +19,7 @@ export class Camera {
   }
 
   public update(deltaTime: number) {
-    const alpha = 1 - Math.pow(1 - this.lerpAlpha, deltaTime);
+    const alpha = 1 - Math.exp(-this.lerpAlpha * deltaTime);
 
     if (this.subject) {
       this.goalPosition = this.subject.position;

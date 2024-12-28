@@ -34,6 +34,7 @@ export abstract class CollisionObject {
   protected verticesOutdated: boolean = true;
   private _transformationMatrix: Matrix4;
 
+  private showingOnce: boolean = false;
   private vertexBuffer: WebGLBuffer;
   private _vertexCount: number;
 
@@ -124,6 +125,11 @@ export abstract class CollisionObject {
     Game.instance.collisionObjects.add(this);
   }
 
+  public showOnce(): void {
+    this.showingOnce = true;
+    this.show();
+  }
+
   public hide(): void {
     Game.instance.collisionObjects.delete(this);
   }
@@ -131,6 +137,8 @@ export abstract class CollisionObject {
   public bind(): void {
     Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
     Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+
+    if (this.showingOnce) this.destroy();
   }
 
   public destroy() {

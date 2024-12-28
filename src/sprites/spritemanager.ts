@@ -1,25 +1,28 @@
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { SpriteSheet } from "../sprites/spritesheet.js";
 
-export class SpriteManager {
-  private SPRITE_LIST: string[] = [
-    "player",
-    "grunt",
-    "kronku",
-    "necro",
-    "patrol",
-    "batspawner",
-    "wall",
-    "floor"
-  ] as const;
+const SPRITE_LIST: string[] = [
+  "player",
+  "bullet",
+  "grunt",
+  "kronku",
+  "necro",
+  "patrol",
+  "batspawner",
+  "wall",
+  "floor"
+] as const; // fix this type checking
 
-  private sprites: Record<typeof this.SPRITE_LIST[number], SpriteSheet>;
+export class SpriteManager {
+  private sprites: Record<typeof SPRITE_LIST[number], SpriteSheet>;
 
   constructor() {
     const player: SpriteSheet = new SpriteSheet("res/assets/Player.png", 1, 1, 11, 3, 4, 2);
     player.createAnimation("idle", [0], 1, true, 0);
     player.createAnimation("walking", [6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 4, 5], 1, true, 1);
     player.createAnimation("shoot", [0, 1, 2, 1], 0.3, false, 2);
+
+    const bullet: SpriteSheet = new SpriteSheet("res/assets/Bullet.png", 1, 1, 1, 1, 1, 3);
 
     const grunt: SpriteSheet = new SpriteSheet("res/assets/Grunt.png", 1, 1, 11, 5, 6, 1);
     grunt.createAnimation("idle", [0], 1, true, 0);
@@ -50,6 +53,7 @@ export class SpriteManager {
 
     this.sprites = {
       player: player,
+      bullet: bullet,
       grunt: grunt,
       kronku: kronku,
       necro: necro,
@@ -60,8 +64,8 @@ export class SpriteManager {
     };
   }
 
-  public create(name: typeof this.SPRITE_LIST[number]): SpriteModel {
-    if (this.SPRITE_LIST.indexOf(name) < 0) console.error(`Sprite "${name}" does not exist.`);
+  public create(name: typeof SPRITE_LIST[number]): SpriteModel {
+    if (SPRITE_LIST.indexOf(name) < 0) console.error(`Sprite "${name}" does not exist.`);
 
     return this.sprites[name].createModel();
   }

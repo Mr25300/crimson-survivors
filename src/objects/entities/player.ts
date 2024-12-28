@@ -1,5 +1,5 @@
 import { Entity } from '../entity.js';
-import { Tool } from './tool.js';
+import { Tool } from '../tool.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
@@ -37,16 +37,6 @@ export class Player extends Entity {
 
   public holdTool(index: number): void {
     this.tool = this.tools[index];
-  }
-
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
-    for (let i: number = 0; i < this.tools.length; i++) {
-      this.tools[i].update(deltaTime);
-    }
-
-    this.updateCoordinates(this.position, this.rotation);
   }
 
   public handleBehavior(): void {

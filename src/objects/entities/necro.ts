@@ -1,7 +1,7 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Cooldown } from '../cooldown.js';
+import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
 import { Batspawner } from './batspawner.js';
 import { Grunt } from './grunt.js';
@@ -9,7 +9,7 @@ import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
 
 export class Necro extends Entity {
-  private spawningCooldown: Cooldown;
+  private spawningCooldown: Timer;
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("necro"),
@@ -25,7 +25,7 @@ export class Necro extends Entity {
       spawnPosition,
       60
     );
-    this.spawningCooldown = new Cooldown(3);
+    this.spawningCooldown = new Timer(3);
   }
 
   private spawnRandom() {

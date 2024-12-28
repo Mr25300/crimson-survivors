@@ -4,7 +4,7 @@ import { SpriteModel } from '../sprites/spritemodel.js';
 import { Camera } from '../rendering/camera.js';
 import { Vector2 } from '../util/vector2.js';
 import { SpriteSheet } from '../sprites/spritesheet.js';
-import { Player } from '../objects/player/player.js';
+import { Player } from '../objects/entities/player.js';
 import { Controller } from '../objects/player/controller.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
@@ -13,16 +13,20 @@ import { GameObject } from '../objects/gameobject.js';
 import { ChunkManager } from '../physics/chunkmanager.js';
 import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from '../objects/team.js';
-import { SpriteManager } from './spritemanager.js';
+import { SpriteManager } from '../sprites/spritemanager.js';
 import { Util } from '../util/util.js';
+import { Projectile } from '../objects/projectile.js';
+import { Timer } from '../objects/timer.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
 
   public readonly collisionObjects: Set<CollisionObject> = new Set();
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
+  public readonly timers: Set<Timer> = new Set();
   public readonly gameObjects: Set<GameObject> = new Set();
   public readonly entities: Set<Entity> = new Set();
+  public readonly projectiles: Set<Projectile> = new Set();
   public readonly teams: Map<string, Team> = new Map();
   public readonly structures: Set<Structure> = new Set();
 
@@ -55,46 +59,44 @@ export class Game extends Gameloop {
 
     await this._canvas.init();
 
-    new Structure(
-      this._spriteManager.create("floor"),
-      new Polygon([
-        new Vector2(-0.5, -0.5),
-        new Vector2(-0.5, 0.5),
-        new Vector2(0.5, 0.5),
-        new Vector2(0.5, -0.5)
-      ]),
-      true,
-      new Vector2(2, 0),
-      0
-    );
+    // new Structure(
+    //   this._spriteManager.create("floor"),
+    //   new Polygon([
+    //     new Vector2(-0.5, -0.5),
+    //     new Vector2(-0.5, 0.5),
+    //     new Vector2(0.5, 0.5),
+    //     new Vector2(0.5, -0.5)
+    //   ]),
+    //   true,
+    //   new Vector2(2, 0),
+    //   0
+    // );
 
-    new Structure(
-      this._spriteManager.create("floor"),
-      new Polygon([
-        new Vector2(-0.5, -0.5),
-        new Vector2(-0.5, 0.5),
-        new Vector2(0.5, 0.5),
-        new Vector2(0.5, -0.5)
-      ]),
-      true,
-      new Vector2(1, 1),
-      0
-    );
+    // new Structure(
+    //   this._spriteManager.create("floor"),
+    //   new Polygon([
+    //     new Vector2(-0.5, -0.5),
+    //     new Vector2(-0.5, 0.5),
+    //     new Vector2(0.5, 0.5),
+    //     new Vector2(0.5, -0.5)
+    //   ]),
+    //   true,
+    //   new Vector2(1, 1),
+    //   0
+    // );
 
     const player: Player = new Player();
     this.player = player;
     this._camera.setSubject(this.player);
 
-    const cant1 = this._chunkManager.getChunkKey(new Vector2(1, 0));
-    const cant2 = this._chunkManager.getChunkKey(new Vector2(0, 1))
-
-    console.log(cant1, this._chunkManager.getChunkFromKey(cant1));
-    console.log(cant2, this._chunkManager.getChunkFromKey(cant2));
-
     this.start();
   }
 
   protected update(deltaTime: number): void {
+    for (const timer of this.timers) {
+      timer.update(deltaTime);
+    }
+
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
     this._canvas.update(deltaTime);
