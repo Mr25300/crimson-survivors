@@ -1,4 +1,5 @@
 import { Game } from "../core/game.js";
+import { Color } from "../util/color.js";
 import { Matrix4 } from "../util/matrix4.js";
 import {Util} from "../util/util.js";
 
@@ -102,7 +103,7 @@ export class ShaderProgram {
     return location;
   }
 
-  public setUniformMatrix4(name: string, matrix: Matrix4): void { // make it take in matrix4 class
+  public setUniformMatrix(name: string, matrix: Matrix4): void { // make it take in matrix4 class
     this.gl.uniformMatrix4fv(this.getUniformLocation(name), false, matrix.glFormat());
   }
 
@@ -112,6 +113,10 @@ export class ShaderProgram {
 
   public setUniformBool(name: string, bool: boolean) {
     this.gl.uniform1i(this.getUniformLocation(name), bool ? 1 : 0);
+  }
+
+  public setUniformColor(name: string, color: Color) {
+    this.gl.uniform3fv(this.getUniformLocation(name), color.toArray());
   }
 
   public use(): void {

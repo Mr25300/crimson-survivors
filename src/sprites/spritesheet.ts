@@ -54,7 +54,7 @@ export class SpriteSheet {
 
   public bind(): void {
     Game.instance.canvas.bindTexture(this.texture);
-    Game.instance.canvas.shader.setUniformMatrix4("spriteScale", Matrix4.fromScale(this.width, this.height));
+    Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
     Game.instance.canvas.shader.setUniformFloat("zOrder", this.zOrder);
   }
 

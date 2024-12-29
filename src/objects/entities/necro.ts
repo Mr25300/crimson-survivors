@@ -9,7 +9,8 @@ import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
 
 export class Necro extends Entity {
-  private spawningCooldown: Timer;
+  private spawningCooldown: Timer = new Timer(3);
+
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("necro"),
@@ -25,7 +26,6 @@ export class Necro extends Entity {
       spawnPosition,
       60
     );
-    this.spawningCooldown = new Timer(3);
   }
 
   private spawnRandom() {
@@ -59,9 +59,9 @@ export class Necro extends Entity {
 
   public handleBehavior(deltaTime: number): void {
     this.pathFind(Game.instance.player.position);
-    this.spawningCooldown.update(deltaTime);
+    
     if (!this.spawningCooldown.active) {
-      this.spawningCooldown.activate()
+      this.spawningCooldown.start();
       this.spawnRandom();
       this.sprite.playAnimation("spawning");
     }

@@ -5,7 +5,7 @@ import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
 
 export class Grunt extends Entity {
-  private attackCooldown: Timer;
+  private attackCooldown: Timer = new Timer(1);
 
   constructor(spawnPosition: Vector2) {
     super(
@@ -22,7 +22,6 @@ export class Grunt extends Entity {
       spawnPosition,
       50
     )
-    this.attackCooldown = new Timer(1);
   }
   public pathFind(playerLocation: Vector2): void {
     // if in range

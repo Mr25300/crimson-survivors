@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
@@ -6,7 +5,8 @@ import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
 
 export class Patrol extends Entity {
-  private attackCooldown: Timer;
+  private attackCooldown: Timer = new Timer(2);
+
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("patrol"),
@@ -22,7 +22,6 @@ export class Patrol extends Entity {
       spawnPosition,
       20
     );
-    this.attackCooldown = new Timer(2);
   }
 
   public pathFind(playerLocation: Vector2): void {
@@ -40,9 +39,9 @@ export class Patrol extends Entity {
   public handleBehavior(deltaTime: number) {
     this.attackCooldown.update(deltaTime);
     this.pathFind(Game.instance.player.position);
+
     if (!this.attackCooldown.active) {
-      this.attack();
-      this.attackCooldown.activate();
+      this.attackCooldown.start();
     }
   }
 

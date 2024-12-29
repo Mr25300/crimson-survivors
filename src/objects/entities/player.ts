@@ -3,6 +3,7 @@ import { Tool } from '../tool.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
+import { ANRM } from '../tools/ANRM.js';
 
 export class Player extends Entity {
   private tool: Tool;
@@ -25,8 +26,10 @@ export class Player extends Entity {
       100
     );
 
-    this.giveTool(new Tool("Gun", 1));
+    this.giveTool(new ANRM());
     this.holdTool(0);
+
+    this.setTeam("Human");
   }
 
   public giveTool(tool: Tool): void {

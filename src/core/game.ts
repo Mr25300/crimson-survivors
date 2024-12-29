@@ -5,7 +5,7 @@ import { Camera } from '../rendering/camera.js';
 import { Vector2 } from '../util/vector2.js';
 import { SpriteSheet } from '../sprites/spritesheet.js';
 import { Player } from '../objects/entities/player.js';
-import { Controller } from '../objects/player/controller.js';
+import { Controller } from './controller.js';
 import { Entity } from '../objects/entity.js';
 import { Structure } from '../objects/structure.js';
 import { Simulation } from '../physics/simulation.js';
@@ -17,17 +17,18 @@ import { SpriteManager } from '../sprites/spritemanager.js';
 import { Util } from '../util/util.js';
 import { Projectile } from '../objects/projectile.js';
 import { Timer } from '../objects/timer.js';
+import { Wall } from '../objects/structures/wall.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
 
-  public readonly collisionObjects: Set<CollisionObject> = new Set();
-  public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
   public readonly timers: Set<Timer> = new Set();
+  public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
+  public readonly collisionObjects: Set<CollisionObject> = new Set();
   public readonly gameObjects: Set<GameObject> = new Set();
   public readonly entities: Set<Entity> = new Set();
-  public readonly projectiles: Set<Projectile> = new Set();
   public readonly teams: Map<string, Team> = new Map();
+  public readonly projectiles: Set<Projectile> = new Set();
   public readonly structures: Set<Structure> = new Set();
 
   private _canvas: Canvas;
@@ -37,7 +38,6 @@ export class Game extends Gameloop {
   private _chunkManager: ChunkManager;
   private _simulation: Simulation;
   public player: Player; // REMOVE
-  public struct: Structure;
 
   private constructor() {
     super();
@@ -59,31 +59,11 @@ export class Game extends Gameloop {
 
     await this._canvas.init();
 
-    // new Structure(
-    //   this._spriteManager.create("floor"),
-    //   new Polygon([
-    //     new Vector2(-0.5, -0.5),
-    //     new Vector2(-0.5, 0.5),
-    //     new Vector2(0.5, 0.5),
-    //     new Vector2(0.5, -0.5)
-    //   ]),
-    //   true,
-    //   new Vector2(2, 0),
-    //   0
-    // );
+    new Team("Human");
+    new Team("Vampire");
 
-    // new Structure(
-    //   this._spriteManager.create("floor"),
-    //   new Polygon([
-    //     new Vector2(-0.5, -0.5),
-    //     new Vector2(-0.5, 0.5),
-    //     new Vector2(0.5, 0.5),
-    //     new Vector2(0.5, -0.5)
-    //   ]),
-    //   true,
-    //   new Vector2(1, 1),
-    //   0
-    // );
+    new Wall(new Vector2(2, 0));
+    new Wall(new Vector2(1, 1));
 
     const player: Player = new Player();
     this.player = player;

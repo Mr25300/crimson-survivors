@@ -1,5 +1,6 @@
 import { Game } from "../core/game.js";
 import { ShaderProgram } from "../rendering/shaderprogram.js";
+import { Color } from "../util/color.js";
 import { Matrix4 } from "../util/matrix4.js";
 import { Vector2 } from "../util/vector2.js";
 import { AnimationInfo, SpriteSheet } from "./spritesheet.js";
@@ -10,6 +11,9 @@ export class SpriteModel {
 
   private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
+
+  private highlightColor: Color = new Color(1, 1, 1);
+  private highlightOpacity: number = 0;
 
   constructor(private sprite: SpriteSheet) {
     const objects = Game.instance.spriteModels.get(sprite) || new Set();
@@ -65,6 +69,14 @@ export class SpriteModel {
     }
   }
 
+  public setHighlight(color: Color) {
+    this.highlightColor = color;
+  }
+
+  public setHighlightOpacity(opacity: number) {
+    this.highlightOpacity = opacity;
+  }
+
   public setTransformation(position: Vector2, rotation: number): void {
     this.position = position;
     this.rotation = rotation;
@@ -76,7 +88,9 @@ export class SpriteModel {
 
   public bind(): void {
     this.sprite.bindCoordBuffer(this.currentCell);
-    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+    Game.instance.canvas.shader.setUniformColor("tintColor", this.highlightColor);
+    Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
   }
 
   public destroy(): void {

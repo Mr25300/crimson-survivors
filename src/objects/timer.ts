@@ -32,6 +32,10 @@ export class Timer { // alternatively called Timer
   public get active(): boolean {
     return this._active;
   }
+
+  public get progress(): number {
+    return this.timePassed / this.duration;
+  }
 }
 
 // const attackCd = new Cooldown(2);

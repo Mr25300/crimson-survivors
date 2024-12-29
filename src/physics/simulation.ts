@@ -14,7 +14,15 @@ export class Simulation {
   );
 
   private spawnProbability: number = 0;
-  private vampireTypes: string[] = ['grunt','necro', 'patrol', 'kronku', 'batspawner'];
+
+  private spawnRates: Record<string, number> = {
+    grunt: 0.3,
+    necro: 0.1,
+    patrol: 0.2,
+    kronku: 0.2,
+    batspawner: 0.2
+  };
+
   private spawnTimer: number = 0;
 
   private spawnVampire(): void {
@@ -23,16 +31,26 @@ export class Simulation {
       this.bounds.min.y + (this.bounds.max.y - this.bounds.min.y) * Math.random()
     );
 
-    const randomIndex: number = Math.floor(
-      Math.random() * this.vampireTypes.length
-    );
-    const randomVampire: string = this.vampireTypes[randomIndex];
+    const randomPercent: number = Math.random();
+    let rateSum: number = 0;
+    let chosen: string = "";
 
-    if (randomVampire === "grunt") new Grunt(randomPosition);
-    else if (randomVampire === 'necro') new Necro(randomPosition);
-    else if (randomVampire === 'patrol') new Patrol(randomPosition);
-    else if (randomVampire === 'kronku') new Kronku(randomPosition);
-    else if (randomVampire === 'batspawner') new Batspawner(randomPosition);
+    for (const name in this.spawnRates) {
+      const rate = this.spawnRates[name];
+      rateSum += rate;
+
+      if (randomPercent < rateSum) {
+        chosen = name;
+
+        break;
+      }
+    }
+
+    if (chosen === "grunt") new Grunt(randomPosition);
+    else if (chosen === "necro") new Necro(randomPosition);
+    else if (chosen === "patrol") new Patrol(randomPosition);
+    else if (chosen === "kronku") new Kronku(randomPosition);
+    else if (chosen === "batspawner") new Batspawner(randomPosition);
   }
 
   public update(deltaTime: number): void {
@@ -47,7 +65,7 @@ export class Simulation {
       if (Math.random() < (this.spawnProbability % 1)) spawnCount++;
 
       for (let i: number = 0; i < spawnCount; i++) {
-        // this.spawnVampire();
+        this.spawnVampire();
       }
     }
 

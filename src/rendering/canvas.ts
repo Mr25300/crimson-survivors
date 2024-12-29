@@ -49,10 +49,15 @@ export class Canvas {
     this.shader.createAttrib("textureCoord");
 
     this.shader.createUniform("screenProjection");
+
     this.shader.createUniform("spriteScale");
     this.shader.createUniform("modelTransform");
     this.shader.createUniform("zOrder");
+
     this.shader.createUniform("debugMode");
+
+    this.shader.createUniform("tintColor");
+    this.shader.createUniform("tintOpacity");
   }
 
   public createBuffer(data: Float32Array): WebGLBuffer {
@@ -175,7 +180,7 @@ export class Canvas {
 
     this.shader.use();
     this.shader.setAttribBuffer("vertexPos", this.spriteVertexBuffer, 2, 0, 0);
-    this.shader.setUniformMatrix4("screenProjection", projectionMatrix);
+    this.shader.setUniformMatrix("screenProjection", projectionMatrix);
     this.shader.setUniformBool("debugMode", false);
 
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
@@ -188,9 +193,10 @@ export class Canvas {
       }
     });
 
-    this.shader.setUniformMatrix4("spriteScale", Matrix4.identity());
+    this.shader.setUniformMatrix("spriteScale", Matrix4.identity());
     this.shader.setUniformFloat("zOrder", 20);
     this.shader.setUniformBool("debugMode", true);
+    this.shader.setUniformFloat("tintOpacity", 0);
 
     Game.instance.collisionObjects.forEach((object: CollisionObject) => {
       object.bind();

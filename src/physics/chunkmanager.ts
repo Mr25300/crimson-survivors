@@ -32,7 +32,7 @@ export class ChunkManager {
 
   public chunkContainsObject(chunk: Vector2, object: CollisionObject): boolean {
     const chunkPos = chunk.multiply(this.CHUNK_SIZE);
-    const chunkObject = Polygon.fromRect(chunkPos, 0, this.CHUNK_SIZE, this.CHUNK_SIZE);
+    const chunkObject = Polygon.fromRect(this.CHUNK_SIZE, this.CHUNK_SIZE, undefined, chunkPos, 0);
     const [collided] = object.intersects(chunkObject);
 
     return collided;
@@ -76,7 +76,7 @@ export class ChunkManager {
     return chunks;
   }
 
-  public gameObjectQuery(gameObject: GameObject, searchType: string) {
+  public queryObjectsWithObject(gameObject: GameObject, searchType: string) {
     const objects: Set<GameObject> = new Set();
 
     for (const chunkKey of gameObject.chunks) {
@@ -94,7 +94,7 @@ export class ChunkManager {
     return Array.from(objects);
   }
 
-  public collisionObjectQuery(collisionObject: CollisionObject, searchType: string): GameObject[] {
+  public queryObjectsWithHitbox(collisionObject: CollisionObject, searchType: string): GameObject[] {
     const objects: Set<GameObject> = new Set();
 
     for (const chunk of this.getChunksOfObject(collisionObject)) {

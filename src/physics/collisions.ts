@@ -5,41 +5,16 @@ import { Structure } from '../objects/structure.js';
 import {Matrix4} from '../util/matrix4.js';
 import {Vector2} from '../util/vector2.js';
 
-export class CollisionHandler {
-  public static getCollidingStructures(polygon: Polygon): Structure[] {
-    const structures: Structure[] = [];
-
-    return structures;
-  }
-
-  public static getEntityAttackList(attacker: Entity, attackShape: Polygon): Entity[] {
-    const entities: Entity[] = [];
-
-    for (const object of Game.instance.gameObjects) {
-      if (object.type === "Entity") {
-        const entity: Entity = object as Entity;
-
-        if (attacker.team === entity.team) continue;
-
-        entities.push(entity);
-      }
-    }
-
-    return entities;
-  }
-}
-
 export abstract class CollisionObject {
-  protected matrixOutdated: boolean = true;
-  protected verticesOutdated: boolean = true;
-  private _transformationMatrix: Matrix4;
+  private transformedVertices: Vector2[] = [];
 
   private showingOnce: boolean = false;
   private vertexBuffer: WebGLBuffer;
   private _vertexCount: number;
 
   constructor(
-    public readonly type: string,
+    protected vertices: Vector2[],
+    protected radius: number = 0,
     protected position: Vector2 = new Vector2(),
     protected rotation: number = 0
   ) {}
@@ -47,18 +22,63 @@ export abstract class CollisionObject {
   public setTransformation(position: Vector2, rotation: number) {
     this.position = position;
     this.rotation = rotation;
-    this.matrixOutdated = true;
-    this.verticesOutdated = true;
   }
 
   protected getTransformationMatrix(): Matrix4 {
-    if (this.matrixOutdated) {
-      this.matrixOutdated = false;
+    return Matrix4.fromTransformation(this.position, this.rotation);
+  }
 
-      this._transformationMatrix = Matrix4.fromTransformation(this.position, this.rotation);
+  public getTransformedVertices(): Vector2[] {
+    const matrix = this.getTransformationMatrix();
+    const transformedVertices: Vector2[] = [];
+
+    for (let i = 0; i < this.vertices.length; i++) {
+      transformedVertices[i] = matrix.apply(this.vertices[i]);
     }
 
-    return this._transformationMatrix;
+    return transformedVertices;
+  }
+
+  public getNormals(reference: CollisionObject): Vector2[] {
+    const vertices: Vector2[] = this.getTransformedVertices();
+    const normals: Vector2[] = [];
+
+    for (let i = 0; i < vertices.length; i++) {
+      const vertex1 = vertices[i];
+
+      if (vertices.length > 1) {
+        const vertex2 = vertices[(i + 1) % vertices.length];
+        const edge = vertex2.subtract(vertex1);
+        const normal = edge.perp().unit();
+  
+        normals.push(normal);
+      }
+
+      if (this.radius > 0) {
+        const closestRefVertex = reference.getClosestVertex(vertex1);
+        const directionAxis = vertex1.subtract(closestRefVertex).unit();
+
+        normals.push(directionAxis);
+      }
+    }
+
+    return normals;
+  }
+
+  public getProjectedRange(axis: Vector2): [number, number] {
+    let min = Infinity;
+    let max = -Infinity;
+
+    for (const vertex of this.getTransformedVertices()) {
+      const dot = vertex.dot(axis);
+      const dotMin = dot - this.radius;
+      const dotMax = dot + this.radius;
+
+      if (dotMin < min) min = dotMin;
+      if (dotMax > max) max = dotMax;
+    }
+
+    return [min, max];
   }
 
   public getBounds(): Rectangle {
@@ -68,19 +88,51 @@ export abstract class CollisionObject {
     return new Rectangle(new Vector2(minX, minY), new Vector2(maxX, maxY));
   }
 
-  public abstract getNormals(reference: CollisionObject): Vector2[];
-  public abstract getProjectedRange(axis: Vector2): [number, number];
-  public abstract getCenter(): Vector2;
+  public getCenter(): Vector2 {
+    const vertices = this.getTransformedVertices();
+    let sum: Vector2 = new Vector2();
+
+    for (const vertex of vertices) {
+      sum = sum.add(vertex);
+    }
+
+    return sum.divide(vertices.length);
+  }
+
+  public getClosestVertex(point: Vector2): Vector2 {
+    let minDistance: number = Infinity;
+    let closestVertex: Vector2 = new Vector2();
+
+    for (const vertex of this.getTransformedVertices()) {
+      const distance: number = vertex.distance(point);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestVertex = vertex;
+      }
+    }
+
+    return closestVertex;
+  }
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {
-    const normals1 = this.getNormals(object);
-    const normals2 = object.getNormals(this);
+    const normals1: Vector2[] = this.getNormals(object);
+    const normals2: Vector2[] = object.getNormals(this);
+    const existingAxes: Vector2[] = [];
 
     let overlap: number = Infinity;
     let normal: Vector2 = new Vector2();
 
     // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
     for (const axis of [...normals1, ...normals2]) {
+      // const existing: boolean = existingAxes.some((otherAxis: Vector2) => {
+      //   return Math.abs(axis.dot(otherAxis)) === 1;
+      // });
+
+      // if (existing) continue;
+
+      // existingAxes.push(axis);
+
       const [min1, max1] = this.getProjectedRange(axis);
       const [min2, max2] = object.getProjectedRange(axis);
 
@@ -98,9 +150,55 @@ export abstract class CollisionObject {
     if (direction.dot(normal) < 0) normal = normal.multiply(-1);
 
     return [true, normal, overlap];
-  } 
+  }
 
-  public abstract getVerticesForRendering(): Vector2[];
+  public sweep(length?: number): SweptCollisionObject {
+    let minWidth: number = Infinity;
+    let maxWidth: number = -Infinity;
+    let minIndex: number = 0;
+    let maxIndex: number = 0;
+
+    const startVertices: Vector2[] = [];
+    const endVertices: Vector2[] = [];
+
+    for (let i = 0; i < this.vertices.length; i++) {
+      const vertex = this.vertices[i];
+      const width = vertex.dot(new Vector2(1, 0));
+
+      if (width < minWidth) {
+        minWidth = width;
+        minIndex = i;
+      }
+
+      if (width > maxWidth) {
+        maxWidth = width;
+        maxIndex = i;
+      }
+    }
+
+    let startIndex: number = maxIndex;
+    let endIndex: number = minIndex;
+
+    while (true) {
+      startVertices.push(this.vertices[startIndex]);
+      
+      if (startIndex === minIndex) break;
+      startIndex = (startIndex + 1) % this.vertices.length;
+    }
+
+    while (true) {
+      endVertices.push(this.vertices[endIndex]);
+
+      if (endIndex === maxIndex) break;
+      endIndex = (endIndex + 1) % this.vertices.length;
+    }
+
+    return new SweptCollisionObject(startVertices, endVertices, this.radius, length, this.position, this.rotation);
+  }
+
+  public getVerticesForRendering(): Vector2[] {
+    return this.vertices;
+  }
 
   public get vertexCount(): number {
     return this._vertexCount;
@@ -136,7 +234,7 @@ export abstract class CollisionObject {
 
   public bind(): void {
     Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
-    Game.instance.canvas.shader.setUniformMatrix4("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
 
     if (this.showingOnce) this.destroy();
   }
@@ -148,180 +246,78 @@ export abstract class CollisionObject {
   }
 }
 
-export class Circle extends CollisionObject {
+export class SweptCollisionObject extends CollisionObject {
   constructor(
-    private radius: number,
-    private offset: Vector2,
+    private startVertices: Vector2[],
+    endVertices: Vector2[],
+    radius?: number,
+    length: number = 0,
     position?: Vector2,
     rotation?: number
   ) {
-    super("Circle", position, rotation);
-  }
+    super([], radius, position, rotation);
 
-  public getCenter(): Vector2 {
-    return this.getTransformationMatrix().apply(this.offset);
-  }
-
-  public getNormals(reference: CollisionObject): Vector2[] {
-    const normals: Vector2[] = [];
-
-    if (reference.type === "Circle") {
-      const circle: Circle = reference as Circle;
-
-      normals.push(this.getCenter().subtract(circle.getCenter()));
-
-    } else if (reference.type === "Polygon") {
-      const poly: Polygon = reference as Polygon;
-
-      normals.push(poly.getClosestVertex(this.getCenter()));
+    for (let i = 0; i < endVertices.length; i++) {
+      this.vertices[startVertices.length + i] = endVertices[i];
     }
 
-    return normals;
+    this.sweepVertices(length);
   }
 
-  public getProjectedRange(axis: Vector2): [number, number] {
-    const dotPosition = this.getCenter().dot(axis);
-
-    const min = dotPosition - this.radius;
-    const max = dotPosition + this.radius;
-
-    return [min, max];
-  }
-
-  public getVerticesForRendering(): Vector2[] {
-    const resolution: number = 20;
-    const vertices: Vector2[] = new Array(resolution);
-
-    for (let i = 0; i < resolution; i++) {
-      const angle = Math.PI * 2 * i / resolution;
-      const circlePoint = Matrix4.fromRotation(angle).apply(new Vector2(0, 1));
-      const vertex = circlePoint.add(this.offset);
+  public sweepVertices(length: number): void {
+    for (let i = 0; i < this.startVertices.length; i++) {
+      this.vertices[i] = this.startVertices[i].subtract(new Vector2(0, length));
     }
-
-    return vertices;
   }
 }
 
 export class Polygon extends CollisionObject {
-  private _transformedVertices: Vector2[] = [];
-
   constructor(
-    private vertices: Vector2[],
+    vertices: Vector2[],
     position?: Vector2,
     rotation?: number
   ) {
-    super("Polygon", position, rotation);
+    super(vertices, 0, position, rotation);
   }
 
-  public static fromRect(position: Vector2, rotation: number, width: number, height: number): Polygon {
+  public static fromRect(width: number, height: number, offset: Vector2 = new Vector2(), position?: Vector2, rotation?: number): Polygon {
     return new Polygon([
-      new Vector2(-width/2, -height/2),
-      new Vector2(-width/2, height/2),
-      new Vector2(width/2, height/2),
-      new Vector2(width/2, -height/2)
+      new Vector2(-width/2, -height/2).add(offset),
+      new Vector2(-width/2, height/2).add(offset),
+      new Vector2(width/2, height/2).add(offset),
+      new Vector2(width/2, -height/2).add(offset)
 
     ], position, rotation);
   }
+}
 
-  public getTransformedVertices(): Vector2[] {
-    if (this.verticesOutdated) {
-      for (let i = 0; i < this.vertices.length; i++) {
-        this._transformedVertices[i] = this.getTransformationMatrix().apply(this.vertices[i]);
-      }
+export class RectangleTest extends CollisionObject {
+  constructor(
+    width: number,
+    height: number,
+    offset: Vector2 = new Vector2(),
+    position?: Vector2,
+    rotation?: number
+  ) {
+    super([
+      new Vector2(-width/2, -height/2).add(offset),
+      new Vector2(-width/2, height/2).add(offset),
+      new Vector2(width/2, height/2).add(offset),
+      new Vector2(width/2, -height/2).add(offset)
 
-      this.verticesOutdated = false;
-    }
-
-    return this._transformedVertices;
+    ], 0, position, rotation);
   }
+}
 
-  public getCenter(): Vector2 {
-    const vertices = this.getTransformedVertices();
-    let sum: Vector2 = new Vector2();
-
-    for (const vertex of vertices) {
-      sum = sum.add(vertex);
-    }
-
-    return sum.divide(vertices.length);
+export class Circle extends CollisionObject {
+  constructor(
+    radius: number,
+    offset: Vector2 = new Vector2(),
+    position?: Vector2,
+    rotation?: number
+  ) {
+    super([offset], radius, position, rotation);
   }
-
-  public getNormals(): Vector2[] {
-    const vertices: Vector2[] = this.getTransformedVertices();
-    const normals: Vector2[] = [];
-
-    for (let i = 0; i < vertices.length; i++) {
-      const vertex1 = vertices[i];
-      const vertex2 = vertices[(i + 1) % vertices.length];
-      const edge = vertex2.subtract(vertex1);
-      const normal = edge.perp().unit();
-
-      normals.push(normal);
-    }
-
-    return normals;
-  }
-
-  public getProjectedRange(axis: Vector2): [number, number] {
-    let min = Infinity;
-    let max = -Infinity;
-
-    for (const vertex of this.getTransformedVertices()) {
-      const dot = vertex.dot(axis);
-
-      if (dot < min) min = dot;
-      if (dot > max) max = dot;
-    }
-
-    return [min, max];
-  }
-
-  public getClosestVertex(point: Vector2): Vector2 {
-    let minDistance: number = Infinity;
-    let closestVertex: Vector2 = new Vector2();
-
-    for (const vertex of this.getTransformedVertices()) {
-      const distance: number = vertex.distance(point);
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestVertex = vertex;
-      }
-    }
-
-    return closestVertex;
-  }
-
-  public getVerticesForRendering(): Vector2[] {
-    return this.vertices;
-  }
-
-  // public intersects(polygon: Polygon): [boolean, Vector2, number] {
-  //   const normals1 = this.getNormals();
-  //   const normals2 = polygon.getNormals();
-
-  //   let overlap: number = Infinity;
-  //   let normal: Vector2 = new Vector2();
-
-  //   for (const axis of [...normals2, ...normals1]) {
-  //     const [min1, max1] = this.getProjectedRange(axis);
-  //     const [min2, max2] = polygon.getProjectedRange(axis);
-
-  //     if (min2 > max1 || min1 > max2) return [false, new Vector2(), 0];
-
-  //     const axisOverlap = Math.min(max2 - min1, max1 - min2);
-
-  //     if (axisOverlap < overlap) {
-  //       overlap = axisOverlap;
-  //       normal = axis;
-  //     }
-  //   }
-
-  //   const direction = this.getCenter().subtract(polygon.getCenter());
-  //   if (direction.dot(normal) < 0) normal = normal.multiply(-1);
-
-  //   return [true, normal, overlap];
-  // }
 }
 
 export class Line {

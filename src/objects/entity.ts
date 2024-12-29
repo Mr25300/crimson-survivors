@@ -5,10 +5,12 @@ import {Game} from '../core/game.js';
 import { Polygon } from '../physics/collisions.js';
 import { Team } from './team.js';
 import { Structure } from './structure.js';
+import { Timer } from './timer.js';
+import { Color } from '../util/color.js';
 
 export abstract class Entity extends GameObject {
-  private accelTime: number = 0.2;
-  private knockbackDrag: number = 0.5;
+  private accelTime: number = 0.3;
+  private knockbackDrag: number = 5;
   private velocity: Vector2 = new Vector2();
   private knockbackVelocity: Vector2 = new Vector2();
 
@@ -16,6 +18,10 @@ export abstract class Entity extends GameObject {
   private _faceDirection: Vector2 = new Vector2();
 
   private _team: Team | null = null;
+
+  private maxHealth: number;
+
+  private damageEffectTimer: Timer = new Timer(0.25);
 
   constructor(
     sprite: SpriteModel,
@@ -27,6 +33,8 @@ export abstract class Entity extends GameObject {
     super("Entity", sprite, hitShape, position);
 
     this.sprite.playAnimation('idle');
+
+    this.maxHealth = health;
 
     Game.instance.entities.add(this);
   }
@@ -47,6 +55,13 @@ export abstract class Entity extends GameObject {
     this.position = this.position.add(velDisplacement).add(accelDisplacement);
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
 
+    const knockbackDisplacement = this.knockbackVelocity.multiply(deltaTime);
+    const dragForce = knockbackDisplacement.multiply(-this.knockbackDrag);
+    const dragDisplacement = dragForce.multiply(deltaTime ** 2 / 2);
+
+    this.position = this.position.add(knockbackDisplacement).add(dragDisplacement);
+    this.knockbackVelocity = this.knockbackVelocity.add(dragForce);
+
     this.rotation = this._faceDirection.angle(); // WHY IS THIS CRASHING??!?!?!
 
     if (this._moveDirection.magnitude() > 0) {
@@ -65,8 +80,7 @@ export abstract class Entity extends GameObject {
 
     this.updateObject();
 
-    const list = Game.instance.chunkManager.gameObjectQuery(this, "Structure");
-    console.log(list.length);
+    const list = Game.instance.chunkManager.queryObjectsWithObject(this, "Structure");
 
     for (const structure of list) {
       const [collides, normal, overlap] = this.hitbox.intersects(structure.hitbox);
@@ -75,6 +89,13 @@ export abstract class Entity extends GameObject {
     }
 
     this.updateObject();
+
+    if (this.damageEffectTimer.active) {
+      this.sprite.setHighlightOpacity(1 - this.damageEffectTimer.progress);
+
+    } else {
+      this.sprite.setHighlightOpacity(0);
+    }
   }
 
   public get faceDirection(): Vector2 {
@@ -102,6 +123,21 @@ export abstract class Entity extends GameObject {
 
   public setTeam(name: string) {
     this._team = Game.instance.teams.get(name)!;
+  }
+
+  public damage(amount: number, highlightColor: Color = new Color(1, 0, 0)) {
+    this.health -= amount;
+
+    if (this.health < 0) this.destroy();
+
+    this.sprite.setHighlight(highlightColor);
+    this.sprite.setHighlightOpacity(1);
+
+    this.damageEffectTimer.start();
+  }
+
+  public knockback(impulse: Vector2) {
+    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
   }
 
   public override destroy(): void {

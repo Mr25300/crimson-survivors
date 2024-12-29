@@ -5,7 +5,8 @@ import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
 
 export class Kronku extends Entity {
-  private attackCooldown: Timer;
+  private attackCooldown: Timer = new Timer(1);
+
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("kronku"),
@@ -21,7 +22,6 @@ export class Kronku extends Entity {
       spawnPosition,
       5
     );
-    this.attackCooldown = new Timer(1);
   }
 
   public pathFind(playerLocation: Vector2): void {
@@ -37,11 +37,12 @@ export class Kronku extends Entity {
   }
 
   public handleBehavior(deltaTime: number): void {
-    this.attackCooldown.update(deltaTime);
     if (!this.attackCooldown.active) {
-      this.attackCooldown.activate();
+      this.attackCooldown.start();
+      
       this.attack();
     }
+
     this.pathFind(Game.instance.player.position);
   }
 

@@ -7,6 +7,7 @@ import { Bat } from './bat.js';
 
 export class Batspawner extends Entity {
   private attackCooldown: Timer = new Timer(1);
+
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("batspawner"),
@@ -30,9 +31,9 @@ export class Batspawner extends Entity {
   }
 
   public handleBehavior(deltaTime: number): void {
-   this.attackCooldown.update(deltaTime);
     if (!this.attackCooldown.active) {
-      this.attackCooldown.activate();
+      this.attackCooldown.start();
+      
       this.spawnBats();
     }
   }

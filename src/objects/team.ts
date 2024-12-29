@@ -1,4 +1,4 @@
-import { Game } from "../core/game";
+import { Game } from "../core/game.js";
 
 export class Team {
   constructor(
