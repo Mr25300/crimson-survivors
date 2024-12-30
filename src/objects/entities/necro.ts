@@ -3,10 +3,11 @@ import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
 import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
-import { Batspawner } from './batspawner.js';
 import { Grunt } from './grunt.js';
 import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
+import { Bat } from './bat.js';
+
 
 export class Necro extends Entity {
   private spawningCooldown: Timer = new Timer(3);
@@ -41,7 +42,7 @@ export class Necro extends Entity {
       const kronku : Kronku = new Kronku(randomPosition);
     } else {
       // MAKE THIS BATS LATER
-      const bat : Grunt = new Grunt(randomPosition);
+      const bat : Bat = new Bat(randomPosition);
     }
   }
 
