@@ -1,6 +1,6 @@
 import { Game } from "../core/game.js";
 import { GameObject } from "../objects/gameobject.js";
-import { Rectangle } from "../physics/collisions.js";
+import { Bounds } from "../physics/collisions.js";
 import {Vector2} from "../util/vector2.js";
 
 export class Camera {
@@ -26,8 +26,8 @@ export class Camera {
 
       const range = Game.instance.canvas.getScreenRange();
 
-      const screenBounds = new Rectangle(this.goalPosition.subtract(range), this.goalPosition.add(range));
-      const overlap = Game.instance.simulation.bounds.getInnerRectOverlap(screenBounds);
+      const screenBounds = new Bounds(this.goalPosition.subtract(range), this.goalPosition.add(range));
+      const overlap = Game.instance.simulation.bounds.getInnerOverlap(screenBounds);
 
       this.goalPosition = this.goalPosition.subtract(overlap);
     }

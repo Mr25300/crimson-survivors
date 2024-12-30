@@ -1,7 +1,7 @@
 import { GameObject } from "../objects/gameobject.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
-import { CollisionObject, Polygon, Rectangle } from "./collisions.js";
+import { Bounds, CollisionObject, Polygon, Rectangle } from "./collisions.js";
 
 export class ChunkManager {
   private CHUNK_SIZE = 1;
@@ -10,29 +10,18 @@ export class ChunkManager {
   private chunkCollisionObjects: Map<number, CollisionObject> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
-    // modified cantor function to include negatives
-    const x: number = chunk.x < 0 ? 2 * chunk.x : -2 * chunk.x - 1;
-    const y: number = chunk.y < 0 ? 2 * chunk.y : -2 * chunk.y - 1;
-
-    return (x + y) * (x + y + 1) / 2 + y;
+    return Util.cantor(chunk.x, chunk.y);
   }
 
   public getChunkFromKey(key: number): Vector2 {
-    const w = Math.floor((Math.sqrt(8 * key + 1) - 1) / 2);
-    const t = w * (w + 1) / 2;
+    const [x, y] = Util.inverseCantor(key);
 
-    const x = key - t;
-    const y = w - x;
-
-    const decodedX = x % 2 === 0 ? x / 2 : -(x + 1) / 2;
-    const decodedY = y % 2 === 0 ? y / 2 : -(y + 1) / 2;
-
-    return new Vector2(decodedX, decodedY);
+    return new Vector2(x, y);
   }
 
   public chunkContainsObject(chunk: Vector2, object: CollisionObject): boolean {
     const chunkPos = chunk.multiply(this.CHUNK_SIZE);
-    const chunkObject = Polygon.fromRect(this.CHUNK_SIZE, this.CHUNK_SIZE, undefined, chunkPos, 0);
+    const chunkObject = new Rectangle(this.CHUNK_SIZE, this.CHUNK_SIZE, new Vector2(), chunkPos, 0);
     const [collided] = object.intersects(chunkObject);
 
     return collided;
@@ -58,10 +47,10 @@ export class ChunkManager {
     if (objects.size === 0) this.chunks.delete(chunkKey);
   }
 
-  public getChunksOfObject(object: CollisionObject): Vector2[] {
+  public getChunksOfHitbox(hitbox: CollisionObject): Vector2[] {
     const chunks: Vector2[] = [];
 
-    const bounds: Rectangle = object.getBounds();
+    const bounds: Bounds = hitbox.getBounds();
     const minChunk = bounds.min.divide(this.CHUNK_SIZE);
     const maxChunk = bounds.max.divide(this.CHUNK_SIZE);
 
@@ -69,17 +58,18 @@ export class ChunkManager {
       for (let y = Util.roundDown(minChunk.y); y <= Util.roundUp(maxChunk.y); y++) {
         const chunk = new Vector2(x, y);
 
-        if (this.chunkContainsObject(chunk, object)) chunks.push(chunk);
+        if (this.chunkContainsObject(chunk, hitbox)) chunks.push(chunk);
       }
     }
 
     return chunks;
   }
 
-  public queryObjectsWithObject(gameObject: GameObject, searchType: string) {
+  private queryObjectsWithChunks(chunks: number[], hitbox: CollisionObject, searchType: string): [GameObject, Vector2, number][] {
     const objects: Set<GameObject> = new Set();
+    const info: [GameObject, Vector2, number][] = [];
 
-    for (const chunkKey of gameObject.chunks) {
+    for (const chunkKey of chunks) {
       const chunkObjects = this.chunks.get(chunkKey);
       if (!chunkObjects) continue;
 
@@ -87,44 +77,45 @@ export class ChunkManager {
       if (!typeObjects) continue;
 
       for (const object of typeObjects) {
+        if (objects.has(object)) continue;
+
         objects.add(object);
+
+        const [collided, normal, overlap] = hitbox.intersects(object.hitbox);
+
+        if (collided) info.push([object, normal, overlap]);
       }
     }
 
-    return Array.from(objects);
+    return info;
   }
 
-  public queryObjectsWithHitbox(collisionObject: CollisionObject, searchType: string): GameObject[] {
-    const objects: Set<GameObject> = new Set();
+  public queryObjectsWithObject(gameObject: GameObject, searchType: string): [GameObject, Vector2, number][] {
+    return this.queryObjectsWithChunks(Array.from(gameObject.chunks), gameObject.hitbox, searchType);
+  }
 
-    for (const chunk of this.getChunksOfObject(collisionObject)) {
-      const chunkKey = this.getChunkKey(chunk);
+  public queryObjectsWithHitbox(collisionObject: CollisionObject, searchType: string): [GameObject, Vector2, number][] {
+    const chunkKeys: number[] = [];
 
-      const chunkObjects = this.chunks.get(chunkKey);
-      if (!chunkObjects) continue;
-
-      const typeObjects = chunkObjects.get(searchType);
-      if (!typeObjects) continue;
-
-      for (const object of typeObjects) {
-        objects.add(object);
-      }
+    for (const chunk of this.getChunksOfHitbox(collisionObject)) {
+      chunkKeys.push(this.getChunkKey(chunk));
     }
 
-    return Array.from(objects);
+    return this.queryObjectsWithChunks(chunkKeys, collisionObject, searchType);
   }
 
   public updateObjectChunks(object: GameObject): void {
+    // optimize this as much as possible
     for (const chunkKey of object.chunks) {
       const chunk = this.getChunkFromKey(chunkKey);
 
-      if (!this.chunkContainsObject(chunk, object.hitbox)) {
+      if (!this.chunkContainsObject(chunk, object.hitbox)) { // check if out of bounds first
         object.removeChunk(chunkKey);
         this.removeFromChunk(chunkKey, object);
       }
     }
 
-    for (const chunk of this.getChunksOfObject(object.hitbox)) {
+    for (const chunk of this.getChunksOfHitbox(object.hitbox)) {
       const chunkKey = this.getChunkKey(chunk);
 
       if (object.isInChunk(chunkKey)) continue;

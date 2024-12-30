@@ -9,6 +9,13 @@ export class Vector2 {
     private _y: number = 0
   ) {}
 
+  public static fromAngle(angle: number) {
+    return new Vector2(
+      Math.sin(angle),
+      Math.cos(angle)
+    )
+  }
+
   public get x() {
     return this._x;
   }
@@ -70,7 +77,17 @@ export class Vector2 {
   }
 
   public perp(): Vector2 {
-    return new Vector2(-this._y, this._x);
+    return new Vector2(-this._y, this._x);// try making y not negative
+  }
+
+  public rotate(rotation: number) {
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+
+    return new Vector2(
+      this._x * cos + this._y * sin,
+      this._y * cos - this._x * sin
+    );
   }
 
   public lerp(goal: Vector2, t: number) {

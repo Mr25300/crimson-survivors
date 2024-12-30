@@ -63,7 +63,8 @@ export class Game extends Gameloop {
     new Team("Vampire");
 
     new Wall(new Vector2(2, 0));
-    new Wall(new Vector2(1, 1));
+    // new Wall(new Vector2(1, 1));
+    // new Wall(new Vector2(2, 1));
 
     const player: Player = new Player();
     this.player = player;
@@ -80,6 +81,11 @@ export class Game extends Gameloop {
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
     this._canvas.update(deltaTime);
+
+    if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
+
+    document.getElementById("fps-display")!.innerText = (1 / deltaTime).toFixed(1);
+    document.getElementById("entity-count-display")!.innerText = "0";
   }
 
   protected render(): void {

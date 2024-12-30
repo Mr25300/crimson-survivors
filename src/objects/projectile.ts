@@ -47,7 +47,7 @@ export abstract class Projectile extends GameObject {
 
     if (this.frozen) return;
 
-    this.position = this.position.add(this.direction.multiply(this.speed * deltaTime));
+    this.position = this.position.add(this.direction.multiply(this.speed * deltaTime)); // add optional drag
     this.rotation = this.direction.angle();
 
     this.sweptHitbox.setTransformation(this.position, this.rotation);
@@ -56,18 +56,18 @@ export abstract class Projectile extends GameObject {
     const entityCollisions: Entity[] = [];
     const structureCollisions: [Structure, Vector2, number][] = [];
 
-    for (const entity of Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Entity") as Entity[]) {
+    const entityQuery = Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Entity") as [Entity, Vector2, number][];
+    const structureQuery = Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Structure") as [Structure, Vector2, number][];
+
+    for (const [entity] of entityQuery) {
       if (entity.team === this.whitelist) continue;
 
-      const [collides] = this.sweptHitbox.intersects(entity.hitbox);
-
-      if (collides) entityCollisions.push(entity);
+      entityCollisions.push(entity);
     }
 
-    for (const structure of Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Structure") as Structure[]) {
-      const [collides, normal, overlap] = this.sweptHitbox.intersects(structure.hitbox);
-
-      if (collides) structureCollisions.push([structure, normal, overlap]);
+    // figure out how to get collision position
+    for (const [structure, normal, overlap] of structureQuery) {
+      structureCollisions.push([structure, normal, overlap]);
     }
 
     this.handleEntityCollisions(entityCollisions);

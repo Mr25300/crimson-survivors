@@ -80,7 +80,7 @@ export abstract class Entity extends GameObject {
 
     this.updateObject();
 
-    const list = Game.instance.chunkManager.queryObjectsWithObject(this, "Structure");
+    const list = Game.instance.structures;//Game.instance.chunkManager.queryObjectsWithObject(this, "Structure");
 
     for (const structure of list) {
       const [collides, normal, overlap] = this.hitbox.intersects(structure.hitbox);

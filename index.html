@@ -4,7 +4,15 @@
   </head>
 
   <body>
-    <canvas id="gameScreen" width="500px" height="300px"></canvas>
+    <div class="container">
+      <canvas id="gameScreen" width="500px" height="300px"></canvas>
+
+      <div class="absolute-element debug-info">
+        <label>FPS: </label><span id="fps-display"></span>
+        <br>
+        <label>Entities on Screen: </label><span id="entity-count-display"></span>
+      </div>
+    </div>
     
     <script type="module" src="dist/core/game.js"></script>
   </body>

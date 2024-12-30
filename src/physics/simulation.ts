@@ -5,10 +5,10 @@ import { Kronku } from '../objects/entities/kronku.js';
 import { Necro } from '../objects/entities/necro.js';
 import { Patrol } from '../objects/entities/patrol.js';
 import { Vector2 } from '../util/vector2.js';
-import { Rectangle } from './collisions.js';
+import { Bounds } from './collisions.js';
 
 export class Simulation {
-  public readonly bounds: Rectangle = new Rectangle(
+  public readonly bounds: Bounds = new Bounds(
     new Vector2(-15, -15),
     new Vector2(15, 15)
   );
@@ -65,7 +65,7 @@ export class Simulation {
       if (Math.random() < (this.spawnProbability % 1)) spawnCount++;
 
       for (let i: number = 0; i < spawnCount; i++) {
-        this.spawnVampire();
+        // this.spawnVampire();
       }
     }
 
