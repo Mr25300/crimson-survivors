@@ -3,7 +3,6 @@ import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
 import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
-import { Grunt } from './grunt.js';
 import { Kronku } from './kronku.js';
 import { Patrol } from './patrol.js';
 import { Bat } from './bat.js';
