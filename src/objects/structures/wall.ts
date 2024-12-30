@@ -1,5 +1,5 @@
 import { Game } from "../../core/game.js";
-import { Polygon, Rectangle } from "../../physics/collisions.js";
+import { CollisionObject, Polygon, Rectangle } from "../../physics/collisions.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Structure } from "../structure.js";
 

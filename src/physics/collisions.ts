@@ -223,7 +223,7 @@ export class CollisionObject {
     return new SweptCollisionObject(startVertices, endVertices, this.radius, length, this.position, this.rotation);
   }
 
-  private getRenderingVertices(circleResolution: number = 100): Vector2[] {
+  private getRenderingVertices(circleResolution: number = 30): Vector2[] {
     const renderingVertices: Vector2[] = [];
 
     for (let i = 0; i < this.vertices.length; i++) {
@@ -234,17 +234,20 @@ export class CollisionObject {
         const prevIndex = i == 0 ? this.vertices.length - 1 : i - 1;
         const prevVertex = this.vertices[prevIndex];
 
-        const startAngle = vertex.subtract(prevVertex).angle();
-        let endAngle = nextVertex.subtract(vertex).angle();
+        let startAngle = vertex.subtract(prevVertex).angle() - Math.PI / 2;
+        let endAngle = nextVertex.subtract(vertex).angle() - Math.PI / 2;
 
         if (endAngle < startAngle) endAngle += 2 * Math.PI;
 
-        if (prevIndex === i) endAngle = startAngle + Math.PI / 2;
+        if (this.vertices.length === 1) {
+          startAngle = 0;
+          endAngle = 2 * Math.PI;
+        }
 
-        const resolutionLoops = Math.round(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+        const resolutionLoops = Math.ceil(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
 
-        for (let j = 0; i < resolutionLoops; j++) {
-          const angle = startAngle + (endAngle - startAngle) * j / resolutionLoops;
+        for (let j = 0; j < resolutionLoops; j++) {
+          const angle = startAngle + (endAngle - startAngle) * j / (resolutionLoops - 1);
           const offset = Vector2.fromAngle(angle).multiply(this.radius);
 
           renderingVertices.push(vertex.add(offset));
@@ -262,11 +265,11 @@ export class CollisionObject {
     if (once) this.showingOnce = true;
 
     if (!this.vertexBuffer) {
-      const vertices = this.getRenderingVertices(circleResolution);
-      const vertexArray = new Float32Array(vertices.length * 2);
+      const vertices: Vector2[] = this.getRenderingVertices(circleResolution);
+      const vertexArray: Float32Array = new Float32Array(vertices.length * 2);
 
       for (let i = 0; i < vertices.length; i++) {
-        const vertex = vertices[i];
+        const vertex: Vector2 = vertices[i];
 
         vertexArray[i * 2] = vertex.x;
         vertexArray[i * 2 + 1] = vertex.y;

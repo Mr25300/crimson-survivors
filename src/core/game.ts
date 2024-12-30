@@ -62,9 +62,9 @@ export class Game extends Gameloop {
     new Team("Human");
     new Team("Vampire");
 
-    new Wall(new Vector2(2, 0));
-    // new Wall(new Vector2(1, 1));
-    // new Wall(new Vector2(2, 1));
+    new Wall(new Vector2(1, 0));
+    new Wall(new Vector2(0, 1));
+    new Wall(new Vector2(1, 1));
 
     const player: Player = new Player();
     this.player = player;
