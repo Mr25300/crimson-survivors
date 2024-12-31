@@ -18,6 +18,8 @@ import { Util } from '../util/util.js';
 import { Projectile } from '../objects/projectile.js';
 import { Timer } from '../objects/timer.js';
 import { Wall } from '../objects/structures/wall.js';
+import { OptimalPath } from '../physics/pathfinder.js';
+import { Grunt } from '../objects/entities/grunt.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -38,6 +40,8 @@ export class Game extends Gameloop {
   private _chunkManager: ChunkManager;
   private _simulation: Simulation;
   public player: Player; // REMOVE
+
+  private testPath: OptimalPath;
 
   private constructor() {
     super();
@@ -65,10 +69,29 @@ export class Game extends Gameloop {
     new Wall(new Vector2(1, 0));
     new Wall(new Vector2(0, 1));
     new Wall(new Vector2(1, 1));
+    new Wall(new Vector2(1, -1));
+    new Wall(new Vector2(0, -1));
+    new Wall(new Vector2(-1, 2));
+    new Wall(new Vector2(0, 3));
 
     const player: Player = new Player();
     this.player = player;
+    this.player.position = new Vector2(0, 2);
     this._camera.setSubject(this.player);
+
+    const path = new OptimalPath(new Vector2(5, 0), new Vector2(0, 0), 0.5);
+    const waypoints = path.computePath();
+
+    if (waypoints) {
+      const stuff = [...waypoints, new Vector2(5, 0)];
+
+      for (let i = 0; i < stuff.length - 1; i++) {
+        const shape = new Polygon([stuff[i], stuff[i + 1]]);
+        shape.show();
+      }
+    }
+
+    // new Grunt(new Vector2(5, 0));
 
     this.start();
   }

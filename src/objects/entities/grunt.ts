@@ -3,9 +3,11 @@ import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
 import { Timer } from '../timer.js';
 import {Entity} from '../entity.js';
+import { Pathfinder } from '../../physics/pathfinder.js';
 
 export class Grunt extends Entity {
   private attackCooldown: Timer = new Timer(1);
+  private pathfinder: Pathfinder;
 
   constructor(spawnPosition: Vector2) {
     super(
@@ -21,27 +23,18 @@ export class Grunt extends Entity {
       2,
       spawnPosition,
       50
-    )
-  }
-  public pathFind(playerLocation: Vector2): void {
-    // if in range
-    if (
-      playerLocation.subtract(this.position).magnitude() <= 5 
-    ) {
-      this.setFaceDirection(playerLocation.subtract(this.position).unit());
-      this.setMoveDirection(playerLocation.subtract(this.position).unit());
-    } else {
-      this.setMoveDirection(new Vector2(0, 0));
-    }
+    );
+
+    this.pathfinder = new Pathfinder(this);
   }
 
   public handleBehavior(deltaTime: number): void {
-    // this.attackCooldown.update(deltaTime);
-    // if (!this.attackCooldown.active) {
-    //   this.attackCooldown.activate();
-    //   // do a thing
-    // }
-    this.pathFind(Game.instance.player.position);
+    this.pathfinder.setTarget(Game.instance.player.position);
+
+    const direction = this.pathfinder.getDirection();
+
+    this.setMoveDirection(direction);
+    if (direction.magnitude() > 0) this.setFaceDirection(direction);
   }
 
   public attack(): void {

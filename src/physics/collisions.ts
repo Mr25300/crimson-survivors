@@ -6,8 +6,8 @@ import { Vector2 } from '../util/vector2.js';
 export class CollisionObject {
   private _transformedVertices: Vector2[] = [];
   private _normals: Vector2[] = [];
-  private verticesOutdated: boolean = true;
-  private normalsOutdated: boolean = true;
+  protected verticesOutdated: boolean = true;
+  protected normalsOutdated: boolean = true;
 
   private showingOnce: boolean = false;
   private vertexBuffer: WebGLBuffer | null = null;
@@ -153,8 +153,8 @@ export class CollisionObject {
 
     // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
     for (const axis of [...normals1, ...normals2]) {
-      const cantorKey: number = Util.cantor(axis.x, axis.y);
-      const oppositeKey: number = Util.cantor(-axis.x, -axis.y);
+      const cantorKey: number = Util.cantor(axis);
+      const oppositeKey: number = Util.cantor(axis.multiply(-1));
 
       if (existingAxes.has(cantorKey) || existingAxes.has(oppositeKey)) continue;
 
@@ -244,7 +244,9 @@ export class CollisionObject {
           endAngle = 2 * Math.PI;
         }
 
-        const resolutionLoops = Math.ceil(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+        let resolutionLoops = Math.ceil(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+
+        if (this.vertices.length === 1) resolutionLoops -= 1;
 
         for (let j = 0; j < resolutionLoops; j++) {
           const angle = startAngle + (endAngle - startAngle) * j / (resolutionLoops - 1);
@@ -334,6 +336,8 @@ export class SweptCollisionObject extends CollisionObject {
     for (let i = 0; i < this.startVertices.length; i++) {
       this.vertices[i] = this.startVertices[i].subtract(new Vector2(0, length));
     }
+
+    this.verticesOutdated = true;
   }
 }
 

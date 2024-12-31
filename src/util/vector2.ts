@@ -80,7 +80,7 @@ export class Vector2 {
     return new Vector2(-this._y, this._x);// try making y not negative
   }
 
-  public rotate(rotation: number) {
+  public rotate(rotation: number): Vector2 {
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
 
@@ -90,7 +90,11 @@ export class Vector2 {
     );
   }
 
-  public lerp(goal: Vector2, t: number) {
+  public lerp(goal: Vector2, t: number): Vector2 {
     return new Vector2(Util.lerp(this._x, goal._x, t), Util.lerp(this._y, goal._y, t));
+  }
+
+  public round(): Vector2 {
+    return new Vector2(Math.round(this._x), Math.round(this._y));
   }
 }

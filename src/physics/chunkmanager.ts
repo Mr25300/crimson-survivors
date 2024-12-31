@@ -10,13 +10,11 @@ export class ChunkManager {
   private chunkCollisionObjects: Map<number, CollisionObject> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
-    return Util.cantor(chunk.x, chunk.y);
+    return Util.cantor(chunk);
   }
 
   public getChunkFromKey(key: number): Vector2 {
-    const [x, y] = Util.inverseCantor(key);
-
-    return new Vector2(x, y);
+    return Util.inverseCantor(key);
   }
 
   public chunkContainsObject(chunk: Vector2, object: CollisionObject): boolean {
