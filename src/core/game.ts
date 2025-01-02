@@ -63,6 +63,9 @@ export class Game extends Gameloop {
 
     await this._canvas.init();
 
+    const dimensions: Vector2 = this._simulation.bounds.getDimensions();
+    const floor: SpriteModel = this._spriteManager.create("floor", dimensions.x, dimensions.y, true);
+
     new Team("Human");
     new Team("Vampire");
 
@@ -76,22 +79,9 @@ export class Game extends Gameloop {
 
     const player: Player = new Player();
     this.player = player;
-    this.player.position = new Vector2(0, 2);
     this._camera.setSubject(this.player);
 
-    const path = new OptimalPath(new Vector2(5, 0), new Vector2(0, 0), 0.5);
-    const waypoints = path.computePath();
-
-    if (waypoints) {
-      const stuff = [...waypoints, new Vector2(5, 0)];
-
-      for (let i = 0; i < stuff.length - 1; i++) {
-        const shape = new Polygon([stuff[i], stuff[i + 1]]);
-        shape.show();
-      }
-    }
-
-    // new Grunt(new Vector2(5, 0));
+    new Grunt(new Vector2(10, 0));
 
     this.start();
   }
@@ -101,14 +91,14 @@ export class Game extends Gameloop {
       timer.update(deltaTime);
     }
 
+    this._canvas.update(deltaTime);
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
-    this._canvas.update(deltaTime);
 
     if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
 
     document.getElementById("fps-display")!.innerText = (1 / deltaTime).toFixed(1);
-    document.getElementById("entity-count-display")!.innerText = "0";
+    document.getElementById("entity-count-display")!.innerText = this.entities.size.toString();
   }
 
   protected render(): void {

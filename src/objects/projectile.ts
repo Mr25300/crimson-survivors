@@ -7,6 +7,7 @@ import { GameObject } from "./gameobject.js";
 import { Entity } from "./entity.js";
 import { Structure } from "./structure.js";
 import { Team } from "./team.js";
+import { CollisionInfo } from "../physics/chunkmanager.js";
 
 export abstract class Projectile extends GameObject {
   private sweptHitbox: SweptCollisionObject;
@@ -15,7 +16,7 @@ export abstract class Projectile extends GameObject {
   
   private frozen: boolean = false;
 
-  private whitelist: Team | null = null;
+  private whitelist?: Team;
 
   constructor(
     sprite: SpriteModel,
@@ -53,31 +54,17 @@ export abstract class Projectile extends GameObject {
     this.sweptHitbox.setTransformation(this.position, this.rotation);
     this.sweptHitbox.sweepVertices(this.speed * deltaTime);
 
-    const entityCollisions: Entity[] = [];
-    const structureCollisions: [Structure, Vector2, number][] = [];
+    const entityQuery: Entity[] = Game.instance.chunkManager.attackQuery(this.sweptHitbox, true, this.whitelist);
+    const structureQuery: CollisionInfo[] = Game.instance.chunkManager.collisionQueryFromHitbox(this.sweptHitbox, "Structure", false);
 
-    const entityQuery = Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Entity") as [Entity, Vector2, number][];
-    const structureQuery = Game.instance.chunkManager.queryObjectsWithHitbox(this.sweptHitbox, "Structure") as [Structure, Vector2, number][];
-
-    for (const [entity] of entityQuery) {
-      if (entity.team === this.whitelist) continue;
-
-      entityCollisions.push(entity);
-    }
-
-    // figure out how to get collision position
-    for (const [structure, normal, overlap] of structureQuery) {
-      structureCollisions.push([structure, normal, overlap]);
-    }
-
-    this.handleEntityCollisions(entityCollisions);
-    this.handleStructureCollisions(structureCollisions);
+    if (entityQuery.length > 0) this.handleEntityCollision(entityQuery[0]);
+    if (structureQuery.length > 0) this.handleStructureCollisions(structureQuery);
 
     this.updateObject();
   }
 
-  public abstract handleEntityCollisions(entity: Entity[]): void;
-  public abstract handleStructureCollisions(collisions: [Structure, Vector2, number][]): void;
+  public abstract handleEntityCollision(collision: Entity): void;
+  public abstract handleStructureCollisions(collisions: CollisionInfo[]): void;
 
   public freeze() {
     this.frozen = true;

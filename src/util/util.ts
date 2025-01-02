@@ -45,6 +45,11 @@ export class Util {
     }
   }
 
+  /**
+   * Returns a unique number key for any given 2d coordinate.
+   * @param vec The 2d coordinate.
+   * @returns A unique number output.
+   */
   public static cantor(vec: Vector2): number {
     const x = vec.x < 0 ? 2 * vec.x : -2 * vec.x - 1;
     const y = vec.y < 0 ? 2 * vec.y : -2 * vec.y - 1;
@@ -52,6 +57,11 @@ export class Util {
     return (x + y) * (x + y + 1) / 2 + y;
   }
 
+  /**
+   * Inverse of the cantor function, returns a unique 2d coordinate for any given number input.
+   * @param key The number input.
+   * @returns A unique 2d coordinate.
+   */
   public static inverseCantor(key: number): Vector2 {
     const w = Math.floor((Math.sqrt(8 * key + 1) - 1) / 2);
     const t = w * (w + 1) / 2;
@@ -63,5 +73,9 @@ export class Util {
     const decodedY = y % 2 === 0 ? y / 2 : -(y + 1) / 2;
 
     return new Vector2(decodedX, decodedY);
+  }
+
+  public static randomInt(min: number, max: number) {
+    return Math.floor(min + (max - min + 1) * Math.random());
   }
 }

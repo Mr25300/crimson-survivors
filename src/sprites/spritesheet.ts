@@ -1,18 +1,19 @@
 import { Game } from "../core/game.js";
 import {ShaderProgram} from "../rendering/shaderprogram.js";
 import {Matrix4} from "../util/matrix4.js";
+import { Vector2 } from "../util/vector2.js";
 import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
   private texture: WebGLTexture;
-  private coordBuffer: WebGLBuffer;
+  public readonly coordBuffer: WebGLBuffer;
 
   private animations: Map<string, AnimationInfo> = new Map();
 
   constructor(
     imagePath: string,
-    private width: number,
-    private height: number,
+    public readonly width: number,
+    public readonly height: number,
     private spriteCount: number,
     private columns: number,
     private rows: number,
@@ -34,18 +35,11 @@ export class SpriteSheet {
     this.coordBuffer = Game.instance.canvas.createBuffer(new Float32Array(spriteCoords));
   }
 
-  public bindCoordBuffer(cellNumber: number): void {
-    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.coordBuffer, 2, 0, cellNumber * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-  }
+  public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): AnimationInfo {
+    const info = new AnimationInfo(frames, duration, looped, priority);
+    this.animations.set(name, info);
 
-  public createModel(): SpriteModel {
-    const model = new SpriteModel(this);
-
-    return model;
-  }
-
-  public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): void {
-    this.animations.set(name, new AnimationInfo(frames, duration, looped, priority));
+    return info;
   }
 
   public getAnimation(name: string): AnimationInfo | undefined {
@@ -54,7 +48,6 @@ export class SpriteSheet {
 
   public bind(): void {
     Game.instance.canvas.bindTexture(this.texture);
-    Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
     Game.instance.canvas.shader.setUniformFloat("zOrder", this.zOrder);
   }
 
@@ -65,26 +58,26 @@ export class SpriteSheet {
 }
 
 export class AnimationInfo {
+  private markers: Map<string, number> = new Map();
+
   constructor(
-    private _frames: number[],
-    private _duration: number,
-    private _looped: boolean,
-    private _priority: number
+    public readonly frames: number[],
+    public readonly duration: number,
+    public readonly looped: boolean,
+    public readonly priority: number
   ) {}
 
-  public get frames(): number[] {
-    return this._frames;
+  public addMarker(name: string, frame: number): void {
+    if (frame >= this.frames.length) {
+      console.error("Frame number out of range.");
+
+      return;
+    }
+
+    this.markers.set(name, frame);
   }
 
-  public get duration(): number {
-    return this._duration;
-  }
-
-  public get looped(): boolean {
-    return this._looped;
-  }
-
-  public get priority(): number {
-    return this._priority;
+  public getMarker(name: string): number | undefined {
+    return this.markers.get(name);
   }
 }

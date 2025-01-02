@@ -1,9 +1,9 @@
 import { Game } from "../core/game.js";
 import { Entity } from "../objects/entity.js";
-import { Structure } from "../objects/structure.js";
+import { Timer } from "../objects/timer.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
-import { Circle, CollisionObject, Line, Polygon, Rectangle, SweptCollisionObject } from "./collisions.js";
+import { Point, SweptCollisionObject } from "./collisions.js";
 
 class Node {
   constructor(
@@ -45,28 +45,30 @@ export class OptimalPath {
   private gridStart: Vector2;
   private gridGoal: Vector2;
 
-  private radialHitbox: SweptCollisionObject;
+  public readonly waypoints: Vector2[] = [];
 
-  constructor(start: Vector2, end: Vector2, radialSpace: number) {
+  constructor(start: Vector2, goal: Vector2, private searchRange: number, private arriveRange: number, private travelHitbox: SweptCollisionObject) {
     this.gridStart = start.divide(this.gridScale).round();
-    this.gridGoal = end.divide(this.gridScale).round();
-
-    this.radialHitbox = new Circle(radialSpace).sweep();
+    this.gridGoal = goal.divide(this.gridScale).round();
   }
 
-  public getKey(position: Vector2): number {
+  public getGoal(): Vector2 {
+    return this.gridGoal.multiply(this.gridScale);
+  }
+
+  private getKey(position: Vector2): number {
     return Util.cantor(position);
   }
 
-  public processNode(node: Node) {
+  private processNode(node: Node) {
     this.processed.set(this.getKey(node.position), node);
   }
 
-  public getProcessed(position: Vector2): Node | undefined {
+  private getProcessed(position: Vector2): Node | undefined {
     return this.processed.get(this.getKey(position));
   }
 
-  public computePath(): Vector2[] | void {
+  public computePath(): void {
     // fails when path is impossible because of hitbox size, figure out how to fix (with help from gpt)
     this.openSet.push(new Node(this.gridStart, 0, this.gridStart.distance(this.gridGoal)));
 
@@ -88,8 +90,8 @@ export class OptimalPath {
 
       // new Rectangle(this.gridScale, this.gridScale, undefined, node.position.multiply(this.gridScale)).show();
 
-      if (node.hCost < 0.01) {
-        return this.backtrackWaypoints(node);
+      if (node.hCost <= this.arriveRange / this.gridScale) {
+        this.backtrackWaypoints(node);
       }
 
       for (const direction of this.neighborDirections) {
@@ -112,14 +114,25 @@ export class OptimalPath {
       }
 
     } else {
-      this.radialHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
-      this.radialHitbox.sweepVertices(direction.magnitude() * this.gridScale);
+      this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
+      this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
 
-      const structureQuery: [Structure, Vector2, number][] = Game.instance.chunkManager.queryObjectsWithHitbox(this.radialHitbox, "Structure") as [Structure, Vector2, number][];
-      let structureInWay: boolean = structureQuery.some(([, , overlap]) => overlap > 0);
+      const neighborDistanceSum = neighborPos.distance(this.gridStart) + neighborPos.distance(this.gridGoal);
+      const goalDistance = this.gridStart.distance(this.gridGoal);
+      let restricted: boolean = neighborDistanceSum > goalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
+
+      if (!restricted) {
+        const realPos = neighborPos.multiply(this.gridScale);
+
+        // cut off for out of bounds
+      }
+
+      if (!restricted) {
+        restricted = Game.instance.chunkManager.collisionQueryFromHitbox(this.travelHitbox, "Structure", true).length > 0;
+      }
 
       const hCost = neighborPos.distance(this.gridGoal);
-      const neighborNode = new Node(neighborPos, gCost, hCost, structureInWay, node);
+      const neighborNode = new Node(neighborPos, gCost, hCost, restricted, node);
 
       this.processNode(neighborNode);
 
@@ -127,11 +140,11 @@ export class OptimalPath {
     }
   }
 
-  public backtrackWaypoints(endNode: Node): Vector2[] {
+  public backtrackWaypoints(endNode: Node): void {
     let current: Node = endNode;
     let lastWaypoint: Vector2 = current.position;
 
-    const waypoints: Vector2[] = [lastWaypoint.multiply(this.gridScale)];
+    this.waypoints.push(lastWaypoint.multiply(this.gridScale));
 
     while (current.parent) {
       const prev = current;
@@ -140,90 +153,118 @@ export class OptimalPath {
 
       const difference = lastWaypoint.subtract(current.position);
 
-      this.radialHitbox.setTransformation(lastWaypoint.multiply(this.gridScale), difference.angle());
-      this.radialHitbox.sweepVertices(difference.magnitude() * this.gridScale);
+      this.travelHitbox.setTransformation(lastWaypoint.multiply(this.gridScale), difference.angle());
+      this.travelHitbox.sweepVertices(difference.magnitude() * this.gridScale);
 
-      const structureQuery: [Structure, Vector2, number][] = Game.instance.chunkManager.queryObjectsWithHitbox(this.radialHitbox, "Structure") as [Structure, Vector2, number][];
-      let structureInWay: boolean = structureQuery.some(([, , overlap]) => overlap > 0);
-
-      if (structureInWay) {
+      if (Game.instance.chunkManager.collisionQueryFromHitbox(this.travelHitbox, "Structure", true).length > 0) {
         lastWaypoint = prev.position;
 
-        waypoints.push(lastWaypoint.multiply(this.gridScale));
+        this.waypoints.push(lastWaypoint.multiply(this.gridScale));
       }
     }
 
-    return waypoints;
+    this.waypoints.push(this.gridStart.multiply(this.gridScale));
+    this.waypoints.reverse();
   }
 }
 
 export class Pathfinder {
-  private recomputeDistance: number = 2;
-
-  private radialBound: number;
-  private radialHitbox: SweptCollisionObject;
-
-  private target: Vector2;
-  private waypoints: Vector2[] | null = null;
+  private recomputeDist: number = 1;
+  private recomputeTimer: Timer = new Timer(1);
   
-  private polies: CollisionObject[] = [];
+  private lineOfSightHitbox: SweptCollisionObject;
+  private pathfindHitbox: SweptCollisionObject;
 
-  constructor(private subject: Entity) {
-    this.radialBound = 0.25;//subject.hitbox.getRadialBound();
-    this.radialHitbox = new Circle(this.radialBound).sweep();
+  private target: Entity = Game.instance.player;
+
+  private currentPath: OptimalPath;
+  private currentWaypoint: number
+
+  private _moveDirection: Vector2;
+  private _faceDirection: Vector2;
+  private _targetInSight: boolean = false;
+  private _targetInRange: boolean = false;
+
+  constructor(private subject: Entity, private approachRange: number) {
+    this.lineOfSightHitbox = new Point(new Vector2()).sweep();
+    this.pathfindHitbox = subject.hitbox.sweep();
   }
 
-  public setTarget(position: Vector2) {
-    this.target = position;
+  public setTarget(target: Entity) {
+    this.target = target;
   }
 
-  public getDirection(): Vector2 {
-    const directPath = this.target.subtract(this.subject.position);
+  public get moveDirection(): Vector2 {
+    return this._moveDirection;
+  }
 
-    this.radialHitbox.setTransformation(this.target, directPath.angle());
-    this.radialHitbox.sweepVertices(directPath.magnitude());
+  public get faceDirection(): Vector2 {
+    return this._faceDirection;
+  }
 
-    const structureQuery: [Structure, Vector2, number][] = Game.instance.chunkManager.queryObjectsWithHitbox(this.radialHitbox, "Structure") as [Structure, Vector2, number][];
-    let structureInWay: boolean = structureQuery.some(([, , overlap]) => overlap > 0);
+  public get shouldAttack(): boolean {
+    return this.target !== null && this._targetInSight && this.subject.position.distance(this.target.position) <= this.approachRange;
+  }
 
-    if (!structureInWay) return directPath.unit();
+  public update(): void {
+    if (!this.target) {
+      // do random walking stuff
 
-    if (!this.waypoints || this.target.distance(this.waypoints[0]) >= this.recomputeDistance) {
-      const path = new OptimalPath(this.subject.position, this.target, 0.5);
-      const waypoints = path.computePath();
+      return;
+    }
 
-      this.waypoints = waypoints || [];
+    const directPath = this.target.position.subtract(this.subject.position);
 
-      if (waypoints) {
-        const stuff = [...waypoints, this.subject.position];
+    if (directPath.magnitude() <= this.approachRange) {
+      this._moveDirection = new Vector2();
+      this._faceDirection = directPath.unit();
 
-        for (let i = 0; i < stuff.length - 1; i++) {
-          const shape = new Polygon([stuff[i], stuff[i + 1]]);
-          shape.show();
-          this.polies.push(shape);
-        }
+      return;
+    }
 
-      } else {
-        for (const poly of this.polies) {
-          poly.destroy();
-          poly.hide();
-        }
-        this.polies.length = 0;
+    this.lineOfSightHitbox.setTransformation(this.target.position, directPath.angle());
+    this.lineOfSightHitbox.sweepVertices(directPath.magnitude());
+
+    if (Game.instance.chunkManager.collisionQueryFromHitbox(this.lineOfSightHitbox, "Structure", true).length === 0) {
+      this._targetInSight = true;
+      this._moveDirection = this._faceDirection = directPath.unit();
+
+      return;
+
+    } else {
+      this._targetInSight = false;
+    }
+
+    if (!this.recomputeTimer.active && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
+      this.recomputeTimer.start();
+
+      this.currentPath = new OptimalPath(this.subject.position, this.target.position, 4, this.approachRange, this.pathfindHitbox);
+      this.currentPath.computePath();
+      this.currentWaypoint = 1;
+    }
+
+    while (this.currentWaypoint < this.currentPath.waypoints.length) {
+      const waypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint];
+      const lastWaypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint - 1];
+      const pathDirection = waypoint.subtract(lastWaypoint).unit();
+
+      const dotWaypoint = pathDirection.dot(waypoint);
+      const dotPosition = pathDirection.dot(this.subject.position);
+
+      if (dotPosition > dotWaypoint) {
+        this.currentWaypoint++;
+
+        continue;
       }
+
+      const waypointDirection = waypoint.subtract(this.subject.position).unit();
+      const finalDirection = pathDirection.add(waypointDirection).unit();
+
+      this._moveDirection = this._faceDirection = finalDirection;
+
+      return;
     }
 
-    let current = this.waypoints[this.waypoints.length - 1];
-
-    if (current && this.subject.position.distance(current) < this.radialBound) {
-      this.waypoints.length--;
-      
-      current = this.waypoints[this.waypoints.length - 1];
-
-      if (!current) this.waypoints = null;
-    }
-
-    if (current) return current.subtract(this.subject.position).unit();
-
-    return new Vector2();
+    this._moveDirection = this._faceDirection = new Vector2();
   }
 }

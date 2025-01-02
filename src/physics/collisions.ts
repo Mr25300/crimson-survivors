@@ -6,8 +6,10 @@ import { Vector2 } from '../util/vector2.js';
 export class CollisionObject {
   private _transformedVertices: Vector2[] = [];
   private _normals: Vector2[] = [];
+  private _bounds: Bounds;
   protected verticesOutdated: boolean = true;
   protected normalsOutdated: boolean = true;
+  protected boundsOutdated: boolean = true;
 
   private showingOnce: boolean = false;
   private vertexBuffer: WebGLBuffer | null = null;
@@ -34,6 +36,7 @@ export class CollisionObject {
 
     this.verticesOutdated = true;
     this.normalsOutdated = true;
+    this.boundsOutdated = true;
   }
 
   public getTransformedVertices(): Vector2[] {
@@ -51,34 +54,35 @@ export class CollisionObject {
   }
 
   public getNormals(reference: CollisionObject): Vector2[] {
+    const radialNormals: Vector2[] = [];
+    
     if (this.normalsOutdated) {
-      const vertices: Vector2[] = this.getTransformedVertices();
+      if (this.vertices.length > 1) {
+        const vertices: Vector2[] = this.getTransformedVertices();
 
-      this._normals.length = 0;
-
-      for (let i = 0; i < vertices.length; i++) {
-        const vertex1 = vertices[i];
-
-        if (vertices.length > 1) {
+        for (let i = 0; i < vertices.length; i++) {
+          const vertex1 = vertices[i];
           const vertex2 = vertices[(i + 1) % vertices.length];
           const edge = vertex2.subtract(vertex1);
           const normal = edge.perp().unit();
-
-          this._normals.push(normal);
-        }
-
-        if (this.radius > 0) {
-          const closestRefVertex = reference.getClosestVertex(vertex1);
-          const directionAxis = vertex1.subtract(closestRefVertex).unit();
-
-          this._normals.push(directionAxis);
+  
+          this._normals[i] = normal;
         }
       }
 
       this.normalsOutdated = false;
     }
 
-    return this._normals;
+    if (this.radius > 0) {
+      for (const vertex of this.getTransformedVertices()) {
+        const closestRefVertex = reference.getClosestVertex(vertex);
+        const directionAxis = vertex.subtract(closestRefVertex).unit();
+
+        radialNormals.push(directionAxis);
+      }
+    }
+
+    return [...this._normals, ...radialNormals];
   }
 
   public getProjectedRange(axis: Vector2): [number, number] {
@@ -98,10 +102,15 @@ export class CollisionObject {
   }
 
   public getBounds(): Bounds {
-    const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
-    const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+    if (this.boundsOutdated) {
+      const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
+      const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
 
-    return new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+      this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+      this.boundsOutdated = false;
+    }
+
+    return this._bounds;
   }
 
   public getCenter(): Vector2 {
@@ -338,6 +347,8 @@ export class SweptCollisionObject extends CollisionObject {
     }
 
     this.verticesOutdated = true;
+    this.normalsOutdated = true;
+    this.boundsOutdated = true;
   }
 }
 
@@ -447,6 +458,17 @@ export class Bounds {
 
   public get max(): Vector2 {
     return this._max;
+  }
+
+  public getDimensions(): Vector2 {
+    return this._max.subtract(this._min);
+  }
+
+  public overlaps(bounds: Bounds): boolean {
+    const xOverlap = this._max.x > bounds._min.x && this._min.x < bounds._max.x;
+    const yOverlap = this._max.y > bounds._min.y && this._min.y < bounds._max.y;
+    
+    return xOverlap && yOverlap;
   }
 
   public getInnerOverlap(innerRect: Bounds): Vector2 {

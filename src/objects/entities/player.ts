@@ -3,7 +3,7 @@ import { Tool } from '../tool.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import { ANRM } from '../tools/ANRM.js';
+import { ANRPI } from '../tools/ANRPI.js';
 
 export class Player extends Entity {
   private tool: Tool;
@@ -22,11 +22,10 @@ export class Player extends Entity {
         new Vector2(0.2, -0.3)
       ]),
       3,
-      new Vector2(),
       100
     );
 
-    this.giveTool(new ANRM());
+    this.giveTool(new ANRPI());
     this.holdTool(0);
 
     this.setTeam("Human");
@@ -42,7 +41,7 @@ export class Player extends Entity {
     this.tool = this.tools[index];
   }
 
-  public handleBehavior(): void {
+  public updateBehaviour(): void {
     let moveDir = new Vector2();
 
     if (Game.instance.controller.isControlActive("moveU")) moveDir = moveDir.add(new Vector2(0, 1));
@@ -56,11 +55,7 @@ export class Player extends Entity {
     this.setFaceDirection(aimDir);
 
     if (Game.instance.controller.isMouseDown()) {
-      this.attack();
+      this.tool.use(this);
     }
-  }
-
-  public attack(): void {
-    this.tool.use(this);
   }
 }

@@ -9,11 +9,15 @@ export class Vector2 {
     private _y: number = 0
   ) {}
 
-  public static fromAngle(angle: number) {
+  public static fromAngle(angle: number): Vector2 {
     return new Vector2(
       Math.sin(angle),
       Math.cos(angle)
     )
+  }
+
+  public static randomUnit(): Vector2 {
+    return Vector2.fromAngle(Math.random() * 2 * Math.PI);
   }
 
   public get x() {

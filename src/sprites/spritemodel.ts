@@ -9,18 +9,28 @@ export class SpriteModel {
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
+  private tileScale: Vector2;
+
   private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
 
   private highlightColor: Color = new Color(1, 1, 1);
   private highlightOpacity: number = 0;
 
-  constructor(private sprite: SpriteSheet) {
+  constructor(
+    private sprite: SpriteSheet,
+    private width: number = sprite.width,
+    private height: number = sprite.height,
+    tiling: boolean = false
+  ) {
     const objects = Game.instance.spriteModels.get(sprite) || new Set();
 
     if (objects.size === 0) Game.instance.spriteModels.set(sprite, objects);
 
     objects.add(this);
+
+    if (tiling) this.tileScale = new Vector2(this.width / this.sprite.width, this.height / this.sprite.height);
+    else this.tileScale = new Vector2(1, 1);
   }
 
   public setSpriteCell(cellNumber: number): void {
@@ -87,8 +97,13 @@ export class SpriteModel {
   }
 
   public bind(): void {
-    this.sprite.bindCoordBuffer(this.currentCell);
+    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.coordBuffer, 2, 0, this.currentCell * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
+    
+    Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
+    Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
+
     Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+
     Game.instance.canvas.shader.setUniformColor("tintColor", this.highlightColor);
     Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
   }
@@ -104,6 +119,8 @@ export class SpriteModel {
 }
 
 export class SpriteAnimation {
+  private markerCallbacks: Map<string, () => any> = new Map();
+
   private _active = true;
 
   constructor(
@@ -111,7 +128,7 @@ export class SpriteAnimation {
     private info: AnimationInfo,
     private timePassed: number = 0,
     private speed: number = 1
-  ) { }
+  ) {}
 
   public get active(): boolean {
     return this._active;
@@ -122,9 +139,12 @@ export class SpriteAnimation {
   }
 
   public update(deltaTime: number): void {
-    this.timePassed = this.timePassed + deltaTime * this.speed;
+    const prevTime = this.timePassed;
+    const newTime = prevTime + deltaTime * this.speed;
 
-    if (this.timePassed > this.info.duration) {
+    this.timePassed = newTime;
+
+    if (newTime > this.info.duration) {
       if (!this.info.looped) this.stop();
 
       this.timePassed %= this.info.duration;
@@ -134,6 +154,23 @@ export class SpriteAnimation {
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
 
     this.model.setSpriteCell(this.info.frames[frameIndex]);
+
+    this.markerCallbacks.forEach((callback: () => any, name: string) => {
+      const frame = this.info.getMarker(name)!;
+      const frameTime = frame / (this.info.frames.length - 1) * this.info.duration;
+
+      if (prevTime < frameTime && newTime >= frameTime) {
+        this.markerCallbacks.delete(name);
+
+        callback();
+      }
+    });
+  }
+
+  public markerReached(name: string, callback: () => any): void {
+    if (this.info.getMarker(name) === undefined) return;
+
+    this.markerCallbacks.set(name, callback);
   }
 
   public stop() {

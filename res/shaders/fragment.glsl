@@ -1,6 +1,7 @@
 precision mediump float;
 
 uniform sampler2D texture;
+uniform vec2 tileScale;
 uniform int debugMode;
 
 uniform vec3 tintColor;
@@ -13,7 +14,8 @@ void main() {
     gl_FragColor = vec4(1, 0, 0, 1);
 
   } else {
-    vec4 textureColor = texture2D(texture, textureVertCoord);
+    vec2 textureCoord = textureVertCoord * tileScale + (vec2(1) - tileScale) * 0.5;
+    vec4 textureColor = texture2D(texture, textureCoord);
 
     if (textureColor.a < 0.01) {
       discard;

@@ -2,6 +2,7 @@ import { Game } from "../core/game.js";
 import { Color } from "../util/color.js";
 import { Matrix4 } from "../util/matrix4.js";
 import {Util} from "../util/util.js";
+import { Vector2 } from "../util/vector2.js";
 
 export class ShaderProgram {
   private program: WebGLProgram;
@@ -117,6 +118,10 @@ export class ShaderProgram {
 
   public setUniformColor(name: string, color: Color) {
     this.gl.uniform3fv(this.getUniformLocation(name), color.toArray());
+  }
+
+  public setUniformVector(name: string, vector: Vector2) {
+    this.gl.uniform2fv(this.getUniformLocation(name), new Float32Array([vector.x, vector.y]));
   }
 
   public use(): void {

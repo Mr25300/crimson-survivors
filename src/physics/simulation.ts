@@ -1,8 +1,7 @@
 import { Game } from '../core/game.js';
-import { Batspawner } from '../objects/entities/batspawner.js';
 import { Grunt } from '../objects/entities/grunt.js';
 import { Kronku } from '../objects/entities/kronku.js';
-import { Necro } from '../objects/entities/necro.js';
+import { Necromancer } from '../objects/entities/necromancer.js';
 import { Patrol } from '../objects/entities/patrol.js';
 import { Vector2 } from '../util/vector2.js';
 import { Bounds } from './collisions.js';
@@ -15,28 +14,32 @@ export class Simulation {
 
   private spawnProbability: number = 0;
 
-  private spawnRates: Record<string, number> = {
-    grunt: 0.3,
-    necro: 0.1,
-    patrol: 0.2,
-    kronku: 0.2,
-    batspawner: 0.2
+  private spawnWeights: Record<string, number> = {
+    grunt: 10,
+    kronku: 7,
+    patrol: 5,
+    necromancer: 3
   };
 
   private spawnTimer: number = 0;
 
-  private spawnVampire(): void {
+  public spawnVampire(): void {
     const randomPosition: Vector2 = new Vector2(
       this.bounds.min.x + (this.bounds.max.x - this.bounds.min.x) * Math.random(),
       this.bounds.min.y + (this.bounds.max.y - this.bounds.min.y) * Math.random()
     );
 
     const randomPercent: number = Math.random();
+    let weightSum: number = 0;
     let rateSum: number = 0;
     let chosen: string = "";
 
-    for (const name in this.spawnRates) {
-      const rate = this.spawnRates[name];
+    for (const name in this.spawnWeights) {
+      weightSum += this.spawnWeights[name];
+    }
+
+    for (const name in this.spawnWeights) {
+      const rate = this.spawnWeights[name] / weightSum;
       rateSum += rate;
 
       if (randomPercent < rateSum) {
@@ -47,10 +50,9 @@ export class Simulation {
     }
 
     if (chosen === "grunt") new Grunt(randomPosition);
-    else if (chosen === "necro") new Necro(randomPosition);
     else if (chosen === "patrol") new Patrol(randomPosition);
     else if (chosen === "kronku") new Kronku(randomPosition);
-    else if (chosen === "batspawner") new Batspawner(randomPosition);
+    else if (chosen === "necromancer") new Necromancer(randomPosition);
   }
 
   public update(deltaTime: number): void {
@@ -74,11 +76,11 @@ export class Simulation {
     }
 
     for (const entity of Game.instance.entities) {
-      entity.handleBehavior(deltaTime);
+      entity.updateBehaviour(deltaTime);
     }
 
     for (const entity of Game.instance.entities) {
-      entity.update(deltaTime);
+      entity.updatePhysics(deltaTime);
     }
 
     // do collision for user

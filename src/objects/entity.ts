@@ -2,14 +2,15 @@ import {Vector2} from '../util/vector2.js';
 import {SpriteModel} from '../sprites/spritemodel.js';
 import {GameObject} from './gameobject.js';
 import {Game} from '../core/game.js';
-import { Polygon } from '../physics/collisions.js';
+import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from './team.js';
 import { Structure } from './structure.js';
 import { Timer } from './timer.js';
 import { Color } from '../util/color.js';
+import { CollisionInfo } from '../physics/chunkmanager.js';
 
 export abstract class Entity extends GameObject {
-  private accelTime: number = 0.3;
+  private accelTime: number = 0.25;
   private knockbackDrag: number = 5;
   private velocity: Vector2 = new Vector2();
   private knockbackVelocity: Vector2 = new Vector2();
@@ -17,7 +18,7 @@ export abstract class Entity extends GameObject {
   private _moveDirection: Vector2 = new Vector2();
   private _faceDirection: Vector2 = new Vector2();
 
-  private _team: Team | null = null;
+  private _team?: Team;
 
   private maxHealth: number;
 
@@ -25,25 +26,62 @@ export abstract class Entity extends GameObject {
 
   constructor(
     sprite: SpriteModel,
-    hitShape: Polygon,
+    hitShape: CollisionObject,
     private moveSpeed: number,
-    position: Vector2,
-    private health: number
+    private health: number,
+    position: Vector2 = new Vector2()
   ) {
     super("Entity", sprite, hitShape, position);
 
-    this.sprite.playAnimation('idle');
-
     this.maxHealth = health;
+
+    this.sprite.playAnimation("idle");
 
     Game.instance.entities.add(this);
   }
 
-  // public getHitbox(): HitBox {
-  //   return new HitBox(this.position, this.rotation, this.width, this.height);
-  // }
+  public get faceDirection(): Vector2 {
+    return this._faceDirection;
+  }
 
-  public update(deltaTime: number): void {
+  public get moveDirection(): Vector2 {
+    return this._moveDirection;
+  }
+
+  protected setFaceDirection(direction: Vector2): void {
+    this._faceDirection = direction.unit();
+  }
+
+  protected setMoveDirection(direction: Vector2): void {
+    this._moveDirection = direction.unit();
+  }
+
+  public get team(): Team | undefined {
+    return this._team;
+  }
+
+  public setTeam(name: string) {
+    this._team = Game.instance.teams.get(name)!;
+  }
+
+  public damage(amount: number, highlightColor: Color = new Color(1, 0, 0)) {
+    this.health -= amount;
+
+    if (this.health <= 0) this.destroy();
+
+    this.sprite.setHighlight(highlightColor);
+    this.sprite.setHighlightOpacity(1);
+
+    this.damageEffectTimer.start();
+  }
+
+  public knockback(impulse: Vector2) {
+    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
+  }
+
+  public abstract updateBehaviour(deltaTime: number): void;
+
+  public updatePhysics(deltaTime: number): void {
     const goalVelocity: Vector2 = this._moveDirection.multiply(this.moveSpeed);
     const difference: Vector2 = goalVelocity.subtract(this.velocity);
 
@@ -75,17 +113,10 @@ export abstract class Entity extends GameObject {
       }
     }
 
-    // use existing chunk list of gameobject
-    // getObjectsInPolygon is stupid, make it more general name
-
     this.updateObject();
 
-    const list = Game.instance.structures;//Game.instance.chunkManager.queryObjectsWithObject(this, "Structure");
-
-    for (const structure of list) {
-      const [collides, normal, overlap] = this.hitbox.intersects(structure.hitbox);
-
-      if (collides) this.position = this.position.add(normal.multiply(overlap));
+    for (const info of Game.instance.chunkManager.collisionQueryFromObject(this, "Structure", false)) {
+      this.position = this.position.add(info.normal.multiply(info.overlap));
     }
 
     this.updateObject();
@@ -96,48 +127,6 @@ export abstract class Entity extends GameObject {
     } else {
       this.sprite.setHighlightOpacity(0);
     }
-  }
-
-  public get faceDirection(): Vector2 {
-    return this._faceDirection;
-  }
-
-  public get moveDirection(): Vector2 {
-    return this._moveDirection;
-  }
-
-  public setFaceDirection(direction: Vector2): void {
-    this._faceDirection = direction.unit();
-  }
-
-  public setMoveDirection(direction: Vector2): void {
-    this._moveDirection = direction.unit();
-  }
-
-  public abstract handleBehavior(deltaTime: number): void;
-  public abstract attack(): void;
-
-  public get team(): Team | null {
-    return this._team;
-  }
-
-  public setTeam(name: string) {
-    this._team = Game.instance.teams.get(name)!;
-  }
-
-  public damage(amount: number, highlightColor: Color = new Color(1, 0, 0)) {
-    this.health -= amount;
-
-    if (this.health < 0) this.destroy();
-
-    this.sprite.setHighlight(highlightColor);
-    this.sprite.setHighlightOpacity(1);
-
-    this.damageEffectTimer.start();
-  }
-
-  public knockback(impulse: Vector2) {
-    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
   }
 
   public override destroy(): void {
