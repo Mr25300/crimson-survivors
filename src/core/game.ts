@@ -81,7 +81,9 @@ export class Game extends Gameloop {
     this.player = player;
     this._camera.setSubject(this.player);
 
-    new Grunt(new Vector2(10, 0));
+    for (let i = 0; i < 1; i++) {
+      new Grunt(new Vector2(10, 0));
+    }
 
     this.start();
   }

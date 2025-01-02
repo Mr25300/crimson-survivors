@@ -119,6 +119,10 @@ export class ChunkManager {
     return entities;
   }
 
+  public restrictionQuery(hitbox: CollisionObject): boolean {
+    return this.collisionQueryFromHitbox(hitbox, "Structure", true).length > 0;
+  }
+
   // public queryObjectsWithObject(gameObject: GameObject, searchType: string): [GameObject, Vector2, number][] {
   //   return this.queryObjectsWithChunks(Array.from(gameObject.chunks), gameObject.hitbox, searchType);
   // }

@@ -14,8 +14,7 @@ export abstract class GameObject {
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
-    this.hitbox.show();
-    this.updateObject(); // fix order of priority here
+    this.updateObject();
   }
 
   public updateObject(): void {

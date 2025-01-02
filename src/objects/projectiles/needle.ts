@@ -21,7 +21,7 @@ export class Needle extends Projectile {
   }
 
   public handleEntityCollision(entity: Entity): void {
-    entity.damage(this.damage, new Color(235 / 255, 144 / 255, 144 / 255));
+    entity.damage(this.damage, new Color(255 / 255, 148 / 255, 148 / 255));
     entity.knockback(this.direction.multiply(5));
 
     this.destroy();

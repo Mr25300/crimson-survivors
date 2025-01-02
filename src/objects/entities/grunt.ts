@@ -38,7 +38,7 @@ export class Grunt extends Bot {
   
       if (attacked) {
         attacked.damage(10);
-        attacked.knockback(this.faceDirection.multiply(10));
+        attacked.knockback(this.faceDirection.multiply(5));
       }
     })
   }

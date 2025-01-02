@@ -3,7 +3,95 @@ import { Entity } from "../objects/entity.js";
 import { Timer } from "../objects/timer.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
-import { Point, SweptCollisionObject } from "./collisions.js";
+import { Point, Rectangle, SweptCollisionObject } from "./collisions.js";
+
+class MinHeap<T> {
+  private heap: T[] = [];
+  private size: number = 0;
+
+  constructor(private compareCallback: (a: T, b: T) => number) {}
+
+  private swap(a: number, b: number): void {
+    const temp: T = this.heap[a];
+
+    this.heap[a] = this.heap[b];
+    this.heap[b] = temp;
+  }
+
+  private compare(a: number, b: number): number {
+    return this.compareCallback(this.heap[a], this.heap[b]);
+  }
+
+  public push(value: T): void {
+    this.heap[this.size++] = value;
+
+    this.heapifyUp();
+  }
+
+  public pop(): T | undefined {
+    if (this.size === 0) return undefined;
+
+    const item = this.heap[0];
+
+    this.heap[0] = this.heap[this.size - 1];
+    delete this.heap[this.size-- - 1];
+
+    this.heapifyDown();
+
+    return item;
+  }
+
+  public peek(): T | undefined {
+    return this.heap[0];
+  }
+
+  public isEmpty(): boolean {
+    return this.size === 0;
+  }
+
+  private heapifyUp(): void {
+    let index: number = this.size - 1;
+
+    while (true) {
+      const parent = Math.floor((index - 1) / 2);
+
+      if (parent >= 0 && this.compare(parent, index) > 0) {
+        this.swap(parent, index);
+
+        index = parent;
+
+      } else {
+        break;
+      }
+    }
+  }
+
+  private heapifyDown(): void {
+    let index: number = 0;
+
+    while (true) {
+      const left: number = index * 2;
+      const right: number = index * 2 + 1;
+
+      if (left >= this.size) break;
+
+      let smallestChild: number = left;
+
+      if (right < this.size && this.compare(right, left) < 0) {
+        smallestChild = right;
+      }
+
+      if (this.compare(index, smallestChild) > 0) {
+        this.swap(index, smallestChild);
+
+        index = smallestChild;
+
+      } else {
+        break;
+      }
+    }
+  }
+}
 
 class Node {
   constructor(
@@ -12,7 +100,7 @@ class Node {
     public readonly hCost: number,
     public readonly restricted: boolean = false,
     public parent?: Node
-  ) { }
+  ) {}
 
   public get fCost(): number {
     return this.gCost + this.hCost;
@@ -39,8 +127,9 @@ export class OptimalPath {
     new Vector2(-1, 1),
   ];
 
-  private openSet: Node[] = []; // try using minheap to optimize
+  private priorityQueue: MinHeap<Node> = new MinHeap((a: Node, b: Node) => a.compare(b)); // try using minheap to optimize
   private processed: Map<number, Node> = new Map();
+  private restricted: Set<number> = new Set();
 
   private gridStart: Vector2;
   private gridGoal: Vector2;
@@ -70,28 +159,18 @@ export class OptimalPath {
 
   public computePath(): void {
     // fails when path is impossible because of hitbox size, figure out how to fix (with help from gpt)
-    this.openSet.push(new Node(this.gridStart, 0, this.gridStart.distance(this.gridGoal)));
+    this.priorityQueue.push(new Node(this.gridStart, 0, this.gridStart.distance(this.gridGoal)));
+    this.processed.set(this.getKey(this.gridStart), this.priorityQueue.peek()!);
 
-    while (this.openSet.length > 0) {
-      let nodeInd = 0;
-      let node = this.openSet[0];
-
-      for (let i = 1; i < this.openSet.length; i++) {
-        const nextNode = this.openSet[i];
-
-        if (node.compare(nextNode) > 0) {
-          nodeInd = i;
-          node = nextNode;
-        }
-      }
-
-      this.openSet.splice(nodeInd, 1);
-      this.processNode(node);
+    while (!this.priorityQueue.isEmpty()) {
+      const node = this.priorityQueue.pop()!;
 
       // new Rectangle(this.gridScale, this.gridScale, undefined, node.position.multiply(this.gridScale)).show();
 
       if (node.hCost <= this.arriveRange / this.gridScale) {
         this.backtrackWaypoints(node);
+
+        return;
       }
 
       for (const direction of this.neighborDirections) {
@@ -102,41 +181,51 @@ export class OptimalPath {
 
   public travelToNeighbor(node: Node, direction: Vector2): void {
     const neighborPos = node.position.add(direction);
+    const neighborKey = this.getKey(neighborPos);
+
+    if (this.restricted.has(neighborKey)) return;
+
     const gCost: number = node.gCost + direction.magnitude();
-    const existing = this.getProcessed(neighborPos);
+    const existing = this.processed.get(neighborKey);
 
     if (existing) {
-      if (existing.restricted) return;
-
       if (gCost < existing.gCost) {
         existing.gCost = gCost;
         existing.parent = node;
+
+        this.priorityQueue.push(existing);
+
+        // this.openSet.push(existing);
       }
 
     } else {
-      this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
-      this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
-
-      const neighborDistanceSum = neighborPos.distance(this.gridStart) + neighborPos.distance(this.gridGoal);
-      const goalDistance = this.gridStart.distance(this.gridGoal);
-      let restricted: boolean = neighborDistanceSum > goalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
+      const goalDistance = neighborPos.distance(this.gridGoal);
+      const totalDistance = this.gridStart.distance(this.gridGoal);
+      const neighborDistanceSum = neighborPos.distance(this.gridStart) + goalDistance;
+      let restricted: boolean = neighborDistanceSum > totalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
 
       if (!restricted) {
-        const realPos = neighborPos.multiply(this.gridScale);
-
         // cut off for out of bounds
       }
 
       if (!restricted) {
-        restricted = Game.instance.chunkManager.collisionQueryFromHitbox(this.travelHitbox, "Structure", true).length > 0;
+        this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
+        this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
+
+        restricted = Game.instance.chunkManager.restrictionQuery(this.travelHitbox);
       }
 
-      const hCost = neighborPos.distance(this.gridGoal);
+      if (restricted) {
+        this.restricted.add(neighborKey);
+
+        return;
+      }
+
+      const hCost = goalDistance;
       const neighborNode = new Node(neighborPos, gCost, hCost, restricted, node);
 
-      this.processNode(neighborNode);
-
-      if (!neighborNode.restricted) this.openSet.push(neighborNode);
+      this.processed.set(neighborKey, neighborNode);
+      this.priorityQueue.push(neighborNode);
     }
   }
 
@@ -156,7 +245,7 @@ export class OptimalPath {
       this.travelHitbox.setTransformation(lastWaypoint.multiply(this.gridScale), difference.angle());
       this.travelHitbox.sweepVertices(difference.magnitude() * this.gridScale);
 
-      if (Game.instance.chunkManager.collisionQueryFromHitbox(this.travelHitbox, "Structure", true).length > 0) {
+      if (Game.instance.chunkManager.restrictionQuery(this.travelHitbox)) {
         lastWaypoint = prev.position;
 
         this.waypoints.push(lastWaypoint.multiply(this.gridScale));
@@ -183,7 +272,7 @@ export class Pathfinder {
   private _moveDirection: Vector2;
   private _faceDirection: Vector2;
   private _targetInSight: boolean = false;
-  private _targetInRange: boolean = false;
+  private _targetDistance: number;
 
   constructor(private subject: Entity, private approachRange: number) {
     this.lineOfSightHitbox = new Point(new Vector2()).sweep();
@@ -202,8 +291,8 @@ export class Pathfinder {
     return this._faceDirection;
   }
 
-  public get shouldAttack(): boolean {
-    return this.target !== null && this._targetInSight && this.subject.position.distance(this.target.position) <= this.approachRange;
+  public shouldAttack(): boolean {
+    return this.target !== null && this._targetInSight && this._targetDistance <= this.approachRange;
   }
 
   public update(): void {
@@ -215,24 +304,22 @@ export class Pathfinder {
 
     const directPath = this.target.position.subtract(this.subject.position);
 
-    if (directPath.magnitude() <= this.approachRange) {
+    this.lineOfSightHitbox.setTransformation(this.target.position, directPath.angle());
+    this.lineOfSightHitbox.sweepVertices(directPath.magnitude());
+    this._targetInSight = !Game.instance.chunkManager.restrictionQuery(this.lineOfSightHitbox);
+    this._targetDistance = directPath.magnitude();
+
+    if (this._targetDistance <= this.approachRange) {
       this._moveDirection = new Vector2();
       this._faceDirection = directPath.unit();
 
       return;
     }
 
-    this.lineOfSightHitbox.setTransformation(this.target.position, directPath.angle());
-    this.lineOfSightHitbox.sweepVertices(directPath.magnitude());
-
-    if (Game.instance.chunkManager.collisionQueryFromHitbox(this.lineOfSightHitbox, "Structure", true).length === 0) {
-      this._targetInSight = true;
+    if (this._targetInSight) {
       this._moveDirection = this._faceDirection = directPath.unit();
 
       return;
-
-    } else {
-      this._targetInSight = false;
     }
 
     if (!this.recomputeTimer.active && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {

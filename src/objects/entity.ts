@@ -21,8 +21,9 @@ export abstract class Entity extends GameObject {
   private _team?: Team;
 
   private maxHealth: number;
+  private _dead: boolean = false;
 
-  private damageEffectTimer: Timer = new Timer(0.25);
+  private damageEffectTimer: Timer = new Timer(0.3);
 
   constructor(
     sprite: SpriteModel,
@@ -49,7 +50,8 @@ export abstract class Entity extends GameObject {
   }
 
   protected setFaceDirection(direction: Vector2): void {
-    this._faceDirection = direction.unit();
+    if (direction.magnitude() === 0) this._faceDirection = new Vector2(0, 1);
+    else this._faceDirection = direction.unit();
   }
 
   protected setMoveDirection(direction: Vector2): void {
@@ -77,6 +79,10 @@ export abstract class Entity extends GameObject {
 
   public knockback(impulse: Vector2) {
     this.knockbackVelocity = this.knockbackVelocity.add(impulse);
+  }
+
+  public get dead(): boolean {
+    return this._dead;
   }
 
   public abstract updateBehaviour(deltaTime: number): void;
@@ -131,6 +137,8 @@ export abstract class Entity extends GameObject {
 
   public override destroy(): void {
     super.destroy();
+
+    this._dead = true;
 
     Game.instance.entities.delete(this);
   }
