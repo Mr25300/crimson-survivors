@@ -17,7 +17,7 @@ export class Simulation {
   private spawnWeights: Record<string, number> = {
     grunt: 10,
     kuranku: 7,
-    patrol: 0,//5,
+    patrol: 5,
     necromancer: 0//3
   };
 

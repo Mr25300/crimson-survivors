@@ -6,8 +6,8 @@ import { Structure } from "../structure.js";
 export class PatrolWall extends Structure {
   constructor(position: Vector2, rotation: number) {
     super(
-      Game.instance.spriteManager.create("patrolWall", 2, 1, true),
-      new Rectangle(2, 0.35, new Vector2(0, -0.05)),
+      Game.instance.spriteManager.create("patrolWall", new Vector2(3, 1), true),
+      new Rectangle(3, 0.35, new Vector2(0, -0.05)),
       position,
       rotation
     );
@@ -15,5 +15,13 @@ export class PatrolWall extends Structure {
     this.hitbox.show();
 
     this.sprite.playAnimation("appear");
+  }
+
+  public despawn(): void {
+    const anim = this.sprite.playAnimation("disappear")!;
+
+    anim.markerReached("gone", () => {
+      this.destroy();
+    });
   }
 }

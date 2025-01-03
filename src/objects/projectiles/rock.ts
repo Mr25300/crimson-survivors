@@ -14,7 +14,7 @@ export class Rock extends Projectile {
       new Rectangle(0.07, 0.07),
       position,
       direction,
-      5,
+      8,
       2,
       sender
     );

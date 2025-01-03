@@ -1,8 +1,10 @@
 import { Game } from "../core/game.js";
 
-export class Timer { // alternatively called Timer
+export class Timer {
   private timePassed: number = 0;
   private _active: boolean = false;
+
+  private callback: (() => any) | null = null;
 
   constructor(private duration: number) {}
 
@@ -13,6 +15,11 @@ export class Timer { // alternatively called Timer
 
     if (this.timePassed >= this.duration) {
       this.stop();
+
+      if (this.callback) {
+        this.callback();
+        this.callback = null;
+      }
     }
   }
 
@@ -27,6 +34,10 @@ export class Timer { // alternatively called Timer
     this._active = false;
 
     Game.instance.timers.delete(this);
+  }
+
+  public onComplete(callback: () => any) {
+    this.callback = callback;
   }
 
   public get active(): boolean {

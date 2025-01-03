@@ -15,7 +15,7 @@ export class Canvas {
 
   private spriteVertexBuffer: WebGLBuffer;
 
-  private screenUnitScale: number = 1 / 2;
+  private screenUnitScale: number = 1 / 10;
   private height: number;
   private width: number;
   private aspectRatio: number;
@@ -49,7 +49,7 @@ export class Canvas {
     this.shader.createUniform("screenProjection");
     this.shader.createUniform("spriteSize");
     this.shader.createUniform("spriteCell");
-    // this.shader.createUniform("tileScale");
+    this.shader.createUniform("tileScale");
     this.shader.createUniform("modelTransform");
     this.shader.createUniform("zOrder");
 

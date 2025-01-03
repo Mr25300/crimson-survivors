@@ -1,6 +1,5 @@
 import { Game } from "../core/game.js";
 import {ShaderProgram} from "../rendering/shaderprogram.js";
-import {Matrix3} from "../util/matrix3.js";
 import { Vector2 } from "../util/vector2.js";
 import {SpriteModel} from "./spritemodel.js";
 
@@ -32,12 +31,12 @@ export class SpriteSheet {
 
   public bind(): void {
     Game.instance.canvas.bindTexture(this.texture);
+    Game.instance.canvas.shader.setUniformVector("spriteSize", this.sheetSize);
     Game.instance.canvas.shader.setUniformFloat("zOrder", this.zOrder);
   }
 
   public destroy(): void {
     Game.instance.canvas.deleteTexture(this.texture);
-    Game.instance.canvas.shader.setUniformVector("spriteSize", this.sheetSize);
   }
 }
 

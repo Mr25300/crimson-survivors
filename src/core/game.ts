@@ -69,8 +69,8 @@ export class Game extends Gameloop {
 
     await this._canvas.init();
 
-    // const dimensions: Vector2 = this._simulation.bounds.getDimensions();
-    // const floor: SpriteModel = this._spriteManager.create("floor", dimensions.x, dimensions.y, true);
+    const dimensions: Vector2 = this._simulation.bounds.getDimensions();
+    const floor: SpriteModel = this._spriteManager.create("floor", dimensions, true);
 
     new Team("Human");
     new Team("Vampire");
@@ -88,15 +88,10 @@ export class Game extends Gameloop {
     this._camera.setSubject(this.player);
 
     for (let i = 0; i < 100; i++) {
-      // new Grunt(new Vector2(10, 0));
       // this._simulation.spawnVampire();
     }
 
-    // new Patrol(new Vector2(-5, 0));
-
-    // const sprite = this._spriteManager.create("wall");
-    // sprite.setSpriteCell(1);
-    // sprite.setTransformation(new Vector2(1, 0), 0);
+    new Patrol(new Vector2(-5, 0));
 
     this.start();
   }

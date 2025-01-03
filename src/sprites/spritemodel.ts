@@ -20,8 +20,7 @@ export class SpriteModel {
 
   constructor(
     private sprite: SpriteSheet,
-    private width: number = sprite.width,
-    private height: number = sprite.height,
+    private size: Vector2 = new Vector2(1, 1),
     tiling: boolean = false
   ) {
     const objects = Game.instance.spriteModels.get(sprite) || new Set();
@@ -30,7 +29,7 @@ export class SpriteModel {
 
     objects.add(this);
 
-    if (tiling) this.tileScale = new Vector2(this.width / this.sprite.width, this.height / this.sprite.height);
+    if (tiling) this.tileScale = new Vector2(this.size.x / this.sprite.width, this.size.y / this.sprite.height);
     else this.tileScale = new Vector2(1, 1);
   }
 
@@ -72,19 +71,25 @@ export class SpriteModel {
 
   public update(deltaTime: number) {
     let highestPriority: number;
-    let selectedAnim: SpriteAnimation | undefined;
+    let selectedFrame: number | undefined;
 
     this.animations.forEach((anim: SpriteAnimation, key: string) => {
-      if (!anim.active) this.animations.delete(key);
+      const animFrame = anim.getFrame(deltaTime);
 
-      if (highestPriority === undefined || selectedAnim === undefined || anim.priority >= highestPriority) {
+      if (!anim.active) {
+        this.animations.delete(key);
+
+        return;
+      }
+
+      if (highestPriority === undefined || selectedFrame === undefined || anim.priority >= highestPriority) {
         highestPriority = anim.priority;
-        selectedAnim = anim;
+        selectedFrame = animFrame;
       }
     });
 
-    if (selectedAnim !== undefined) {
-      selectedAnim.update(deltaTime);
+    if (selectedFrame !== undefined) {
+      this.setSpriteCell(selectedFrame);
     }
   }
 
@@ -107,9 +112,9 @@ export class SpriteModel {
 
   public bind(): void {
     // Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
-    // Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
     Game.instance.canvas.shader.setUniformFloat("spriteCell", this.currentCell);
-    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation));
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation, this.size));
+    Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
 
     Game.instance.canvas.shader.setUniformColor("tintColor", this.highlightColor);
     Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
@@ -117,6 +122,9 @@ export class SpriteModel {
 
   public destroy(): void {
     const models = Game.instance.spriteModels.get(this.sprite)!;
+
+    // if (!models) return;
+
     models.delete(this);
 
     if (models.size === 0) {
@@ -145,27 +153,9 @@ export class SpriteAnimation {
     return this.info.priority;
   }
 
-  public update(deltaTime: number): void {
+  public getFrame(deltaTime: number): number {
     const prevTime = this.timePassed;
     const newTime = prevTime + deltaTime * this.speed;
-
-    this.timePassed = newTime;
-
-    if (newTime >= this.info.duration) {
-      if (!this.info.looped) {
-        this.stop();
-
-        return;
-      }
-
-      this.timePassed %= this.info.duration;
-    }
-
-    const percentThrough = this.timePassed / this.info.duration;
-    const frameIndex = Math.floor(this.info.frames.length * percentThrough);
-    const modifier = this.info.getModifier(this.model.animationModifier!) || 0;
-
-    this.model.setSpriteCell(this.info.frames[frameIndex] + modifier);
 
     this.markerCallbacks.forEach((callback: () => any, name: string) => {
       const frame = this.info.getMarker(name)!;
@@ -177,6 +167,24 @@ export class SpriteAnimation {
         callback();
       }
     });
+
+    this.timePassed = newTime;
+
+    if (newTime >= this.info.duration) {
+      if (!this.info.looped) {
+        this.stop();
+
+        return 0;
+      }
+
+      this.timePassed %= this.info.duration;
+    }
+
+    const percentThrough = this.timePassed / this.info.duration;
+    const frameIndex = Math.floor(this.info.frames.length * percentThrough);
+    const modifier = this.info.getModifier(this.model.animationModifier!) || 0;
+
+    return this.info.frames[frameIndex] + modifier;
   }
 
   public markerReached(name: string, callback: () => any): void {

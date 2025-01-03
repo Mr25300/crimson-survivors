@@ -49,8 +49,9 @@ export class SpriteManager {
     patrol.createAnimation("create", [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], 2, false, 2);
 
     const patrolWall: SpriteSheet = new SpriteSheet("res/assets/PatrolWall.png", 1, 1, new Vector2(3, 3), 1);
-    patrolWall.createAnimation("appear", [6, 5, 4, 3, 2, 1, 0], 1, false, 1);
-    patrolWall.createAnimation("disappear", [0, 1, 2, 3, 4, 5, 6], 1, false, 2);
+    patrolWall.createAnimation("appear", [7, 6, 5, 4, 3, 2, 1, 0], 0.5, false, 1);
+    const disappear = patrolWall.createAnimation("disappear", [0, 1, 2, 3, 4, 5, 6, 7], 0.5, false, 2);
+    disappear.addMarker("gone", 7);
 
     const necromancer: SpriteSheet = new SpriteSheet("res/assets/Necromancer.png", 1, 1, new Vector2(3, 3), 1);
     necromancer.createAnimation("idle", [0], 1, true, 0);
@@ -80,11 +81,11 @@ export class SpriteManager {
     }
   }
 
-  public create(name: SpriteName, width?: number, height?: number, tiling?: boolean): SpriteModel {
+  public create(name: SpriteName, size?: Vector2, tiling?: boolean): SpriteModel {
     const sprite = this.sprites[name];
 
     if (!sprite) throw new Error(`Sprite "${name}" does not exist.`);
 
-    return new SpriteModel(sprite, width, height, tiling);
+    return new SpriteModel(sprite, size, tiling);
   }
 }

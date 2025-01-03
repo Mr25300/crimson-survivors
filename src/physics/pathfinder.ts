@@ -269,8 +269,8 @@ export class Pathfinder {
   private currentPath: OptimalPath;
   private currentWaypoint: number
 
-  private _moveDirection: Vector2;
-  private _faceDirection: Vector2;
+  private _moveDirection: Vector2 = new Vector2();
+  private _faceDirection: Vector2 = new Vector2();
   private _targetInSight: boolean = false;
   private _targetDistance: number;
 

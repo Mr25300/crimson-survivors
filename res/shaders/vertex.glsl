@@ -7,6 +7,8 @@ uniform mat3 modelTransform;
 uniform float zOrder;
 
 varying vec2 textureVertCoord;
+varying vec2 spriteCellSize;
+varying vec2 spriteCellStart;
 
 // change z priority based on distance from center of screen (closer enemies appear ontop)
 // dm = root(2)
@@ -29,9 +31,13 @@ void main() {
   gl_Position = vec4(transformedPosition.xy, zPosition, 1);
 
   vec2 baseCoord = vertexPos + vec2(0.5); // map [-0.5, 0.5] to [0, 1]
+  vec2 formattedCoord = vec2(baseCoord.x, 1.0 - baseCoord.y);
   vec2 cellSize = vec2(1) / spriteSize;
   float column = modI(spriteCell, spriteSize.x);
   float row = floor(spriteCell / spriteSize.x);
+  vec2 cellStart = cellSize * vec2(column, row);
 
-  textureVertCoord = baseCoord * cellSize + cellSize * vec2(column, row);
+  textureVertCoord = formattedCoord * cellSize + cellStart;
+  spriteCellSize = cellSize;
+  spriteCellStart = cellStart;
 }
