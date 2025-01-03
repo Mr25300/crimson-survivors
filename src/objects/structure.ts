@@ -8,7 +8,6 @@ export abstract class Structure extends GameObject {
   constructor(
     sprite: SpriteModel,
     hitbox: CollisionObject,
-    public canCollide: boolean,
     position: Vector2,
     rotation: number
   ) {

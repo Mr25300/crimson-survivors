@@ -1,5 +1,5 @@
 import { Game } from '../core/game.js';
-import { Matrix4 } from '../util/matrix4.js';
+import { Matrix3 } from '../util/matrix3.js';
 import { Util } from '../util/util.js';
 import { Vector2 } from '../util/vector2.js';
 
@@ -41,7 +41,7 @@ export class CollisionObject {
 
   public getTransformedVertices(): Vector2[] {
     if (this.verticesOutdated) {
-      const matrix = Matrix4.fromTransformation(this._position, this._rotation);
+      const matrix = Matrix3.fromTransformation(this._position, this._rotation);
 
       for (let i = 0; i < this.vertices.length; i++) {
         this._transformedVertices[i] = matrix.apply(this.vertices[i]);
@@ -301,7 +301,7 @@ export class CollisionObject {
     if (!this.vertexBuffer) return;
 
     Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
-    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation));
 
     if (this.showingOnce) {
       this.destroy();

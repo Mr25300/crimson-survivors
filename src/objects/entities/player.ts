@@ -4,6 +4,7 @@ import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import { ANRPI } from '../tools/ANRPI.js';
+import { ANRMI } from '../tools/ANRMI.js';
 
 export class Player extends Entity {
   private tool: Tool;
@@ -25,10 +26,14 @@ export class Player extends Entity {
       100
     );
 
-    this.giveTool(new ANRPI());
+    this.giveTool(new ANRMI());
     this.holdTool(0);
 
     this.setTeam("Human");
+
+    this.sprite.setAnimationModifier("machineInjector");
+
+    this.hitbox.show();
   }
 
   public giveTool(tool: Tool): void {

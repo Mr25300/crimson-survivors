@@ -20,6 +20,8 @@ import { Timer } from '../objects/timer.js';
 import { Wall } from '../objects/structures/wall.js';
 import { OptimalPath } from '../physics/pathfinder.js';
 import { Grunt } from '../objects/entities/grunt.js';
+import { Kuranku } from '../objects/entities/kuranku.js';
+import { Patrol } from '../objects/entities/patrol.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -61,10 +63,14 @@ export class Game extends Gameloop {
     this._chunkManager = new ChunkManager();
     this._simulation = new Simulation();
 
+    document.addEventListener("contextmenu", (event: MouseEvent) => { // move to UI handler or something like that
+      event.preventDefault();
+    });
+
     await this._canvas.init();
 
-    const dimensions: Vector2 = this._simulation.bounds.getDimensions();
-    const floor: SpriteModel = this._spriteManager.create("floor", dimensions.x, dimensions.y, true);
+    // const dimensions: Vector2 = this._simulation.bounds.getDimensions();
+    // const floor: SpriteModel = this._spriteManager.create("floor", dimensions.x, dimensions.y, true);
 
     new Team("Human");
     new Team("Vampire");
@@ -81,9 +87,16 @@ export class Game extends Gameloop {
     this.player = player;
     this._camera.setSubject(this.player);
 
-    for (let i = 0; i < 1; i++) {
-      new Grunt(new Vector2(10, 0));
+    for (let i = 0; i < 100; i++) {
+      // new Grunt(new Vector2(10, 0));
+      // this._simulation.spawnVampire();
     }
+
+    // new Patrol(new Vector2(-5, 0));
+
+    // const sprite = this._spriteManager.create("wall");
+    // sprite.setSpriteCell(1);
+    // sprite.setTransformation(new Vector2(1, 0), 0);
 
     this.start();
   }

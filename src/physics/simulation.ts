@@ -1,6 +1,6 @@
 import { Game } from '../core/game.js';
 import { Grunt } from '../objects/entities/grunt.js';
-import { Kronku } from '../objects/entities/kronku.js';
+import { Kuranku } from '../objects/entities/kuranku.js';
 import { Necromancer } from '../objects/entities/necromancer.js';
 import { Patrol } from '../objects/entities/patrol.js';
 import { Vector2 } from '../util/vector2.js';
@@ -16,9 +16,9 @@ export class Simulation {
 
   private spawnWeights: Record<string, number> = {
     grunt: 10,
-    kronku: 7,
-    patrol: 5,
-    necromancer: 3
+    kuranku: 7,
+    patrol: 0,//5,
+    necromancer: 0//3
   };
 
   private spawnTimer: number = 0;
@@ -51,7 +51,7 @@ export class Simulation {
 
     if (chosen === "grunt") new Grunt(randomPosition);
     else if (chosen === "patrol") new Patrol(randomPosition);
-    else if (chosen === "kronku") new Kronku(randomPosition);
+    else if (chosen === "kuranku") new Kuranku(randomPosition);
     else if (chosen === "necromancer") new Necromancer(randomPosition);
   }
 
@@ -76,7 +76,7 @@ export class Simulation {
     }
 
     for (const entity of Game.instance.entities) {
-      entity.updateBehaviour(deltaTime);
+      entity.updateBehaviour();
     }
 
     for (const entity of Game.instance.entities) {

@@ -1,7 +1,7 @@
 precision mediump float;
 
 uniform sampler2D texture;
-uniform vec2 tileScale;
+uniform vec2 tileScale; // port this to vertex shader
 uniform int debugMode;
 
 uniform vec3 tintColor;
@@ -14,8 +14,9 @@ void main() {
     gl_FragColor = vec4(1, 0, 0, 1);
 
   } else {
-    vec2 textureCoord = textureVertCoord * tileScale + (vec2(1) - tileScale) * 0.5;
-    vec4 textureColor = texture2D(texture, textureCoord);
+    // vec2 centerOffset = (vec2(1) - tileScale) * 0.5;
+    vec2 textureCoord = textureVertCoord * tileScale;// + centerOffset; // !!!! FIX THIS BAFFOOON !!!!
+    vec4 textureColor = texture2D(texture, textureVertCoord);
 
     if (textureColor.a < 0.01) {
       discard;

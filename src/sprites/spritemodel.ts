@@ -1,7 +1,7 @@
 import { Game } from "../core/game.js";
 import { ShaderProgram } from "../rendering/shaderprogram.js";
 import { Color } from "../util/color.js";
-import { Matrix4 } from "../util/matrix4.js";
+import { Matrix3 } from "../util/matrix3.js";
 import { Vector2 } from "../util/vector2.js";
 import { AnimationInfo, SpriteSheet } from "./spritesheet.js";
 
@@ -13,6 +13,7 @@ export class SpriteModel {
 
   private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
+  private currentModifier?: string;
 
   private highlightColor: Color = new Color(1, 1, 1);
   private highlightOpacity: number = 0;
@@ -61,6 +62,14 @@ export class SpriteModel {
     this.animations.delete(name);
   }
 
+  public get animationModifier(): string | undefined {
+    return this.currentModifier;
+  }
+
+  public setAnimationModifier(name: string): void {
+    this.currentModifier = name;
+  }
+
   public update(deltaTime: number) {
     let highestPriority: number;
     let selectedAnim: SpriteAnimation | undefined;
@@ -92,17 +101,15 @@ export class SpriteModel {
     this.rotation = rotation;
   }
 
-  public getTransformation(): Matrix4 {
-    return Matrix4.fromTransformation(this.position, this.rotation);
+  public getTransformation(): Matrix3 {
+    return Matrix3.fromTransformation(this.position, this.rotation);
   }
 
   public bind(): void {
-    Game.instance.canvas.shader.setAttribBuffer("textureCoord", this.sprite.coordBuffer, 2, 0, this.currentCell * 2 * 4 * Float32Array.BYTES_PER_ELEMENT);
-    
-    Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
-    Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
-
-    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
+    // Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
+    // Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
+    Game.instance.canvas.shader.setUniformFloat("spriteCell", this.currentCell);
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation));
 
     Game.instance.canvas.shader.setUniformColor("tintColor", this.highlightColor);
     Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
@@ -144,16 +151,21 @@ export class SpriteAnimation {
 
     this.timePassed = newTime;
 
-    if (newTime > this.info.duration) {
-      if (!this.info.looped) this.stop();
+    if (newTime >= this.info.duration) {
+      if (!this.info.looped) {
+        this.stop();
+
+        return;
+      }
 
       this.timePassed %= this.info.duration;
     }
 
     const percentThrough = this.timePassed / this.info.duration;
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
+    const modifier = this.info.getModifier(this.model.animationModifier!) || 0;
 
-    this.model.setSpriteCell(this.info.frames[frameIndex]);
+    this.model.setSpriteCell(this.info.frames[frameIndex] + modifier);
 
     this.markerCallbacks.forEach((callback: () => any, name: string) => {
       const frame = this.info.getMarker(name)!;

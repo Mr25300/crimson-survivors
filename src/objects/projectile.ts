@@ -63,7 +63,7 @@ export abstract class Projectile extends GameObject {
     this.updateObject();
   }
 
-  public abstract handleEntityCollision(collision: Entity): void;
+  public abstract handleEntityCollision(entity: Entity): void;
   public abstract handleStructureCollisions(collisions: CollisionInfo[]): void;
 
   public freeze() {

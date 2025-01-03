@@ -1,12 +1,11 @@
 import { Game } from "../core/game.js";
 import {ShaderProgram} from "../rendering/shaderprogram.js";
-import {Matrix4} from "../util/matrix4.js";
+import {Matrix3} from "../util/matrix3.js";
 import { Vector2 } from "../util/vector2.js";
 import {SpriteModel} from "./spritemodel.js";
 
 export class SpriteSheet {
   private texture: WebGLTexture;
-  public readonly coordBuffer: WebGLBuffer;
 
   private animations: Map<string, AnimationInfo> = new Map();
 
@@ -14,25 +13,10 @@ export class SpriteSheet {
     imagePath: string,
     public readonly width: number,
     public readonly height: number,
-    private spriteCount: number,
-    private columns: number,
-    private rows: number,
+    private sheetSize: Vector2,
     private zOrder: number
   ) {
-    const spriteCoords: number[] = [];
-
-    for (let i: number = 0; i < this.spriteCount; i++) {
-      const currentRow = Math.floor(i / this.columns);
-      const startX = (i % this.columns) / this.columns;
-      const endX = startX + 1 / this.columns;
-      const startY = currentRow / this.rows;
-      const endY = startY + 1 / this.rows;
-
-      spriteCoords.push(startX, endY, endX, endY, startX, startY, endX, startY);
-    }
-
     this.texture = Game.instance.canvas.createTexture(imagePath);
-    this.coordBuffer = Game.instance.canvas.createBuffer(new Float32Array(spriteCoords));
   }
 
   public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): AnimationInfo {
@@ -53,12 +37,13 @@ export class SpriteSheet {
 
   public destroy(): void {
     Game.instance.canvas.deleteTexture(this.texture);
-    Game.instance.canvas.deleteBuffer(this.coordBuffer);
+    Game.instance.canvas.shader.setUniformVector("spriteSize", this.sheetSize);
   }
 }
 
 export class AnimationInfo {
   private markers: Map<string, number> = new Map();
+  private modifiers: Map<string, number> = new Map();
 
   constructor(
     public readonly frames: number[],
@@ -79,5 +64,13 @@ export class AnimationInfo {
 
   public getMarker(name: string): number | undefined {
     return this.markers.get(name);
+  }
+
+  public createModifier(name: string, modification: number): void {
+    this.modifiers.set(name, modification);
+  }
+
+  public getModifier(name: string): number | undefined {
+    return this.modifiers.get(name);
   }
 }

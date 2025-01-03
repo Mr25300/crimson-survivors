@@ -18,7 +18,7 @@ export abstract class Bot extends Entity {
 
   public abstract attack(): void;
 
-  public updateBehaviour(deltaTime: number): void {
+  public updateBehaviour(): void {
     this.pathfinder.update();
 
     this.setMoveDirection(this.pathfinder.moveDirection);

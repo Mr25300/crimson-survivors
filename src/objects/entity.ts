@@ -85,7 +85,7 @@ export abstract class Entity extends GameObject {
     return this._dead;
   }
 
-  public abstract updateBehaviour(deltaTime: number): void;
+  public abstract updateBehaviour(): void;
 
   public updatePhysics(deltaTime: number): void {
     const goalVelocity: Vector2 = this._moveDirection.multiply(this.moveSpeed);

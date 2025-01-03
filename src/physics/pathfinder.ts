@@ -352,6 +352,6 @@ export class Pathfinder {
       return;
     }
 
-    this._moveDirection = this._faceDirection = new Vector2();
+    this._moveDirection = new Vector2();
   }
 }

@@ -1,5 +1,5 @@
 import { Util } from "../util/util.js";
-import { Matrix4 } from "../util/matrix4.js";
+import { Matrix3 } from "../util/matrix3.js";
 import { ShaderProgram } from "./shaderprogram.js";
 import { SpriteSheet } from "../sprites/spritesheet.js";
 import { Vector2 } from "../util/vector2.js";
@@ -15,7 +15,7 @@ export class Canvas {
 
   private spriteVertexBuffer: WebGLBuffer;
 
-  private screenUnitScale: number = 1 / 10;
+  private screenUnitScale: number = 1 / 2;
   private height: number;
   private width: number;
   private aspectRatio: number;
@@ -25,10 +25,9 @@ export class Canvas {
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
     this.shader = new ShaderProgram(this.gl);
 
+    this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-
-    this.gl.enable(this.gl.DEPTH_TEST);
 
     this.updateDimensions();
 
@@ -46,12 +45,11 @@ export class Canvas {
     this.shader.use();
 
     this.shader.createAttrib("vertexPos");
-    this.shader.createAttrib("textureCoord");
 
     this.shader.createUniform("screenProjection");
-
-    this.shader.createUniform("spriteScale");
-    this.shader.createUniform("tileScale");
+    this.shader.createUniform("spriteSize");
+    this.shader.createUniform("spriteCell");
+    // this.shader.createUniform("tileScale");
     this.shader.createUniform("modelTransform");
     this.shader.createUniform("zOrder");
 
@@ -177,7 +175,7 @@ export class Canvas {
     this.gl.clearColor(0, 0, 0, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const projectionMatrix: Matrix4 = Matrix4.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
+    const projectionMatrix: Matrix3 = Matrix3.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
 
     this.shader.use();
     this.shader.setAttribBuffer("vertexPos", this.spriteVertexBuffer, 2, 0, 0);
@@ -194,7 +192,8 @@ export class Canvas {
       }
     });
 
-    this.shader.setUniformMatrix("spriteScale", Matrix4.identity());
+    this.shader.setUniformVector("spriteSize", new Vector2(1, 1));
+    this.shader.setUniformFloat("spriteCell", 0);
     this.shader.setUniformFloat("zOrder", 20);
     this.shader.setUniformBool("debugMode", true);
     this.shader.setUniformFloat("tintOpacity", 0);

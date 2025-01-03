@@ -8,7 +8,6 @@ export class Wall extends Structure {
     super(
       Game.instance.spriteManager.create("wall"),
       new Rectangle(1, 1),
-      true,
       position,
       0
     );
