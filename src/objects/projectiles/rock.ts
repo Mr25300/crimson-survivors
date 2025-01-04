@@ -8,20 +8,21 @@ import { Projectile } from "../projectile.js";
 export class Rock extends Projectile {
   private damage: number = 10;
 
-  constructor(position: Vector2, direction: Vector2, sender: Entity) {
+  constructor(position: Vector2, direction: Vector2, private sender: Entity) {
     super(
       Game.instance.spriteManager.create("kurankuRock"),
       new Rectangle(0.07, 0.07),
       position,
       direction,
       8,
+      0,
       2,
       sender
     );
   }
 
   public handleEntityCollision(entity: Entity): void {
-    entity.damage(this.damage);
+    entity.damage(this.damage, this.sender);
     entity.knockback(this.direction.multiply(5));
 
     this.destroy();

@@ -5,7 +5,7 @@ import {Game} from '../core/game.js';
 import { CollisionObject, Polygon } from '../physics/collisions.js';
 import { Team } from './team.js';
 import { Structure } from './structure.js';
-import { Timer } from './timer.js';
+import { Timer } from '../util/timer.js';
 import { Color } from '../util/color.js';
 import { CollisionInfo } from '../physics/chunkmanager.js';
 
@@ -20,7 +20,7 @@ export abstract class Entity extends GameObject {
 
   private _team?: Team;
 
-  private maxHealth: number;
+  private _health: number;
   private _dead: boolean = false;
 
   private damageEffectTimer: Timer = new Timer(0.3);
@@ -29,12 +29,12 @@ export abstract class Entity extends GameObject {
     sprite: SpriteModel,
     hitShape: CollisionObject,
     private moveSpeed: number,
-    private health: number,
+    public readonly maxHealth: number,
     position: Vector2 = new Vector2()
   ) {
     super("Entity", sprite, hitShape, position);
 
-    this.maxHealth = health;
+    this._health = maxHealth;
 
     this.sprite.playAnimation("idle");
 
@@ -63,26 +63,33 @@ export abstract class Entity extends GameObject {
   }
 
   public setTeam(name: string) {
-    this._team = Game.instance.teams.get(name)!;
+    this._team = Game.instance.teams.get(name);
   }
 
-  public damage(amount: number, highlightColor: Color = new Color(1, 0, 0)) {
-    this.health -= amount;
+  public damage(amount: number, attacker?: Entity, color: Color = new Color(1, 0, 0)) {
+    this._health -= amount;
 
-    if (this.health <= 0) this.destroy();
+    if (this._health <= 0) {
+      this._dead = true;
+      this.destroy();
+    }
 
-    this.sprite.setHighlight(highlightColor);
+    this.sprite.setHighlight(color);
     this.sprite.setHighlightOpacity(1);
 
     this.damageEffectTimer.start();
   }
 
-  public knockback(impulse: Vector2) {
-    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
+  public get health(): number {
+    return this._health;
   }
 
   public get dead(): boolean {
     return this._dead;
+  }
+
+  public knockback(impulse: Vector2) {
+    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
   }
 
   public abstract updateBehaviour(): void;
@@ -100,11 +107,11 @@ export abstract class Entity extends GameObject {
     this.velocity = this.velocity.add(acceleration.multiply(deltaTime));
 
     const knockbackDisplacement = this.knockbackVelocity.multiply(deltaTime);
-    const dragForce = knockbackDisplacement.multiply(-this.knockbackDrag);
+    const dragForce = this.knockbackVelocity.multiply(-this.knockbackDrag);
     const dragDisplacement = dragForce.multiply(deltaTime ** 2 / 2);
 
     this.position = this.position.add(knockbackDisplacement).add(dragDisplacement);
-    this.knockbackVelocity = this.knockbackVelocity.add(dragForce);
+    this.knockbackVelocity = this.knockbackVelocity.add(dragForce.multiply(deltaTime));
 
     this.rotation = this._faceDirection.angle(); // WHY IS THIS CRASHING??!?!?!
 
@@ -123,22 +130,19 @@ export abstract class Entity extends GameObject {
 
     for (const info of Game.instance.chunkManager.collisionQueryFromObject(this, "Structure", false)) {
       this.position = this.position.add(info.normal.multiply(info.overlap));
+
+      const structure: Structure = info.object as Structure;
+      structure.entityCollided(this);
     }
 
     this.updateObject();
 
-    if (this.damageEffectTimer.active) {
-      this.sprite.setHighlightOpacity(1 - this.damageEffectTimer.progress);
-
-    } else {
-      this.sprite.setHighlightOpacity(0);
-    }
+    if (this.damageEffectTimer.isActive()) this.sprite.setHighlightOpacity(1 - this.damageEffectTimer.getProgress());
+    else this.sprite.setHighlightOpacity(0);
   }
 
-  public override destroy(): void {
-    super.destroy();
-
-    this._dead = true;
+  public destroy(): void {
+    super.despawnObject();
 
     Game.instance.entities.delete(this);
   }

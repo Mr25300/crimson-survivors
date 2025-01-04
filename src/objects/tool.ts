@@ -1,7 +1,7 @@
 import { Game } from "../core/game.js";
 import { Polygon } from "../physics/collisions.js";
 import { Vector2 } from "../util/vector2.js";
-import { Timer } from "./timer.js";
+import { Timer } from "../util/timer.js";
 import { Entity } from "./entity.js";
 import { Projectile } from "./projectile.js";
 
@@ -16,7 +16,7 @@ export abstract class Tool {
   }
 
   public use(user: Entity): void {
-    if (this.cooldown.active) return;
+    if (this.cooldown.isActive()) return;
 
     this.cooldown.start();
 

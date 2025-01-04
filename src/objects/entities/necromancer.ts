@@ -1,7 +1,7 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../timer.js';
+import { Timer } from '../../util/timer.js';
 import {Entity} from '../entity.js';
 import { Grunt } from './grunt.js';
 import { Kronku } from './kuranku.js';

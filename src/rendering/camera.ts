@@ -16,6 +16,7 @@ export class Camera {
 
   public setSubject(subject: GameObject): void {
     this.subject = subject;
+    this._position = subject.position;
   }
 
   public update(deltaTime: number) {

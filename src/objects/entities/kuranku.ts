@@ -1,13 +1,14 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../timer.js';
+import { Timer } from '../../util/timer.js';
 import {Entity} from '../entity.js';
 import { Bot } from '../bot.js';
 import { Rock } from '../projectiles/rock.js';
+import { Matrix3 } from '../../util/matrix3.js';
 
 export class Kuranku extends Bot {
-  private attackCooldown: Timer = new Timer(1);
+  private rockOffset: Vector2 = new Vector2(0.15, 0.1);
 
   constructor(spawnPosition: Vector2) {
     super(
@@ -20,7 +21,7 @@ export class Kuranku extends Bot {
         new Vector2(0.3, 0),
         new Vector2(0.3, -0.4)
       ]),
-      1.5,
+      2,
       40,
       5,
       2,
@@ -31,8 +32,13 @@ export class Kuranku extends Bot {
   }
 
   public attack(): void {
-    this.sprite.playAnimation("throw");
+    const anim = this.sprite.playAnimation("throw")!;
 
-    new Rock(this.position, this.faceDirection, this);
+    anim.markerReached.connect(() => {
+      const offset = Matrix3.fromRotation(this.faceDirection.angle()).apply(this.rockOffset);
+
+      new Rock(this.position.add(offset), this.faceDirection, this);
+
+    }, "spawnRock");
   }
 }

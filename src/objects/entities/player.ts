@@ -5,6 +5,7 @@ import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import { ANRPI } from '../tools/ANRPI.js';
 import { ANRMI } from '../tools/ANRMI.js';
+import { ANRE } from '../tools/ANRE.js';
 
 export class Player extends Entity {
   private tool: Tool;

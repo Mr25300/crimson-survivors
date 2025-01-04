@@ -1,6 +1,6 @@
 import { Game } from "../core/game.js";
-import { ShaderProgram } from "../rendering/shaderprogram.js";
 import { Color } from "../util/color.js";
+import { GameEvent } from "../util/gameevent.js";
 import { Matrix3 } from "../util/matrix3.js";
 import { Vector2 } from "../util/vector2.js";
 import { AnimationInfo, SpriteSheet } from "./spritesheet.js";
@@ -18,19 +18,19 @@ export class SpriteModel {
   private highlightColor: Color = new Color(1, 1, 1);
   private highlightOpacity: number = 0;
 
-  constructor(
-    private sprite: SpriteSheet,
-    private size: Vector2 = new Vector2(1, 1),
-    tiling: boolean = false
-  ) {
-    const objects = Game.instance.spriteModels.get(sprite) || new Set();
-
-    if (objects.size === 0) Game.instance.spriteModels.set(sprite, objects);
-
-    objects.add(this);
-
+  constructor(private sprite: SpriteSheet, private size: Vector2 = new Vector2(1, 1), tiling: boolean = false) {
     if (tiling) this.tileScale = new Vector2(this.size.x / this.sprite.width, this.size.y / this.sprite.height);
     else this.tileScale = new Vector2(1, 1);
+
+    this.showModel();
+  }
+
+  public showModel(): void {
+    const objects = Game.instance.spriteModels.get(this.sprite) || new Set();
+
+    if (objects.size === 0) Game.instance.spriteModels.set(this.sprite, objects);
+
+    objects.add(this);
   }
 
   public setSpriteCell(cellNumber: number): void {
@@ -47,7 +47,6 @@ export class SpriteModel {
     }
 
     const animation = new SpriteAnimation(this, info, timePassed, speed);
-
     this.animations.set(name, animation);
 
     return animation;
@@ -69,7 +68,7 @@ export class SpriteModel {
     this.currentModifier = name;
   }
 
-  public update(deltaTime: number) {
+  public updateAnimation(deltaTime: number) {
     let highestPriority: number;
     let selectedFrame: number | undefined;
 
@@ -111,7 +110,6 @@ export class SpriteModel {
   }
 
   public bind(): void {
-    // Game.instance.canvas.shader.setUniformMatrix("spriteScale", Matrix4.fromScale(this.width, this.height));
     Game.instance.canvas.shader.setUniformFloat("spriteCell", this.currentCell);
     Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation, this.size));
     Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
@@ -120,11 +118,8 @@ export class SpriteModel {
     Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
   }
 
-  public destroy(): void {
+  public hideModel(): void {
     const models = Game.instance.spriteModels.get(this.sprite)!;
-
-    // if (!models) return;
-
     models.delete(this);
 
     if (models.size === 0) {
@@ -134,7 +129,7 @@ export class SpriteModel {
 }
 
 export class SpriteAnimation {
-  private markerCallbacks: Map<string, () => any> = new Map();
+  public readonly markerReached: GameEvent = new GameEvent();
 
   private _active = true;
 
@@ -155,16 +150,13 @@ export class SpriteAnimation {
 
   public getFrame(deltaTime: number): number {
     const prevTime = this.timePassed;
-    const newTime = prevTime + deltaTime * this.speed;
+    let newTime = prevTime + deltaTime * this.speed;
 
-    this.markerCallbacks.forEach((callback: () => any, name: string) => {
-      const frame = this.info.getMarker(name)!;
-      const frameTime = frame / (this.info.frames.length - 1) * this.info.duration;
+    this.info.getMarkers().forEach((frame: number, name: string) => {
+      const frameTime = frame / this.info.frames.length * this.info.duration;
 
       if (prevTime < frameTime && newTime >= frameTime) {
-        this.markerCallbacks.delete(name);
-
-        callback();
+        this.markerReached.fire(name);
       }
     });
 
@@ -185,12 +177,6 @@ export class SpriteAnimation {
     const modifier = this.info.getModifier(this.model.animationModifier!) || 0;
 
     return this.info.frames[frameIndex] + modifier;
-  }
-
-  public markerReached(name: string, callback: () => any): void {
-    if (this.info.getMarker(name) === undefined) return;
-
-    this.markerCallbacks.set(name, callback);
   }
 
   public stop() {

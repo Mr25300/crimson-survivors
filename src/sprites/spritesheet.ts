@@ -61,8 +61,8 @@ export class AnimationInfo {
     this.markers.set(name, frame);
   }
 
-  public getMarker(name: string): number | undefined {
-    return this.markers.get(name);
+  public getMarkers(): Map<string, number> {
+    return this.markers;
   }
 
   public createModifier(name: string, modification: number): void {

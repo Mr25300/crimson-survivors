@@ -15,7 +15,6 @@ export class ChunkManager {
   private CHUNK_SIZE = 1;
 
   private chunks: Map<number, Map<string, Set<GameObject>>> = new Map();
-  private chunkCollisionObjects: Map<number, CollisionObject> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
     return Util.cantor(chunk);
@@ -123,20 +122,6 @@ export class ChunkManager {
     return this.collisionQueryFromHitbox(hitbox, "Structure", true).length > 0;
   }
 
-  // public queryObjectsWithObject(gameObject: GameObject, searchType: string): [GameObject, Vector2, number][] {
-  //   return this.queryObjectsWithChunks(Array.from(gameObject.chunks), gameObject.hitbox, searchType);
-  // }
-
-  // public queryObjectsWithHitbox(collisionObject: CollisionObject, searchType: string): [GameObject, Vector2, number][] {
-  //   const chunkKeys: number[] = [];
-
-  //   for (const chunkKey of this.getChunksOfBounds(collisionObject.getBounds())) {
-  //     chunkKeys.push(chunkKey);
-  //   }
-
-  //   return this.queryObjectsWithChunks(chunkKeys, collisionObject, searchType);
-  // }
-
   public updateObjectChunks(object: GameObject): void {
     const hitboxBounds = object.hitbox.getBounds();
 
@@ -147,7 +132,7 @@ export class ChunkManager {
       const chunkRange = new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2);
       const chunkBounds = new Bounds(chunk.subtract(chunkRange), chunk.add(chunkRange));
 
-      if (!hitboxBounds.overlaps(chunkBounds)) {
+      if (!hitboxBounds.overlaps(chunkBounds)) { // clean up this code
         object.removeChunk(chunkKey);
         this.removeFromChunk(chunkKey, object);
       }
@@ -171,5 +156,9 @@ export class ChunkManager {
       object.removeChunk(chunkKey);
       this.removeFromChunk(chunkKey, object);
     }
+  }
+
+  public clearAllChunks(): void {
+    this.chunks.clear();
   }
 }

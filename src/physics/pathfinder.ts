@@ -1,6 +1,6 @@
 import { Game } from "../core/game.js";
 import { Entity } from "../objects/entity.js";
-import { Timer } from "../objects/timer.js";
+import { Timer } from "../util/timer.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
 import { Point, Rectangle, SweptCollisionObject } from "./collisions.js";
@@ -322,7 +322,7 @@ export class Pathfinder {
       return;
     }
 
-    if (!this.recomputeTimer.active && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
+    if (!this.recomputeTimer.isActive() && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
       this.recomputeTimer.start();
 
       this.currentPath = new OptimalPath(this.subject.position, this.target.position, 4, this.approachRange, this.pathfindHitbox);

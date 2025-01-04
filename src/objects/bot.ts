@@ -3,7 +3,7 @@ import { Pathfinder } from "../physics/pathfinder.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 import { Entity } from "./entity.js";
-import { Timer } from "./timer.js";
+import { Timer } from "../util/timer.js";
 
 export abstract class Bot extends Entity {
   private pathfinder: Pathfinder;
@@ -24,7 +24,7 @@ export abstract class Bot extends Entity {
     this.setMoveDirection(this.pathfinder.moveDirection);
     this.setFaceDirection(this.pathfinder.faceDirection);
 
-    if (this.pathfinder.shouldAttack() && !this.attackTimer.active) {
+    if (this.pathfinder.shouldAttack() && !this.attackTimer.isActive()) {
       this.attackTimer.start();
 
       this.attack();

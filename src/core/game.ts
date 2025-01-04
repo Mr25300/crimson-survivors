@@ -16,12 +16,14 @@ import { Team } from '../objects/team.js';
 import { SpriteManager } from '../sprites/spritemanager.js';
 import { Util } from '../util/util.js';
 import { Projectile } from '../objects/projectile.js';
-import { Timer } from '../objects/timer.js';
+import { Timer } from '../util/timer.js';
 import { Wall } from '../objects/structures/wall.js';
 import { OptimalPath } from '../physics/pathfinder.js';
 import { Grunt } from '../objects/entities/grunt.js';
 import { Kuranku } from '../objects/entities/kuranku.js';
 import { Patrol } from '../objects/entities/patrol.js';
+import { GameEvent } from '../util/gameevent.js';
+import { UIManager } from '../rendering/uimanager.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -41,13 +43,8 @@ export class Game extends Gameloop {
   private _spriteManager: SpriteManager;
   private _chunkManager: ChunkManager;
   private _simulation: Simulation;
+  private uiManager: UIManager;
   public player: Player; // REMOVE
-
-  private testPath: OptimalPath;
-
-  private constructor() {
-    super();
-  }
 
   public static get instance(): Game {
     if (!Game._instance) Game._instance = new Game();
@@ -62,15 +59,16 @@ export class Game extends Gameloop {
     this._spriteManager = new SpriteManager();
     this._chunkManager = new ChunkManager();
     this._simulation = new Simulation();
-
-    document.addEventListener("contextmenu", (event: MouseEvent) => { // move to UI handler or something like that
-      event.preventDefault();
-    });
+    this.uiManager = new UIManager();
 
     await this._canvas.init();
 
+    this.uiManager.displayTitleScreen();
+  }
+
+  public startGame(): void {
     const dimensions: Vector2 = this._simulation.bounds.getDimensions();
-    const floor: SpriteModel = this._spriteManager.create("floor", dimensions, true);
+    this._spriteManager.create("floor", dimensions, true);
 
     new Team("Human");
     new Team("Vampire");
@@ -87,13 +85,31 @@ export class Game extends Gameloop {
     this.player = player;
     this._camera.setSubject(this.player);
 
-    for (let i = 0; i < 100; i++) {
-      // this._simulation.spawnVampire();
-    }
-
-    new Patrol(new Vector2(-5, 0));
+    // for (let i = 0; i < 10; i++) {
+      this._simulation.spawnVampire();
+    // }
 
     this.start();
+  }
+
+  public endGame(): void {
+    this.timers.clear();
+
+    this.spriteModels.clear();
+
+    this.collisionObjects.clear();
+    this.gameObjects.clear();
+
+    this.entities.clear();
+    this.teams.clear();
+    this.projectiles.clear();
+    this.structures.clear();
+
+    this._chunkManager.clearAllChunks();
+
+    this.stop();
+
+    this.uiManager.displayEndScreen();
   }
 
   protected update(deltaTime: number): void {
@@ -101,17 +117,22 @@ export class Game extends Gameloop {
       timer.update(deltaTime);
     }
 
-    this._canvas.update(deltaTime);
+    this.spriteModels.forEach((models: Set<SpriteModel>) => {
+      for (const model of models) {
+        model.updateAnimation(deltaTime);
+      }
+    });
+
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
 
     if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
 
-    document.getElementById("fps-display")!.innerText = (1 / deltaTime).toFixed(1);
-    document.getElementById("entity-count-display")!.innerText = this.entities.size.toString();
+    if (this.player.dead) this.endGame();
   }
 
   protected render(): void {
+    this.uiManager.displayGameInfo();
     this._canvas.render();
   }
 

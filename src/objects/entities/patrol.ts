@@ -1,14 +1,13 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../timer.js';
+import { Timer } from '../../util/timer.js';
 import {Entity} from '../entity.js';
 import { Bot } from '../bot.js';
 import { PatrolWall } from '../structures/patrolWall.js';
 
 export class Patrol extends Bot {
-  private attackCooldown: Timer = new Timer(2);
-  private lastWall?: PatrolWall;
+  private wallDespawnTimer: Timer = new Timer(6);
 
   constructor(spawnPosition: Vector2) {
     super(
@@ -21,10 +20,10 @@ export class Patrol extends Bot {
         new Vector2(0.3, 0),
         new Vector2(0.3, -0.4)
       ]),
-      2,
+      1.5,
       50,
       3,
-      5,
+      4,
       spawnPosition
     );
 
@@ -32,8 +31,18 @@ export class Patrol extends Bot {
   }
 
   public attack(): void {
-    if (this.lastWall) this.lastWall.despawn();
+    const anim = this.sprite.playAnimation("create")!;
 
-    this.lastWall = new PatrolWall(this.position.add(this.faceDirection.multiply(1)), this.faceDirection.angle());
+    anim.markerReached.connect(() => {
+      const newWall = new PatrolWall(this.position.add(this.faceDirection.multiply(1)), this.faceDirection.angle(), this);
+
+      this.wallDespawnTimer.onComplete.connect(() => {
+        newWall.despawn();
+  
+      }, newWall);
+  
+      this.wallDespawnTimer.start(newWall);
+
+    }, "spawnWall");
   }
 }

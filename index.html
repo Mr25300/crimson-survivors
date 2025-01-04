@@ -5,12 +5,24 @@
 
   <body>
     <div class="container">
-      <canvas id="gameScreen" tabindex="1"></canvas>
+      <canvas id="game-screen" tabindex="1"></canvas>
 
-      <div class="absolute-element debug-info">
+      <div id="title-screen" class="play-screen show">
+        <button id="title-screen-start">Play</button>
+      </div>
+
+      <div id="end-screen" class="play-screen">
+        <button id="end-screen-restart">Play Again</button>
+      </div>
+
+      <div class="game-info">
+        <progress id="health-bar" value="25" max="100"></progress>
+      </div>
+
+      <div class="debug-info">
         <label>FPS: </label><span id="fps-display"></span>
         <br>
-        <label>Entities on Screen: </label><span id="entity-count-display"></span>
+        <label>Entities: </label><span id="entity-count-display"></span>
       </div>
     </div>
     

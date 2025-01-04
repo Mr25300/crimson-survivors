@@ -21,7 +21,7 @@ export class Canvas {
   private aspectRatio: number;
 
   constructor() {
-    this.element = document.getElementById("gameScreen") as HTMLCanvasElement;
+    this.element = document.getElementById("game-screen") as HTMLCanvasElement;
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
     this.shader = new ShaderProgram(this.gl);
 
@@ -161,14 +161,6 @@ export class Canvas {
     const range = 1 / this.screenUnitScale / 2;
 
     return new Vector2(range * this.aspectRatio, range);
-  }
-
-  public update(deltaTime: number): void {
-    Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
-      for (const model of models) {
-        model.update(deltaTime);
-      }
-    });
   }
 
   public render(): void {

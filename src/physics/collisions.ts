@@ -297,6 +297,10 @@ export class CollisionObject {
     Game.instance.collisionObjects.delete(this);
   }
 
+  public get vertexCount(): number {
+    return this._vertexCount;
+  }
+
   public bind(): void {
     if (!this.vertexBuffer) return;
 
@@ -304,15 +308,11 @@ export class CollisionObject {
     Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation));
 
     if (this.showingOnce) {
-      this.destroy();
+      this.destroyBuffer();
     }
   }
 
-  public get vertexCount(): number {
-    return this._vertexCount;
-  }
-
-  public destroy() {
+  public destroyBuffer(): void {
     this.hide();
 
     if (this.vertexBuffer) {
@@ -392,10 +392,7 @@ export class Circle extends CollisionObject {
 }
 
 export class Line extends CollisionObject {
-  constructor(
-    start: Vector2,
-    end: Vector2
-  ) {
+  constructor(start: Vector2, end: Vector2) {
     const center = start.add(end).divide(2);
     const direction = end.subtract(start);
     const length = direction.magnitude();
@@ -406,36 +403,6 @@ export class Line extends CollisionObject {
 
     ], 0, center, direction.angle());
   }
-
-  // public intersects(line: Line): boolean {
-  //   // const [a, b] = [this._start, this._end];
-  //   // const [c, d] = [line._start, line._end];
-
-  //   // // Line direction vectors
-  //   // const dir1 = b.subtract(a);
-  //   // const dir2 = d.subtract(c);
-
-  //   // // Determinant
-  //   // const det = dir1.x * dir2.y - dir1.y * dir2.x;
-
-  //   // if (det === 0) return false; // Parallel or collinear
-
-  //   // // Compute t and u
-  //   // const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
-  //   // const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
-
-  //   // // Check if intersection occurs within both segments
-  //   // return t >= 0 && t <= 1 && u >= 0 && u <= 1;
-
-  //   // const dir1 = this._end.subtract(this._start);
-  //   // const dir2 = line._end.subtract(line._start);
-  //   // const d1 = dir1.cross(line._start.subtract(this._start));
-  //   // const d2 = dir1.cross(line._end.subtract(this._start));
-  //   // const d3 = dir2.cross(this._start.subtract(line._start));
-  //   // const d4 = dir2.cross(this._end.subtract(line._start));
-
-  //   // return d1 * d2 < 0 && d3 * d4 < 0;
-  // }
 }
 
 export class Point extends CollisionObject {

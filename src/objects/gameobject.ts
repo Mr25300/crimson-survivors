@@ -7,6 +7,8 @@ import {Vector2} from '../util/vector2.js';
 export abstract class GameObject {
   public readonly chunks: Set<number> = new Set();
 
+  public _destroyed: boolean = false;
+
   constructor(
     public readonly type: string,
     public readonly sprite: SpriteModel,
@@ -14,7 +16,19 @@ export abstract class GameObject {
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
+    this.spawnObject();
+  }
+
+  public spawnObject(): void {
     this.updateObject();
+
+    this.sprite.showModel();
+  }
+
+  public despawnObject(): void {
+    Game.instance.chunkManager.clearObjectChunks(this);
+
+    this.sprite.hideModel();
   }
 
   public updateObject(): void {
@@ -36,10 +50,7 @@ export abstract class GameObject {
     this.chunks.delete(chunkKey);
   }
 
-  public destroy(): void {
-    Game.instance.chunkManager.clearObjectChunks(this);
-
-    this.sprite.destroy();
-    this.hitbox.destroy();
+  public get destroyed(): boolean {
+    return this._destroyed;
   }
 }
