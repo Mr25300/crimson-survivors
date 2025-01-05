@@ -27,8 +27,6 @@ export abstract class Entity extends GameObject {
   private _team?: Team;
   private _tool?: Tool;
 
-  private damageEffectTimer: Timer = new Timer(0.3);
-
   constructor(
     sprite: SpriteModel,
     hitShape: CollisionObject,
@@ -76,10 +74,7 @@ export abstract class Entity extends GameObject {
 
     if (this._health > this.maxHealth) this._health = this.maxHealth;
 
-    this.sprite.setHighlight(color);
-    this.sprite.setHighlightOpacity(1);
-
-    this.damageEffectTimer.start();
+    this.sprite.createHighlightEffect(color);
   }
 
   public giveKill(): void {
@@ -153,25 +148,18 @@ export abstract class Entity extends GameObject {
     this.rotation = this._faceDirection.angle();
 
     if (this._moveDirection.magnitude() > 0) {
-      if (!this.sprite.isAnimationPlaying("walking")) {
-        this.sprite.playAnimation("walking");
-      }
-
+      if (!this.sprite.isAnimationPlaying("walking")) this.sprite.playAnimation("walking");
     } else {
-      if (this.sprite.isAnimationPlaying("walking")) {
-        this.sprite.stopAnimation("walking");
-      }
+      if (this.sprite.isAnimationPlaying("walking")) this.sprite.stopAnimation("walking");
     }
 
     this.updateObject();
 
     for (const info of Game.instance.chunkManager.collisionQueryFromObject(this, "Structure", false)) {
       this.position = this.position.add(info.normal.multiply(info.overlap));
-      (info.object as Structure).entityCollided(this);
-    }
 
-    // const [collided, normal, overlap] = this.hitbox.intersects(Game.instance.simulation.barriers[0]);
-    // if (collided) this.position = this.position.add(normal.multiply(overlap));
+      if (info.object) (info.object as Structure).entityCollided(this);
+    }
 
     this.updateObject();
 
@@ -180,9 +168,6 @@ export abstract class Entity extends GameObject {
         (info.object as Item).pickup(this);
       }
     }
-
-    if (this.damageEffectTimer.isActive()) this.sprite.setHighlightOpacity(1 - this.damageEffectTimer.getProgress());
-    else this.sprite.setHighlightOpacity(0);
   }
 
   public destroy(): void {

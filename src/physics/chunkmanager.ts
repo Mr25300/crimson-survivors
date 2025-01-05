@@ -1,3 +1,4 @@
+import { Game } from "../core/game.js";
 import { Entity } from "../objects/entity.js";
 import { GameObject } from "../objects/gameobject.js";
 import { Team } from "../objects/team.js";
@@ -6,15 +7,18 @@ import { Vector2 } from "../util/vector2.js";
 import { Bounds, CollisionObject, Polygon, Rectangle } from "./collisions.js";
 
 export interface CollisionInfo {
-  object: GameObject;
+  object?: GameObject;
   normal: Vector2;
   overlap: number;
 }
 
+type ChunkObjects = Map<string, Set<GameObject>>;
+// type ChunkObjects = Map<string, Set<GameObject> | ChunkObjects>;
+
 export class ChunkManager {
   private CHUNK_SIZE = 1;
 
-  private chunks: Map<number, Map<string, Set<GameObject>>> = new Map();
+  private chunks: Map<number, ChunkObjects> = new Map();
 
   public getChunkKey(chunk: Vector2): number {
     return Util.cantor(chunk);
@@ -55,11 +59,11 @@ export class ChunkManager {
   public getChunksOfBounds(bounds: Bounds): number[] {
     const chunks: number[] = [];
 
-    const minChunk = bounds.min.divide(this.CHUNK_SIZE);
-    const maxChunk = bounds.max.divide(this.CHUNK_SIZE);
+    const minChunk = new Vector2(Util.roundDown(bounds.min.x / this.CHUNK_SIZE), Util.roundDown(bounds.min.y / this.CHUNK_SIZE));
+    const maxChunk = new Vector2(Util.roundUp(bounds.max.x / this.CHUNK_SIZE), Util.roundUp(bounds.max.y / this.CHUNK_SIZE));
 
-    for (let x = Util.roundDown(minChunk.x); x <= Util.roundUp(maxChunk.x); x++) {
-      for (let y = Util.roundDown(minChunk.y); y <= Util.roundUp(maxChunk.y); y++) {
+    for (let x = minChunk.x; x <= maxChunk.x; x++) {
+      for (let y = minChunk.y; y <= maxChunk.y; y++) {
         chunks.push(this.getChunkKey(new Vector2(x, y)));
       }
     }
@@ -67,7 +71,7 @@ export class ChunkManager {
     return chunks;
   }
 
-  public collisionQuery(searchChunks: number[], hitbox: CollisionObject, searchType: string, single: boolean, whitelist?: Team): CollisionInfo[] {
+  public collisionQuery(searchChunks: number[], hitbox: CollisionObject, searchType: string, single: boolean, whitelist?: Team, blacklisted?: GameObject): CollisionInfo[] {
     const info: CollisionInfo[] = [];
     const objects: Set<GameObject> = new Set();
 
@@ -79,7 +83,8 @@ export class ChunkManager {
       if (!typeObjects) continue;
 
       for (const object of typeObjects) {
-        if (whitelist && object instanceof Entity && object.team === whitelist) continue;
+        if (object === blacklisted) continue;
+        if (whitelist && object instanceof Entity && object.team === whitelist) continue; // ADD TEAM FILTERING
         if (objects.has(object)) continue;
 
         objects.add(object);
@@ -94,21 +99,31 @@ export class ChunkManager {
       }
     }
 
+    if (searchType === "Structure") {
+      for (const barrier of Game.instance.simulation.map.barriers) {
+        const [collided, normal, overlap] = hitbox.intersects(barrier);
+
+        if (collided && overlap > 0) {
+          info.push({normal, overlap});
+        }
+      }
+    }
+
     return info;
   }
 
   public collisionQueryFromObject(object: GameObject, searchType: string, single: boolean, whitelist?: Team): CollisionInfo[] {
-    return this.collisionQuery(Array.from(object.chunks), object.hitbox, searchType, single);
+    return this.collisionQuery(Array.from(object.chunks), object.hitbox, searchType, single, whitelist, object);
   }
 
-  public collisionQueryFromHitbox(hitbox: CollisionObject, searchType: string, single: boolean, whitelist?: Team): CollisionInfo[] {
+  public collisionQueryFromHitbox(hitbox: CollisionObject, searchType: string, single: boolean, whitelist?: Team, blacklisted?: GameObject): CollisionInfo[] {
     const chunks = this.getChunksOfBounds(hitbox.getBounds());
 
-    return this.collisionQuery(chunks, hitbox, searchType, single, whitelist);
+    return this.collisionQuery(chunks, hitbox, searchType, single, whitelist, blacklisted);
   }
 
-  public attackQuery(hitbox: CollisionObject, single: boolean, whitelist?: Team): Entity[] {
-    const query: CollisionInfo[] = this.collisionQueryFromHitbox(hitbox, "Entity", single, whitelist);
+  public attackQuery(hitbox: CollisionObject, single: boolean, attacker: Entity): Entity[] {
+    const query: CollisionInfo[] = this.collisionQueryFromHitbox(hitbox, "Entity", single, attacker.team, attacker);
     const entities: Entity[] = [];
 
     for (const info of query) {

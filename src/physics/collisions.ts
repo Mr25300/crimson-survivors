@@ -17,9 +17,10 @@ export class CollisionObject {
 
   constructor(
     protected vertices: Vector2[],
-    protected radius: number = 0,
-    protected _position: Vector2 = new Vector2(),
-    protected _rotation: number = 0
+    private radius: number = 0,
+    private _position: Vector2 = new Vector2(),
+    private _rotation: number = 0,
+    private infiniteBarrier: boolean = false
   ) {}
 
   public get position(): Vector2 {
@@ -104,12 +105,12 @@ export class CollisionObject {
       if (dotMax > max) max = dotMax;
     }
 
-    // if (this.infiniteBarrier) {
-    //   const normal = this.getNormals()[0];
+    if (this.infiniteBarrier) {
+      const normal = this.getNormals()[0];
       
-    //   if (normal.dot(axis) > 0) min = -Infinity;
-    //   else max = Infinity;
-    // }
+      if (normal.dot(axis) > 0) min = -Infinity;
+      else max = Infinity;
+    }
 
     return [min, max];
   }
@@ -166,7 +167,7 @@ export class CollisionObject {
   }
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {
-    const normals1: Vector2[] = this.getCollisionNormals(object);
+    const normals1: Vector2[] = object.infiniteBarrier ? [] : this.getCollisionNormals(object);
     const normals2: Vector2[] = object.getCollisionNormals(this);
     const existingAxes: Set<number> = new Set();
 
@@ -195,8 +196,10 @@ export class CollisionObject {
       }
     }
 
-    const direction = this.getCenter().subtract(object.getCenter());
-    if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+    if (!object.infiniteBarrier) {
+      const direction = this.getCenter().subtract(object.getCenter());
+      if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+    }
 
     return [true, normal, overlap];
   }
@@ -421,6 +424,12 @@ export class Line extends CollisionObject {
 export class Point extends CollisionObject {
   constructor(position: Vector2) {
     super([new Vector2()], 0, position, 0);
+  }
+}
+
+export class Barrier extends CollisionObject {
+  constructor(position: Vector2, rotation: number) {
+    super([new Vector2(-0.5), new Vector2(0.5)], 0, position, rotation, true);
   }
 }
 

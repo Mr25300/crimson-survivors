@@ -12,7 +12,7 @@ export class ANREItem extends Item {
   constructor(position: Vector2, rotation?: number) {
     super(
       Game.instance.spriteManager.create("playerExplosive"),
-      new Circle(0.09, new Vector2(0.02, 0.02)),
+      new Circle(0.09, new Vector2(0.015, 0.015)),
       40,
       position,
       rotation

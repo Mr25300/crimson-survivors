@@ -1,4 +1,5 @@
 import { Game } from '../core/game.js';
+import { Bat } from '../objects/entities/bat.js';
 import { Grunt } from '../objects/entities/grunt.js';
 import { Kuranku } from '../objects/entities/kuranku.js';
 import { Necromancer } from '../objects/entities/necromancer.js';
@@ -10,23 +11,16 @@ import { Projectile } from '../objects/projectile.js';
 import { Structure } from '../objects/structure.js';
 import { Wall } from '../objects/structures/wall.js';
 import { Team } from '../objects/team.js';
-import { ANREItem } from '../objects/tools/ANRE.js';
+import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
 import { ANRMIItem } from '../objects/tools/ANRMI.js';
 import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
 import { Util } from '../util/util.js';
 import { Vector2 } from '../util/vector2.js';
-import { Bounds, CollisionObject, Line } from './collisions.js';
+import { Barrier, Bounds, CollisionObject, Line } from './collisions.js';
 import { Maze } from './maze.js';
 
 export class Simulation {
-  public readonly bounds: Bounds;
-
-  private maze: Maze;
-  private mazeSize = new Vector2(8, 8);
-  private mazeSpaceSize: number = 3;
-  private mazeWallSize: number = 1;
-
-  private spawnLocations: Vector2[];
+  public readonly map: Maze;
 
   private _player: Player;
   public readonly humans: Team = new Team("Human");
@@ -34,10 +28,10 @@ export class Simulation {
 
   private entities: Set<Entity> = new Set();
   private projectiles: Set<Projectile> = new Set();
-  public readonly barriers: CollisionObject[] = [];
 
   private wave: number = 0;
   private vampiresPerWave: number = 10;
+  private itemsPerWave: number = 3;
 
   private vampireSpawnWeights: Record<string, number> = {
     grunt: 40,
@@ -48,13 +42,12 @@ export class Simulation {
 
   private itemSpawnWeights: Record<string, number> = {
     ANRPI: 40,
-    ANRE: 40,
+    ANRE: 30,
     ANRMI: 20
   };
 
   constructor() {
-    this.maze = new Maze(this.mazeSize, this.mazeSpaceSize, this.mazeWallSize);
-    this.bounds = new Bounds(new Vector2(-0.5, -0.5), this.maze.tileSize.subtract(new Vector2(0.5, 0.5)));
+    this.map = new Maze(new Vector2(10, 10), 4, 1);
   }
 
   public registerEntity(entity: Entity): void {
@@ -91,30 +84,11 @@ export class Simulation {
     Game.instance.camera.setSubject(this._player);
   }
 
-  public generateMap(): void { // optimize it to minimize structure creation
-    this.maze.generate();
-    this.spawnLocations = [];
+  public generateMap(): void {
+    this.map.generateMaze();
 
-    const floorModel = Game.instance.spriteManager.create("floor", this.bounds.getDimensions(), true);
-    floorModel.setTransformation(this.bounds.getCenter(), 0);
-
-    for (let y = 0; y < this.maze.tileGrid.length; y++) {
-      for (let x = 0; x < this.maze.tileGrid[y].length; x++) {
-        if (!this.maze.tileGrid[y][x]) this.spawnLocations.push(new Vector2(x, y));
-      }
-    }
-
-    for (let y = 0; y < this.maze.tileGrid.length; y++) {
-      for (let x = 0; x < this.maze.tileGrid[y].length; x++) {
-        if (this.maze.tileGrid[y][x]) new Wall(new Vector2(x, y));
-      }
-    }
-
-    // this.barriers.push(new Line(new Vector2(0, 0), new Vector2(1, 0)));
-  }
-
-  private getRandomSpawnLocation(): Vector2 {
-    return this.spawnLocations[Util.randomInt(0, this.spawnLocations.length - 1)];
+    const floorModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
+    floorModel.setTransformation(this.map.bounds.getCenter(), 0);
   }
 
   private getRNGOption(optionWeights: Record<string, number>): string {
@@ -139,7 +113,7 @@ export class Simulation {
   }
 
   private spawnItem(): void {
-    const position: Vector2 = this.getRandomSpawnLocation();
+    const position: Vector2 = this.map.getRandomVacancy();
     const chosen: string = this.getRNGOption(this.itemSpawnWeights);
 
     if (chosen === "ANRE") new ANREItem(position);
@@ -148,7 +122,7 @@ export class Simulation {
   }
 
   private spawnVampire(): void {
-    const position: Vector2 = this.getRandomSpawnLocation();
+    const position: Vector2 = this.map.getRandomVacancy();
     const chosen: string = this.getRNGOption(this.vampireSpawnWeights);
     let vampire: Entity;
 
@@ -170,7 +144,7 @@ export class Simulation {
     if (this.vampires.hasNoMembers()) {
       this.wave++;
 
-      for (let i = 0; i < this.wave - 1; i++) {
+      for (let i = 0; i < (this.wave - 1) * this.itemsPerWave; i++) {
         this.spawnItem();
       }
 

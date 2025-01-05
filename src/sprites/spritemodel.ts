@@ -16,7 +16,7 @@ export class SpriteModel {
   private currentModifier?: string;
 
   private highlightColor: Color = new Color(1, 1, 1);
-  private highlightOpacity: number = 0;
+  private highlightStart: number = -1;
 
   constructor(private sprite: SpriteSheet, private size: Vector2 = new Vector2(1, 1), tiling: boolean = false) {
     if (tiling) this.tileScale = new Vector2(this.size.x / this.sprite.width, this.size.y / this.sprite.height);
@@ -87,12 +87,9 @@ export class SpriteModel {
     }
   }
 
-  public setHighlight(color: Color) {
+  public createHighlightEffect(color: Color) {
     this.highlightColor = color;
-  }
-
-  public setHighlightOpacity(opacity: number) {
-    this.highlightOpacity = opacity;
+    this.highlightStart = Game.instance.elapsedTime;
   }
 
   public setTransformation(position: Vector2, rotation: number): void {
@@ -109,8 +106,8 @@ export class SpriteModel {
     Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation, this.size));
     Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
 
-    Game.instance.canvas.shader.setUniformColor("tintColor", this.highlightColor);
-    Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
+    Game.instance.canvas.shader.setUniformColor("highlightColor", this.highlightColor);
+    Game.instance.canvas.shader.setUniformFloat("highlightStart", this.highlightStart);
   }
 
   public destroy(): void {

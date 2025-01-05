@@ -8,14 +8,7 @@ export class Bat extends Bot {
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("bat"),
-      new Polygon([
-        new Vector2(-0.3, -0.4),
-        new Vector2(-0.3, 0),
-        new Vector2(-0.1, 0.3),
-        new Vector2(0.1, 0.3),
-        new Vector2(0.3, 0),
-        new Vector2(0.3, -0.4)
-      ]),
+      new Rectangle(0.7, 0.15, new Vector2(0, -0.015)),
       4,
       10,
       0.3,
@@ -25,10 +18,10 @@ export class Bat extends Bot {
   }
 
   public attack(): void {
-    const hitbox = new Rectangle(0.4, 0.3);
+    const hitbox = new Rectangle(0.4, 0.3, new Vector2(0, 0.15));
     hitbox.setTransformation(this.position, this.faceDirection.angle());
 
-    const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this.team)[0];
+    const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this)[0];
 
     if (attacked) {
       attacked.damage(2, this);

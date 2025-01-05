@@ -4,6 +4,7 @@ import { Vector2 } from "../util/vector2.js";
 
 export type SpriteName =
 "player" | "playerNeedle" | "playerExplosive" |
+"projectileInjector" | "machineInjector" |
 "grunt" |
 "kuranku" | "kurankuRock" |
 "patrol" | "patrolWall" |
@@ -34,7 +35,10 @@ export class SpriteManager {
     playerExplosive.createAnimation("beeping", [0, 1, 2, 3, 4, 5], 2, true, 1);
     const explode = playerExplosive.createAnimation("explode", [6, 7, 8, 9, 10, 11, 12, 13], 0.3, false, 2);
     explode.addMarker("spawnHitbox", 2);
-    explode.addMarker("despawn", 7)
+    explode.addMarker("despawn", 7);
+
+    const projectileInjector: SpriteSheet = new SpriteSheet("res/assets/ProjectileInjectorItem.png", 1, 1, new Vector2(1, 1), 1);
+    const machineInjector: SpriteSheet = new SpriteSheet("res/assets/MachineInjectorItem.png", 1, 1, new Vector2(1, 1), 1);
 
     const grunt: SpriteSheet = new SpriteSheet("res/assets/Grunt.png", 1, 1, new Vector2(5, 6), 1);
     grunt.createAnimation("idle", [3], 1, true, 0);
@@ -79,6 +83,8 @@ export class SpriteManager {
       player: player,
       playerNeedle: playerNeedle,
       playerExplosive: playerExplosive,
+      projectileInjector: projectileInjector,
+      machineInjector: machineInjector,
       grunt: grunt,
       kuranku: kuranku,
       kurankuRock: kurankuRock,

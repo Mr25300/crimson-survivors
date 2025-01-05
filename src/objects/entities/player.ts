@@ -24,8 +24,6 @@ export class Player extends Entity {
       true,
       position
     );
-
-    this.hitbox.show();
   }
 
   public updateBehaviour(): void {

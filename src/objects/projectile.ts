@@ -17,8 +17,6 @@ export abstract class Projectile extends GameObject {
   
   private frozen: boolean = false;
 
-  private whitelist?: Team;
-
   constructor(
     sprite: SpriteModel,
     hitbox: CollisionObject,
@@ -27,12 +25,11 @@ export abstract class Projectile extends GameObject {
     private speed: number,
     private drag: number = 0,
     despawnTime: number,
-    sender: Entity
+    private sender: Entity
   ) {
     super("Projectile", sprite, hitbox, position, direction.angle());
 
     this.sweptHitbox = hitbox.sweep();
-    this.whitelist = sender.team;
 
     if (despawnTime > 0) {
       this.despawnTimer = new Timer(despawnTime);
@@ -65,7 +62,7 @@ export abstract class Projectile extends GameObject {
     this.sweptHitbox.setTransformation(this.position, this.rotation);
     this.sweptHitbox.sweepVertices(this.speed * deltaTime);
 
-    const entityQuery: Entity[] = Game.instance.chunkManager.attackQuery(this.sweptHitbox, true, this.whitelist);
+    const entityQuery: Entity[] = Game.instance.chunkManager.attackQuery(this.sweptHitbox, true, this.sender);
     const structureQuery: CollisionInfo[] = Game.instance.chunkManager.collisionQueryFromHitbox(this.sweptHitbox, "Structure", false);
 
     if (structureQuery.length > 0) this.handleStructureCollisions(structureQuery);

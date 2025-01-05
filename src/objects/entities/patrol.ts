@@ -1,8 +1,7 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import {Vector2} from '../../util/vector2.js';
+import { Vector2 } from '../../util/vector2.js';
 import { Timer } from '../../util/timer.js';
-import {Entity} from '../entity.js';
 import { Bot } from '../bot.js';
 import { PatrolWall } from '../structures/patrolWall.js';
 
@@ -13,12 +12,12 @@ export class Patrol extends Bot {
     super(
       Game.instance.spriteManager.create("patrol"),
       new Polygon([
-        new Vector2(-0.3, -0.4),
-        new Vector2(-0.3, 0),
-        new Vector2(-0.1, 0.3),
-        new Vector2(0.1, 0.3),
-        new Vector2(0.3, 0),
-        new Vector2(0.3, -0.4)
+        new Vector2(-0.1, -0.35),
+        new Vector2(-0.2, -0.25),
+        new Vector2(-0.2, 0.04),
+        new Vector2(0.22, 0.04),
+        new Vector2(0.22, -0.25),
+        new Vector2(0.12, -0.35)
       ]),
       1.5,
       50,
@@ -36,9 +35,9 @@ export class Patrol extends Bot {
 
       this.wallDespawnTimer.onComplete.connect(() => {
         newWall.despawn();
-  
+
       }, newWall);
-  
+
       this.wallDespawnTimer.start(newWall);
 
     }, "spawnWall");

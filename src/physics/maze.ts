@@ -1,5 +1,7 @@
+import { Wall } from "../objects/structures/wall.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
+import { Barrier, Bounds, CollisionObject, Rectangle } from "./collisions.js";
 
 class MazeNode {
   public visited: boolean = false;
@@ -17,34 +19,41 @@ export class Maze {
     new Vector2(-1, 0)
   ];
 
-  private grid: MazeNode[][] = [];
-  private _tileGrid: boolean[][] = [];
+  private mazeGrid: MazeNode[][] = [];
+  private mapGrid: boolean[][] = [];
+  private mapSize: Vector2;
+  public readonly bounds: Bounds;
+  public readonly barriers: CollisionObject[] = [];
+  private vacancies: Vector2[];
 
-  public readonly tileSize: Vector2;
+  constructor(private mazeSize: Vector2, private spaceSize: number, private wallSize: number) {
+    this.mapSize = this.mazeToTile(mazeSize).subtract(new Vector2(this.wallSize, this.wallSize));
+    this.bounds = new Bounds(new Vector2(-0.5, -0.5), this.mapSize.subtract(new Vector2(0.5, 0.5)));
 
-  constructor(private size: Vector2, private spaceSize: number, private wallSize: number) {
-    this.tileSize = this.mazeToTile(size).subtract(new Vector2(this.wallSize, this.wallSize));
+    this.barriers.push(new Barrier(this.bounds.min, 0));
+    this.barriers.push(new Barrier(this.bounds.min, Math.PI / 2));
+    this.barriers.push(new Barrier(this.bounds.max, Math.PI))
+    this.barriers.push(new Barrier(this.bounds.max, -Math.PI / 2));
+
     this.reset();
-  }
-
-  public get tileGrid(): boolean[][] {
-    return this._tileGrid;
   }
 
   public reset(): void {
-    this.grid = Array.from({ length: this.size.y }, () => Array.from({ length: this.size.x }, () => new MazeNode()));
-    this._tileGrid = Array.from({ length: this.tileSize.y }, () => new Array(this.tileSize.x).fill(true));
+    this.mazeGrid = Array.from({ length: this.mazeSize.y }, () => Array.from({ length: this.mazeSize.x }, () => new MazeNode()));
+    this.mapGrid = Array.from({ length: this.mapSize.y }, () => new Array(this.mapSize.x).fill(true));
+    this.vacancies = [];
   }
 
-  public generate(): void {
+  public generateMaze(): void {
     this.reset();
 
     this.start(new Vector2(
-      Util.randomInt(0, this.size.x - 1),
-      Util.randomInt(0, this.size.y - 1)
+      Util.randomInt(0, this.mazeSize.x - 1),
+      Util.randomInt(0, this.mazeSize.y - 1)
     ));
 
     this.generateTileGrid();
+    this.generateStructures();
   }
 
   private mazeToTile(position: Vector2): Vector2 {
@@ -52,15 +61,15 @@ export class Maze {
   }
 
   private searchNeighbors(position: Vector2, visited: boolean): Vector2 | void {
-    const node = this.grid[position.y][position.x];
+    const node = this.mazeGrid[position.y][position.x];
 
     const options = this.directions.filter((direction: Vector2) => {
       const optionPos = position.add(direction);
 
-      if (optionPos.x < 0 || optionPos.x >= this.size.x) return false;
-      if (optionPos.y < 0 || optionPos.y >= this.size.y) return false;
+      if (optionPos.x < 0 || optionPos.x >= this.mazeSize.x) return false;
+      if (optionPos.y < 0 || optionPos.y >= this.mazeSize.y) return false;
 
-      return this.grid[optionPos.y][optionPos.x].visited === visited;
+      return this.mazeGrid[optionPos.y][optionPos.x].visited === visited;
     });
 
     if (options.length === 0) return;
@@ -68,7 +77,7 @@ export class Maze {
     const randomIndex: number = Util.randomInt(0, options.length - 1);
     const direction: Vector2 = options[randomIndex];
     const neighborPos = position.add(direction);
-    const neighborNode = this.grid[neighborPos.y][neighborPos.x];
+    const neighborNode = this.mazeGrid[neighborPos.y][neighborPos.x];
 
     if (direction.x > 0) {
       node.right = false;
@@ -91,7 +100,7 @@ export class Maze {
   }
 
   private start(position: Vector2) {
-    this.grid[position.y][position.x].visited = true;
+    this.mazeGrid[position.y][position.x].visited = true;
 
     const neighborPos = this.searchNeighbors(position, false);
 
@@ -106,9 +115,9 @@ export class Maze {
   }
 
   private getUnvisitedNode(): Vector2 | void {
-    for (let y = 0; y < this.size.y; y++) {
-      for (let x = 0; x < this.size.x; x++) {
-        const node = this.grid[y][x];
+    for (let y = 0; y < this.mazeSize.y; y++) {
+      for (let x = 0; x < this.mazeSize.x; x++) {
+        const node = this.mazeGrid[y][x];
 
         if (node.visited) continue;
 
@@ -121,9 +130,9 @@ export class Maze {
   }
 
   private generateTileGrid(): void {
-    for (let y = 0; y < this.size.y; y++) {
-      for (let x = 0; x < this.size.x; x++) {
-        const node = this.grid[y][x];
+    for (let y = 0; y < this.mazeSize.y; y++) {
+      for (let x = 0; x < this.mazeSize.x; x++) {
+        const node = this.mazeGrid[y][x];
         const gridPos: Vector2 = new Vector2(x, y);
         const start = this.mazeToTile(gridPos);
   
@@ -132,14 +141,14 @@ export class Maze {
             const newX = start.x + dX;
             const newY = start.y + dY;
   
-            this._tileGrid[newY][newX] = false;
+            this.mapGrid[newY][newX] = false;
           }
         }
 
         if (!node.left && x > 0) {
           for (let dY = 0; dY < this.spaceSize; dY++) {
             for (let dX = 0; dX < this.wallSize; dX++) {
-              this._tileGrid[start.y + dY][start.x - 1 - dX] = false;
+              this.mapGrid[start.y + dY][start.x - 1 - dX] = false;
             }
           }
         }
@@ -147,7 +156,62 @@ export class Maze {
         if (!node.bottom && y > 0) {
           for (let dX = 0; dX < this.spaceSize; dX++) {
             for (let dY = 0; dY < this.wallSize; dY++) {
-              this._tileGrid[start.y - 1 - dY][start.x + dX] = false;
+              this.mapGrid[start.y - 1 - dY][start.x + dX] = false;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public getRandomVacancy(): Vector2 {
+    return this.vacancies[Util.randomInt(0, this.vacancies.length - 1)];
+  }
+
+  private generateStructures(): void {
+    for (let y = 0; y < this.mapGrid.length; y++) {
+      for (let x = 0; x < this.mapGrid[y].length; x++) {
+        if (!this.mapGrid[y][x]) this.vacancies.push(new Vector2(x, y));
+      }
+    }
+
+    for (let y = 0; y < this.mapGrid.length; y++) {
+      for (let x = 0; x < this.mapGrid[y].length; x++) {
+        if (this.mapGrid[y][x]) {
+          let sweepUp = 0;
+          let sweepRight = 0;
+
+          for (let dY = 1; dY < this.mapSize.y - y; dY++) {
+            if (this.mapGrid[y + dY][x]) sweepUp++;
+            else break;
+          }
+
+          for (let dX = 1; dX < this.mapSize.x - x; dX++) {
+            if (this.mapGrid[y][x + dX]) sweepRight++;
+            else break;
+          }
+
+          // check if going up AND rows will not exceed the wall to the right AND columns will not exceed wall to the left
+          if ((sweepUp > sweepRight && sweepRight >= this.wallSize - 1) || sweepUp < this.wallSize - 1) {
+            const width: number = this.wallSize;
+
+            new Wall(new Vector2(x + (width - 1) / 2, y + sweepUp / 2), new Vector2(width, 1 + sweepUp));
+
+            for (let dX = 0; dX < width; dX++) {
+              for (let dY = 0; dY <= sweepUp; dY++) {
+                this.mapGrid[y + dY][x + dX] = false;
+              }
+            }
+
+          } else {
+            const height: number = this.wallSize;
+
+            new Wall(new Vector2(x + sweepRight / 2, y + (height - 1) / 2), new Vector2(1 + sweepRight, height));
+
+            for (let dY = 0; dY < height; dY++) {
+              for (let dX = 0; dX <= sweepRight; dX++) {
+                this.mapGrid[y + dY][x + dX] = false;
+              }
             }
           }
         }

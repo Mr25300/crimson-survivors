@@ -10,8 +10,8 @@ import { Tool } from "../tool.js";
 export class ANRMIItem extends Item {
   constructor(position: Vector2, rotation?: number) {
     super(
-      Game.instance.spriteManager.create("playerNeedle"),
-      new Rectangle(0.1, 0.1),
+      Game.instance.spriteManager.create("machineInjector"),
+      new Rectangle(0.85, 0.23, new Vector2(0, -0.03)),
       35,
       position,
       rotation

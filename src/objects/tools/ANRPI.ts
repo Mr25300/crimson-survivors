@@ -1,5 +1,5 @@
 import { Game } from "../../core/game.js";
-import { Rectangle } from "../../physics/collisions.js";
+import { Polygon, Rectangle } from "../../physics/collisions.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
 import { Item } from "../item.js";
@@ -9,8 +9,8 @@ import { Tool } from "../tool.js";
 export class ANRPIItem extends Item {
   constructor(position: Vector2, rotation?: number) {
     super(
-      Game.instance.spriteManager.create("bat"),
-      new Rectangle(0.5, 0.5),
+      Game.instance.spriteManager.create("projectileInjector"),
+      new Rectangle(0.35, 0.25, new Vector2(0, -0.03)),
       30,
       position,
       rotation

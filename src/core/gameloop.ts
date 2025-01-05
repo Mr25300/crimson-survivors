@@ -1,6 +1,7 @@
 export abstract class Gameloop {
   private _running: boolean = false;
   private lastTime: number;
+  private _elapsedTime: number = 0;
   private _fps: number;
 
   protected start(time?: number): void {
@@ -21,6 +22,7 @@ export abstract class Gameloop {
     }
 
     // possibly enforce 60fps to maintain performance with high framerate
+    this._elapsedTime += deltaTime;
     this._fps = 1 / deltaTime;
     this.update(deltaTime);
     this.render();
@@ -34,6 +36,10 @@ export abstract class Gameloop {
 
   public get running(): boolean {
     return this._running;
+  }
+
+  public get elapsedTime(): number {
+    return this._elapsedTime;
   }
 
   public get fps(): number {

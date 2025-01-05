@@ -12,10 +12,12 @@ export class Grunt extends Bot {
     super(
       Game.instance.spriteManager.create("grunt"),
       new Polygon([
-        new Vector2(-0.2, -0.35),
-        new Vector2(-0.2, 0),
-        new Vector2(0.2, 0),
-        new Vector2(0.2, -0.35)
+        new Vector2(-0.1, -0.35),
+        new Vector2(-0.2, -0.25),
+        new Vector2(-0.2, 0.04),
+        new Vector2(0.22, 0.04),
+        new Vector2(0.22, -0.25),
+        new Vector2(0.12, -0.35)
       ]),
       2.5,
       20,
@@ -32,7 +34,7 @@ export class Grunt extends Bot {
       const hitbox = new Rectangle(0.4, 0.5);
       hitbox.setTransformation(this.position, this.faceDirection.angle());
 
-      const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this.team)[0];
+      const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this)[0];
   
       if (attacked) {
         attacked.damage(10, this);

@@ -93,20 +93,21 @@ class MinHeap<T> {
   }
 }
 
-class Node {
+class PathNode {
   constructor(
     public readonly position: Vector2,
     public gCost: number,
     public readonly hCost: number,
-    public readonly restricted: boolean = false,
-    public parent?: Node
+    public restricted: boolean = false,
+    public parent?: PathNode,
+    public queued: boolean = false
   ) {}
 
   public get fCost(): number {
     return this.gCost + this.hCost;
   }
 
-  public compare(node: Node): number {
+  public compare(node: PathNode): number {
     const diff = this.fCost - node.fCost;
 
     return diff !== 0 ? diff : this.hCost - node.hCost
@@ -114,7 +115,7 @@ class Node {
 }
 
 export class OptimalPath {
-  private gridScale: number = 0.25;
+  private gridScale: number = 1;
 
   private neighborDirections: Vector2[] = [
     new Vector2(0, 1),
@@ -127,8 +128,8 @@ export class OptimalPath {
     new Vector2(-1, 1),
   ];
 
-  private priorityQueue: MinHeap<Node> = new MinHeap((a: Node, b: Node) => a.compare(b)); // try using minheap to optimize
-  private processed: Map<number, Node> = new Map();
+  private priorityQueue: MinHeap<PathNode> = new MinHeap((a: PathNode, b: PathNode) => a.compare(b)); // try using minheap to optimize
+  private processed: Map<number, PathNode> = new Map();
   private restricted: Set<number> = new Set();
 
   private gridStart: Vector2;
@@ -149,18 +150,19 @@ export class OptimalPath {
     return Util.cantor(position);
   }
 
-  private processNode(node: Node) {
+  private processNode(node: PathNode) {
     this.processed.set(this.getKey(node.position), node);
   }
 
-  private getProcessed(position: Vector2): Node | undefined {
+  private getProcessed(position: Vector2): PathNode | undefined {
     return this.processed.get(this.getKey(position));
   }
 
   public computePath(): void {
-    // fails when path is impossible because of hitbox size, figure out how to fix (with help from gpt)
-    this.priorityQueue.push(new Node(this.gridStart, 0, this.gridStart.distance(this.gridGoal)));
+    const startNode = new PathNode(this.gridStart, 0, this.gridStart.distance(this.gridGoal));
+    this.priorityQueue.push(startNode);
     this.processed.set(this.getKey(this.gridStart), this.priorityQueue.peek()!);
+    startNode.queued = true;
 
     while (!this.priorityQueue.isEmpty()) {
       const node = this.priorityQueue.pop()!;
@@ -176,10 +178,12 @@ export class OptimalPath {
       for (const direction of this.neighborDirections) {
         this.travelToNeighbor(node, direction);
       }
+
+      node.queued = false;
     }
   }
 
-  public travelToNeighbor(node: Node, direction: Vector2): void {
+  public travelToNeighbor(node: PathNode, direction: Vector2): void {
     const neighborPos = node.position.add(direction);
     const neighborKey = this.getKey(neighborPos);
 
@@ -193,16 +197,14 @@ export class OptimalPath {
         existing.gCost = gCost;
         existing.parent = node;
 
-        this.priorityQueue.push(existing);
-
-        // this.openSet.push(existing);
+        if (!existing.queued) this.priorityQueue.push(existing); // add a boolean to mark whether or not a node is in the priority queue and dont queue it if it already is
       }
 
     } else {
       const goalDistance = neighborPos.distance(this.gridGoal);
       const totalDistance = this.gridStart.distance(this.gridGoal);
       const neighborDistanceSum = neighborPos.distance(this.gridStart) + goalDistance;
-      let restricted: boolean = neighborDistanceSum > totalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
+      let restricted: boolean = false;//neighborDistanceSum > totalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
 
       if (!restricted) {
         // cut off for out of bounds
@@ -222,15 +224,16 @@ export class OptimalPath {
       }
 
       const hCost = goalDistance;
-      const neighborNode = new Node(neighborPos, gCost, hCost, restricted, node);
+      const neighborNode = new PathNode(neighborPos, gCost, hCost, restricted, node);
 
       this.processed.set(neighborKey, neighborNode);
       this.priorityQueue.push(neighborNode);
+      neighborNode.queued = true;
     }
   }
 
-  public backtrackWaypoints(endNode: Node): void {
-    let current: Node = endNode;
+  public backtrackWaypoints(endNode: PathNode): void {
+    let current: PathNode = endNode;
     let lastWaypoint: Vector2 = current.position;
 
     this.waypoints.push(lastWaypoint.multiply(this.gridScale));
@@ -330,26 +333,28 @@ export class Pathfinder {
       this.currentWaypoint = 1;
     }
 
-    while (this.currentWaypoint < this.currentPath.waypoints.length) {
-      const waypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint];
-      const lastWaypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint - 1];
-      const pathDirection = waypoint.subtract(lastWaypoint).unit();
-
-      const dotWaypoint = pathDirection.dot(waypoint);
-      const dotPosition = pathDirection.dot(this.subject.position);
-
-      if (dotPosition > dotWaypoint) {
-        this.currentWaypoint++;
-
-        continue;
+    if (this.currentPath) {
+      while (this.currentWaypoint < this.currentPath.waypoints.length) {
+        const waypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint];
+        const lastWaypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint - 1];
+        const pathDirection = waypoint.subtract(lastWaypoint).unit();
+  
+        const dotWaypoint = pathDirection.dot(waypoint);
+        const dotPosition = pathDirection.dot(this.subject.position);
+  
+        if (dotPosition > dotWaypoint) {
+          this.currentWaypoint++;
+  
+          continue;
+        }
+  
+        const waypointDirection = waypoint.subtract(this.subject.position).unit();
+        const finalDirection = pathDirection.add(waypointDirection).unit();
+  
+        this._moveDirection = this._faceDirection = finalDirection;
+  
+        return;
       }
-
-      const waypointDirection = waypoint.subtract(this.subject.position).unit();
-      const finalDirection = pathDirection.add(waypointDirection).unit();
-
-      this._moveDirection = this._faceDirection = finalDirection;
-
-      return;
     }
 
     this._moveDirection = new Vector2();

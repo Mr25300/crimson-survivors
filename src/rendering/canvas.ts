@@ -1,4 +1,3 @@
-import { Util } from "../util/util.js";
 import { Matrix3 } from "../util/matrix3.js";
 import { ShaderProgram } from "./shaderprogram.js";
 import { SpriteSheet } from "../sprites/spritesheet.js";
@@ -25,6 +24,7 @@ export class Canvas {
     
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
     if (!this.gl) this.gl = this.element.getContext("webgl") as WebGL2RenderingContext;
+    if (!this.gl) throw new Error("Failed to get GL context.");
 
     this.shader = new ShaderProgram(this.gl);
 
@@ -58,8 +58,9 @@ export class Canvas {
 
     this.shader.createUniform("debugMode");
 
-    this.shader.createUniform("tintColor");
-    this.shader.createUniform("tintOpacity");
+    this.shader.createUniform("gameTime");
+    this.shader.createUniform("highlightColor");
+    this.shader.createUniform("highlightStart");
   }
 
   public createBuffer(data: Float32Array): WebGLBuffer {
@@ -167,7 +168,7 @@ export class Canvas {
   }
 
   public render(): void {
-    this.gl.clearColor(0, 0, 0, 1);
+    this.gl.clearColor(1, 1, 1, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
     const projectionMatrix: Matrix3 = Matrix3.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
@@ -176,6 +177,7 @@ export class Canvas {
     this.shader.setAttribBuffer("vertexPos", this.spriteVertexBuffer, 2, 0, 0);
     this.shader.setUniformMatrix("screenProjection", projectionMatrix);
     this.shader.setUniformBool("debugMode", false);
+    this.shader.setUniformFloat("gameTime", Game.instance.elapsedTime);
 
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       sprite.bind();
@@ -191,7 +193,7 @@ export class Canvas {
     this.shader.setUniformFloat("spriteCell", 0);
     this.shader.setUniformFloat("zOrder", 20);
     this.shader.setUniformBool("debugMode", true);
-    this.shader.setUniformFloat("tintOpacity", 0);
+    this.shader.setUniformFloat("highlightStart", -1);
 
     Game.instance.collisionObjects.forEach((object: CollisionObject) => {
       object.bind();

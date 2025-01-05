@@ -16,11 +16,11 @@ export class Explosive extends Projectile {
   constructor(position: Vector2, direction: Vector2, private sender: Entity) {
     super(
       Game.instance.spriteManager.create("playerExplosive"),
-      new Circle(0.09, new Vector2(0.02, 0.02)),
+      new Circle(0.09, new Vector2(0.015, 0.015)),
       position,
       direction,
-      6,
-      0.5,
+      8,
+      0.3,
       0,
       sender
     );
