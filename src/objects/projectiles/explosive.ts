@@ -20,7 +20,7 @@ export class Explosive extends Projectile {
       position,
       direction,
       6,
-      1,
+      0.5,
       0,
       sender
     );
@@ -45,19 +45,19 @@ export class Explosive extends Projectile {
     anim.markerReached.connect(() => {
       this.freeze();
 
-      const hitbox = new Circle(1, undefined, this.position);
+      const hitbox = new Circle(1.5, undefined, this.position);
       const entities: Entity[] = Game.instance.chunkManager.attackQuery(hitbox, false, this.sender.team);
 
       for (const entity of entities) {
         const direction = entity.position.subtract(this.position).unit();
 
-        entity.damage(30, this.sender, new Color(255 / 255, 148 / 255, 148 / 255));
+        entity.damage(50, this.sender, new Color(255 / 255, 148 / 255, 148 / 255));
         entity.knockback(direction.multiply(15));
       }
 
     }, "spawnHitbox");
 
-    anim.markerReached.connect(() => {
+    anim.markerReached.connectOnce(() => {
       this.destroy();
 
     }, "despawn");

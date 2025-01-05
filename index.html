@@ -12,11 +12,18 @@
       </div>
 
       <div id="end-screen" class="play-screen">
-        <button id="end-screen-restart">Play Again</button>
+        <div>
+          <h1>Game Over</h1>
+          <label>You saved <span id="vampire-save-count"></span> vampires.</label>
+          <br>
+          <button id="end-screen-restart">Play Again</button>
+        </div>
       </div>
 
       <div class="game-info">
         <progress id="health-bar" value="25" max="100"></progress>
+        <br>
+        <label>Current Module: </label><span id="tool-display"></span>
       </div>
 
       <div class="debug-info">

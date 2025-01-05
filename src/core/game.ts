@@ -24,6 +24,9 @@ import { Kuranku } from '../objects/entities/kuranku.js';
 import { Patrol } from '../objects/entities/patrol.js';
 import { GameEvent } from '../util/gameevent.js';
 import { UIManager } from '../rendering/uimanager.js';
+import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
+import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
+import { ANRMI, ANRMIItem } from '../objects/tools/ANRMI.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -31,11 +34,6 @@ export class Game extends Gameloop {
   public readonly timers: Set<Timer> = new Set();
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
   public readonly collisionObjects: Set<CollisionObject> = new Set();
-  public readonly gameObjects: Set<GameObject> = new Set();
-  public readonly entities: Set<Entity> = new Set();
-  public readonly teams: Map<string, Team> = new Map();
-  public readonly projectiles: Set<Projectile> = new Set();
-  public readonly structures: Set<Structure> = new Set();
 
   private _canvas: Canvas;
   private _camera: Camera;
@@ -44,7 +42,6 @@ export class Game extends Gameloop {
   private _chunkManager: ChunkManager;
   private _simulation: Simulation;
   private uiManager: UIManager;
-  public player: Player; // REMOVE
 
   public static get instance(): Game {
     if (!Game._instance) Game._instance = new Game();
@@ -67,45 +64,17 @@ export class Game extends Gameloop {
   }
 
   public startGame(): void {
-    const dimensions: Vector2 = this._simulation.bounds.getDimensions();
-    this._spriteManager.create("floor", dimensions, true);
-
-    new Team("Human");
-    new Team("Vampire");
-
-    new Wall(new Vector2(1, 0));
-    new Wall(new Vector2(0, 1));
-    new Wall(new Vector2(1, 1));
-    new Wall(new Vector2(1, -1));
-    new Wall(new Vector2(0, -1));
-    new Wall(new Vector2(-1, 2));
-    new Wall(new Vector2(0, 3));
-
-    const player: Player = new Player();
-    this.player = player;
-    this._camera.setSubject(this.player);
-
-    // for (let i = 0; i < 10; i++) {
-      this._simulation.spawnVampire();
-    // }
+    this._simulation.init();
 
     this.start();
   }
 
   public endGame(): void {
     this.timers.clear();
-
     this.spriteModels.clear();
-
     this.collisionObjects.clear();
-    this.gameObjects.clear();
-
-    this.entities.clear();
-    this.teams.clear();
-    this.projectiles.clear();
-    this.structures.clear();
-
-    this._chunkManager.clearAllChunks();
+    this._chunkManager.reset();
+    this._simulation.reset();
 
     this.stop();
 
@@ -127,8 +96,6 @@ export class Game extends Gameloop {
     this._camera.update(deltaTime);
 
     if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
-
-    if (this.player.dead) this.endGame();
   }
 
   protected render(): void {

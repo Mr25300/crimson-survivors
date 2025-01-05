@@ -22,7 +22,10 @@ export class Canvas {
 
   constructor() {
     this.element = document.getElementById("game-screen") as HTMLCanvasElement;
+    
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
+    if (!this.gl) this.gl = this.element.getContext("webgl") as WebGL2RenderingContext;
+
     this.shader = new ShaderProgram(this.gl);
 
     this.gl.enable(this.gl.DEPTH_TEST);

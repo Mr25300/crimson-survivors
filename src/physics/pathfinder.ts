@@ -264,7 +264,7 @@ export class Pathfinder {
   private lineOfSightHitbox: SweptCollisionObject;
   private pathfindHitbox: SweptCollisionObject;
 
-  private target: Entity = Game.instance.player;
+  private target: Entity = Game.instance.simulation.player;
 
   private currentPath: OptimalPath;
   private currentWaypoint: number

@@ -1,18 +1,11 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../../util/timer.js';
-import {Entity} from '../entity.js';
-import { Grunt } from './grunt.js';
-import { Kronku } from './kuranku.js';
-import { Patrol } from './patrol.js';
 import { Bat } from './bat.js';
 import { Util } from '../../util/util.js';
+import { Bot } from '../bot.js';
 
-export class Necromancer extends Entity {
-  private spawningCooldown: Timer = new Timer(5);
-  private spawnRadius: number = 1;
-
+export class Necromancer extends Bot {
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("necromancer"),
@@ -24,32 +17,26 @@ export class Necromancer extends Entity {
         new Vector2(0.3, 0),
         new Vector2(0.3, -0.4)
       ]),
-      2,
-      spawnPosition,
-      60
+      1,
+      80,
+      10,
+      10,
+      spawnPosition
     );
   }
 
-  private spawnBats() {
+  public attack(): void {
     const spawnCount: number = Util.randomInt(2, 3);
 
-    for (let i = 0; i < spawnCount; i++) {
-      const spawnOffset: Vector2 = Vector2.randomUnit().multiply(Math.random() * this.spawnRadius);
+    const anim = this.sprite.playAnimation("spawn")!;
 
-      new Bat(this.position.add(spawnOffset));
-    }
-  }
+    anim.markerReached.connectOnce(() => {
+      for (let i = 0; i < spawnCount; i++) {
+        const spawnOffset: Vector2 = Vector2.randomUnit().multiply(0.8);
+  
+        new Bat(this.position.add(spawnOffset)).setTeam(Game.instance.simulation.vampires);
+      }
 
-  public handleBehavior(deltaTime: number): void {
-    if (!this.spawningCooldown.active) {
-      this.spawningCooldown.start();
-
-      this.sprite.playAnimation("spawning");
-      this.spawnBats(); 
-    }
-  }
-
-  public attack(): void {
-
+    }, "spawnBats");
   }
 }

@@ -19,7 +19,7 @@ void main() {
     gl_FragColor = vec4(1, 0, 0, 1);
 
   } else {
-    vec2 centerOffset = (vec2(1) - tileScale) * 0.5;
+    vec2 centerOffset = vec2(0);//(vec2(1) - tileScale) * 0.5;
     vec2 tiledPosition = textureVertCoord * tileScale + centerOffset;
     vec2 textureCoord = mod(tiledPosition, spriteCellSize) + spriteCellStart;// + centerOffset; // !!!! FIX THIS BAFFOOON !!!!
     vec4 textureColor = texture2D(texture, textureCoord);

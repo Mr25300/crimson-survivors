@@ -51,7 +51,7 @@ export class GameEvent {
 }
 
 export class EventConnection {
-  public _active: boolean = true; // fix active not disabling for connectOnce or manual disconnect
+  private _active: boolean = true; // fix active not disabling for connectOnce or manual disconnect
 
   constructor(private event: GameEvent, private handler: EventHandler, private key: any) {}
 

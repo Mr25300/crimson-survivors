@@ -35,7 +35,7 @@ export class PatrolWall extends Structure {
     const anim = this.sprite.playAnimation("disappear")!;
 
     anim.markerReached.connectOnce(() => {
-      this.despawnObject();
+      this.destroy();
 
     }, "gone");
   }

@@ -12,7 +12,8 @@ import { EventConnection } from "../util/gameevent.js";
 
 export abstract class Projectile extends GameObject {
   private sweptHitbox: SweptCollisionObject;
-  private despawnConnection?: EventConnection;
+
+  private despawnTimer?: Timer;
   
   private frozen: boolean = false;
 
@@ -31,23 +32,25 @@ export abstract class Projectile extends GameObject {
     super("Projectile", sprite, hitbox, position, direction.angle());
 
     this.sweptHitbox = hitbox.sweep();
+    this.whitelist = sender.team;
 
     if (despawnTime > 0) {
-      const despawnTimer = new Timer(despawnTime);
-
-      this.despawnConnection = despawnTimer.onComplete.connect(() => {
+      this.despawnTimer = new Timer(despawnTime);
+      this.despawnTimer.onComplete.connectOnce(() => {
         this.destroy();
       });
 
-      despawnTimer.start();
+      this.despawnTimer.start();
     }
 
-    this.whitelist = sender.team;
-
-    Game.instance.projectiles.add(this);
+    Game.instance.simulation.registerProjectile(this);
   }
 
-  public update(deltaTime: number) {
+  public freeze() {
+    this.frozen = true;
+  }
+
+  public updatePhysics(deltaTime: number) {
     if (this.frozen) return;
     
     const velocityDisplacement: Vector2 = this.direction.multiply(this.speed * deltaTime);
@@ -74,15 +77,11 @@ export abstract class Projectile extends GameObject {
   public abstract handleEntityCollision(entity: Entity): void;
   public abstract handleStructureCollisions(collisions: CollisionInfo[]): void;
 
-  public freeze() {
-    this.frozen = true;
-  }
-
   public destroy(): void {
-    this.despawnObject();
+    super.destroy();
 
-    if (this.despawnConnection && this.despawnConnection.active) this.despawnConnection.disconnect();
+    if (this.despawnTimer) this.despawnTimer.stop();
 
-    Game.instance.projectiles.delete(this);
+    Game.instance.simulation.unregisterProjectile(this);
   }
 }

@@ -1,17 +1,43 @@
+import { Game } from "../../core/game.js";
+import { Rectangle } from "../../physics/collisions.js";
+import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
+import { Item } from "../item.js";
 import { Needle } from "../projectiles/needle.js";
 import { Tool } from "../tool.js";
 
-export class ANRPI extends Tool {
-  private damage: number = 10;
+export class ANRPIItem extends Item {
+  constructor(position: Vector2, rotation?: number) {
+    super(
+      Game.instance.spriteManager.create("bat"),
+      new Rectangle(0.5, 0.5),
+      30,
+      position,
+      rotation
+    );
+  }
 
+  public pickupFunctionality(entity: Entity): void {
+    entity.equipTool(new ANRPI());
+  }
+}
+
+export class ANRPI extends Tool {
   constructor() {
     super("Anti-Necro Remedial Projectile Injector", 0.5);
+  }
+
+  public equip(user: Entity): void {
+    user.sprite.setAnimationModifier("injector");
   }
 
   public useFunctionality(user: Entity): void {
     user.sprite.playAnimation("projectileShoot");
     
-    new Needle(user.position.add(user.faceDirection.multiply(0.3)), user.faceDirection, user, this.damage);
+    new Needle(user.position.add(user.faceDirection.multiply(0.3)), user.faceDirection, user, 20, 10);
+  }
+
+  public unequip(user: Entity): void {
+    user.sprite.stopAnimation("projectileShoot");
   }
 }

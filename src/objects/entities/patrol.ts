@@ -26,8 +26,6 @@ export class Patrol extends Bot {
       4,
       spawnPosition
     );
-
-    this.setTeam("Vampire");
   }
 
   public attack(): void {

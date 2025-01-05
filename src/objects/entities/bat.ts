@@ -1,12 +1,13 @@
 import { Game } from '../../core/game.js';
-import { Polygon } from '../../physics/collisions.js';
+import { Polygon, Rectangle } from '../../physics/collisions.js';
 import {Vector2} from '../../util/vector2.js';
+import { Bot } from '../bot.js';
 import {Entity} from '../entity.js';
 
-export class Bat extends Entity {
+export class Bat extends Bot {
   constructor(spawnPosition: Vector2) {
     super(
-      Game.instance.spriteManager.create("grunt"),
+      Game.instance.spriteManager.create("bat"),
       new Polygon([
         new Vector2(-0.3, -0.4),
         new Vector2(-0.3, 0),
@@ -16,21 +17,22 @@ export class Bat extends Entity {
         new Vector2(0.3, -0.4)
       ]),
       4,
-      spawnPosition,
-      1
+      10,
+      0.3,
+      0.5,
+      spawnPosition
     )
-  }
-  public pathFind(playerLocation: Vector2): void {
-    // we do this at any range
-    this.setFaceDirection(playerLocation.subtract(this.position).unit());
-    this.setMoveDirection(playerLocation.subtract(this.position).unit());
-  }
-
-  public handleBehavior(deltaTime: number): void {
-    this.pathFind(Game.instance.player.position);
   }
 
   public attack(): void {
+    const hitbox = new Rectangle(0.4, 0.3);
+    hitbox.setTransformation(this.position, this.faceDirection.angle());
 
+    const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this.team)[0];
+
+    if (attacked) {
+      attacked.damage(2, this);
+      attacked.knockback(this.faceDirection.multiply(3));
+    }
   }
 }

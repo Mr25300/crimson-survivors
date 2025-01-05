@@ -8,6 +8,8 @@ import { Structure } from './structure.js';
 import { Timer } from '../util/timer.js';
 import { Color } from '../util/color.js';
 import { CollisionInfo } from '../physics/chunkmanager.js';
+import { Tool } from './tool.js';
+import { Item } from './item.js';
 
 export abstract class Entity extends GameObject {
   private accelTime: number = 0.25;
@@ -18,10 +20,12 @@ export abstract class Entity extends GameObject {
   private _moveDirection: Vector2 = new Vector2();
   private _faceDirection: Vector2 = new Vector2();
 
-  private _team?: Team;
-
   private _health: number;
   private _dead: boolean = false;
+  private _kills: number = 0;
+
+  private _team?: Team;
+  private _tool?: Tool;
 
   private damageEffectTimer: Timer = new Timer(0.3);
 
@@ -30,15 +34,15 @@ export abstract class Entity extends GameObject {
     hitShape: CollisionObject,
     private moveSpeed: number,
     public readonly maxHealth: number,
+    private canPickupItems: boolean,
     position: Vector2 = new Vector2()
   ) {
     super("Entity", sprite, hitShape, position);
 
     this._health = maxHealth;
-
     this.sprite.playAnimation("idle");
 
-    Game.instance.entities.add(this);
+    Game.instance.simulation.registerEntity(this);
   }
 
   public get faceDirection(): Vector2 {
@@ -58,27 +62,29 @@ export abstract class Entity extends GameObject {
     this._moveDirection = direction.unit();
   }
 
-  public get team(): Team | undefined {
-    return this._team;
-  }
-
-  public setTeam(name: string) {
-    this._team = Game.instance.teams.get(name);
-  }
-
   public damage(amount: number, attacker?: Entity, color: Color = new Color(1, 0, 0)) {
     this._health -= amount;
 
     if (this._health <= 0) {
       this._dead = true;
       this.destroy();
+
+      if (attacker) attacker.giveKill();
+
+      return;
     }
+
+    if (this._health > this.maxHealth) this._health = this.maxHealth;
 
     this.sprite.setHighlight(color);
     this.sprite.setHighlightOpacity(1);
 
     this.damageEffectTimer.start();
   }
+
+  public giveKill(): void {
+    this._kills++;
+  } 
 
   public get health(): number {
     return this._health;
@@ -88,8 +94,39 @@ export abstract class Entity extends GameObject {
     return this._dead;
   }
 
+  public get kills(): number {
+    return this._kills;
+  }
+
   public knockback(impulse: Vector2) {
     this.knockbackVelocity = this.knockbackVelocity.add(impulse);
+  }
+
+  public get team(): Team | undefined {
+    return this._team;
+  }
+
+  public setTeam(team: Team) {
+    this.clearFromTeam();
+
+    this._team = team;
+    team.addMember(this);
+  }
+
+  public clearFromTeam(): void {
+    if (this._team) this._team.removeMember(this);
+  }
+
+  public get tool(): Tool | undefined {
+    return this._tool;
+  }
+
+  public equipTool(tool: Tool) {
+    if (this._tool) this._tool.unequip(this);
+
+    tool.equip(this);
+
+    this._tool = tool;
   }
 
   public abstract updateBehaviour(): void;
@@ -113,7 +150,7 @@ export abstract class Entity extends GameObject {
     this.position = this.position.add(knockbackDisplacement).add(dragDisplacement);
     this.knockbackVelocity = this.knockbackVelocity.add(dragForce.multiply(deltaTime));
 
-    this.rotation = this._faceDirection.angle(); // WHY IS THIS CRASHING??!?!?!
+    this.rotation = this._faceDirection.angle();
 
     if (this._moveDirection.magnitude() > 0) {
       if (!this.sprite.isAnimationPlaying("walking")) {
@@ -130,20 +167,28 @@ export abstract class Entity extends GameObject {
 
     for (const info of Game.instance.chunkManager.collisionQueryFromObject(this, "Structure", false)) {
       this.position = this.position.add(info.normal.multiply(info.overlap));
-
-      const structure: Structure = info.object as Structure;
-      structure.entityCollided(this);
+      (info.object as Structure).entityCollided(this);
     }
 
+    // const [collided, normal, overlap] = this.hitbox.intersects(Game.instance.simulation.barriers[0]);
+    // if (collided) this.position = this.position.add(normal.multiply(overlap));
+
     this.updateObject();
+
+    if (this.canPickupItems) {
+      for (const info of Game.instance.chunkManager.collisionQueryFromObject(this, "Item", true)) {
+        (info.object as Item).pickup(this);
+      }
+    }
 
     if (this.damageEffectTimer.isActive()) this.sprite.setHighlightOpacity(1 - this.damageEffectTimer.getProgress());
     else this.sprite.setHighlightOpacity(0);
   }
 
   public destroy(): void {
-    super.despawnObject();
+    super.destroy();
 
-    Game.instance.entities.delete(this);
+    this.clearFromTeam();
+    Game.instance.simulation.unregisterEntity(this);
   }
 }

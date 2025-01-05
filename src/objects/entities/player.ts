@@ -8,11 +8,7 @@ import { ANRMI } from '../tools/ANRMI.js';
 import { ANRE } from '../tools/ANRE.js';
 
 export class Player extends Entity {
-  private tool: Tool;
-  private tools: Tool[] = [];
-  private maximumTools: number = 1;
-
-  constructor() {
+  constructor(position: Vector2) {
     super(
       Game.instance.spriteManager.create("player"),
       new Polygon([
@@ -24,27 +20,12 @@ export class Player extends Entity {
         new Vector2(0.2, -0.3)
       ]),
       3,
-      100
+      100,
+      true,
+      position
     );
 
-    this.giveTool(new ANRMI());
-    this.holdTool(0);
-
-    this.setTeam("Human");
-
-    this.sprite.setAnimationModifier("machineInjector");
-
     this.hitbox.show();
-  }
-
-  public giveTool(tool: Tool): void {
-    if (this.tools.length <= this.maximumTools) {
-      this.tools.push(tool);
-    }
-  }
-
-  public holdTool(index: number): void {
-    this.tool = this.tools[index];
   }
 
   public updateBehaviour(): void {
@@ -60,7 +41,7 @@ export class Player extends Entity {
     this.setMoveDirection(moveDir);
     this.setFaceDirection(aimDir);
 
-    if (Game.instance.controller.isMouseDown()) {
+    if (this.tool && Game.instance.controller.isMouseDown()) {
       this.tool.use(this);
     }
   }

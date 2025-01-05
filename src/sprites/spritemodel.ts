@@ -22,12 +22,7 @@ export class SpriteModel {
     if (tiling) this.tileScale = new Vector2(this.size.x / this.sprite.width, this.size.y / this.sprite.height);
     else this.tileScale = new Vector2(1, 1);
 
-    this.showModel();
-  }
-
-  public showModel(): void {
     const objects = Game.instance.spriteModels.get(this.sprite) || new Set();
-
     if (objects.size === 0) Game.instance.spriteModels.set(this.sprite, objects);
 
     objects.add(this);
@@ -118,8 +113,10 @@ export class SpriteModel {
     Game.instance.canvas.shader.setUniformFloat("tintOpacity", this.highlightOpacity);
   }
 
-  public hideModel(): void {
-    const models = Game.instance.spriteModels.get(this.sprite)!;
+  public destroy(): void {
+    const models = Game.instance.spriteModels.get(this.sprite);
+    if (!models) return;
+    
     models.delete(this);
 
     if (models.size === 0) {

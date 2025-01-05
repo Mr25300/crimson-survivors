@@ -10,7 +10,7 @@ export abstract class Bot extends Entity {
   private attackTimer: Timer;
 
   constructor(sprite: SpriteModel, hitbox: CollisionObject, moveSpeed: number, health: number, attackRange: number, attackCooldown: number, location: Vector2) {
-    super(sprite, hitbox, moveSpeed, health, location);
+    super(sprite, hitbox, moveSpeed, health, false, location);
 
     this.pathfinder = new Pathfinder(this, attackRange);
     this.attackTimer = new Timer(attackCooldown);  

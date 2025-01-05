@@ -158,7 +158,7 @@ export class ChunkManager {
     }
   }
 
-  public clearAllChunks(): void {
+  public reset(): void {
     this.chunks.clear();
   }
 }

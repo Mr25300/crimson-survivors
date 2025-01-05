@@ -2,7 +2,7 @@ import { SpriteModel } from "../sprites/spritemodel.js";
 import { SpriteSheet } from "../sprites/spritesheet.js";
 import { Vector2 } from "../util/vector2.js";
 
-type SpriteName =
+export type SpriteName =
 "player" | "playerNeedle" | "playerExplosive" |
 "grunt" |
 "kuranku" | "kurankuRock" |
@@ -65,7 +65,8 @@ export class SpriteManager {
     const necromancer: SpriteSheet = new SpriteSheet("res/assets/Necromancer.png", 1, 1, new Vector2(3, 3), 1);
     necromancer.createAnimation("idle", [0], 1, true, 0);
     necromancer.createAnimation("walking", [0], 1, true, 1);
-    necromancer.createAnimation("spawn", [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1], 1, false, 2);
+    const necromancerSpawn = necromancer.createAnimation("spawn", [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1], 0.6, false, 2);
+    necromancerSpawn.addMarker("spawnBats", 6);
 
     const bat: SpriteSheet = new SpriteSheet("res/assets/Bat.png", 1, 1, new Vector2(2, 3), 1);
     bat.createAnimation("idle", [0], 1, true, 0);

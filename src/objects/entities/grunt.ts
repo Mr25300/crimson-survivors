@@ -18,13 +18,11 @@ export class Grunt extends Bot {
         new Vector2(0.2, -0.35)
       ]),
       2.5,
-      30,
+      20,
       0.5,
       1,
       spawnPosition
     );
-
-    this.setTeam("Vampire");
   }
 
   public attack(): void {

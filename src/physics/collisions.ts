@@ -53,14 +53,14 @@ export class CollisionObject {
     return this._transformedVertices;
   }
 
-  public getNormals(reference: CollisionObject): Vector2[] {
-    const radialNormals: Vector2[] = [];
-    
+  public getNormals(): Vector2[] {
     if (this.normalsOutdated) {
       if (this.vertices.length > 1) {
         const vertices: Vector2[] = this.getTransformedVertices();
 
         for (let i = 0; i < vertices.length; i++) {
+          if (vertices.length === 2 && i === 1) break;
+
           const vertex1 = vertices[i];
           const vertex2 = vertices[(i + 1) % vertices.length];
           const edge = vertex2.subtract(vertex1);
@@ -73,6 +73,12 @@ export class CollisionObject {
       this.normalsOutdated = false;
     }
 
+    return this._normals;
+  }
+
+  public getCollisionNormals(reference: CollisionObject): Vector2[] {
+    const radialNormals: Vector2[] = [];
+
     if (this.radius > 0) {
       for (const vertex of this.getTransformedVertices()) {
         const closestRefVertex = reference.getClosestVertex(vertex);
@@ -82,7 +88,7 @@ export class CollisionObject {
       }
     }
 
-    return [...this._normals, ...radialNormals];
+    return [...this.getNormals(), ...radialNormals];
   }
 
   public getProjectedRange(axis: Vector2): [number, number] {
@@ -97,6 +103,13 @@ export class CollisionObject {
       if (dotMin < min) min = dotMin;
       if (dotMax > max) max = dotMax;
     }
+
+    // if (this.infiniteBarrier) {
+    //   const normal = this.getNormals()[0];
+      
+    //   if (normal.dot(axis) > 0) min = -Infinity;
+    //   else max = Infinity;
+    // }
 
     return [min, max];
   }
@@ -153,15 +166,15 @@ export class CollisionObject {
   }
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {
-    const normals1: Vector2[] = this.getNormals(object);
-    const normals2: Vector2[] = object.getNormals(this);
+    const normals1: Vector2[] = this.getCollisionNormals(object);
+    const normals2: Vector2[] = object.getCollisionNormals(this);
     const existingAxes: Set<number> = new Set();
 
     let overlap: number = Infinity;
     let normal: Vector2 = new Vector2();
 
     // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
-    for (const axis of [...normals1, ...normals2]) {
+    for (const axis of [...normals2, ...normals1]) {
       const cantorKey: number = Util.cantor(axis);
       const oppositeKey: number = Util.cantor(axis.multiply(-1));
 
@@ -406,9 +419,7 @@ export class Line extends CollisionObject {
 }
 
 export class Point extends CollisionObject {
-  constructor(
-    position: Vector2
-  ) {
+  constructor(position: Vector2) {
     super([new Vector2()], 0, position, 0);
   }
 }
@@ -425,6 +436,10 @@ export class Bounds {
 
   public get max(): Vector2 {
     return this._max;
+  }
+
+  public getCenter(): Vector2 {
+    return this._min.add(this._max).divide(2);
   }
 
   public getDimensions(): Vector2 {

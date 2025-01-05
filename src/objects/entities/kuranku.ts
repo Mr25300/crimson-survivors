@@ -22,13 +22,11 @@ export class Kuranku extends Bot {
         new Vector2(0.3, -0.4)
       ]),
       2,
-      40,
+      30,
       5,
       2,
       spawnPosition
     );
-
-    this.setTeam("Vampire");
   }
 
   public attack(): void {
