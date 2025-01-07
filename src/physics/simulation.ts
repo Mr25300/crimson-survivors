@@ -1,92 +1,178 @@
 import { Game } from '../core/game.js';
-import { Batspawner } from '../objects/entities/batspawner.js';
+import { Bat } from '../objects/entities/bat.js';
 import { Grunt } from '../objects/entities/grunt.js';
-import { Kronku } from '../objects/entities/kronku.js';
-import { Necro } from '../objects/entities/necro.js';
+import { Kuranku } from '../objects/entities/kuranku.js';
+import { Necromancer } from '../objects/entities/necromancer.js';
 import { Patrol } from '../objects/entities/patrol.js';
+import { Player } from '../objects/entities/player.js';
+import { Entity } from '../objects/entity.js';
+import { Item } from '../objects/item.js';
+import { Projectile } from '../objects/projectile.js';
+import { Structure } from '../objects/structure.js';
+import { Wall } from '../objects/structures/wall.js';
+import { Team } from '../objects/team.js';
+import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
+import { ANRMIItem } from '../objects/tools/ANRMI.js';
+import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
+import { Util } from '../util/util.js';
 import { Vector2 } from '../util/vector2.js';
-import { Bounds } from './collisions.js';
+import { Barrier, Bounds, CollisionObject, Line } from './collisions.js';
+import { Maze } from './maze.js';
 
 export class Simulation {
-  public readonly bounds: Bounds = new Bounds(
-    new Vector2(-15, -15),
-    new Vector2(15, 15)
-  );
+  public readonly map: Maze;
 
-  private spawnProbability: number = 0;
+  private _player: Player;
+  public readonly humans: Team = new Team("Human");
+  public readonly vampires: Team = new Team("Vampire");
 
-  private spawnRates: Record<string, number> = {
-    grunt: 0.3,
-    necro: 0.1,
-    patrol: 0.2,
-    kronku: 0.2,
-    batspawner: 0.2
+  private entities: Set<Entity> = new Set();
+  private projectiles: Set<Projectile> = new Set();
+
+  private wave: number = 100;
+  private vampiresPerWave: number = 10;
+  private itemsPerWave: number = 3;
+
+  private vampireSpawnWeights: Record<string, number> = {
+    grunt: 40,
+    kuranku: 30,
+    patrol: 20,
+    necromancer: 10
   };
 
-  private spawnTimer: number = 0;
+  private itemSpawnWeights: Record<string, number> = {
+    ANRPI: 40,
+    ANRE: 30,
+    ANRMI: 20
+  };
 
-  private spawnVampire(): void {
-    const randomPosition: Vector2 = new Vector2(
-      this.bounds.min.x + (this.bounds.max.x - this.bounds.min.x) * Math.random(),
-      this.bounds.min.y + (this.bounds.max.y - this.bounds.min.y) * Math.random()
-    );
+  constructor() {
+    this.map = new Maze(new Vector2(10, 10), 4, 1);
+  }
 
+  public registerEntity(entity: Entity): void {
+    this.entities.add(entity);
+  }
+
+  public unregisterEntity(entity: Entity): void {
+    this.entities.delete(entity);
+  }
+
+  public registerProjectile(projectile: Projectile): void {
+    this.projectiles.add(projectile);
+  }
+
+  public unregisterProjectile(projectile: Projectile): void {
+    this.projectiles.delete(projectile);
+  }
+
+  public get player(): Player {
+    return this._player;
+  }
+
+  public get entityCount(): number {
+    return this.entities.size;
+  }
+
+  public init(): void {
+    this.generateMap();
+
+    this._player = new Player(new Vector2());
+    this._player.setTeam(this.humans);
+    this._player.equipTool(new ANRPI());
+
+    Game.instance.camera.setSubject(this._player);
+  }
+
+  public generateMap(): void {
+    this.map.generateMaze();
+
+    const floorModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
+    floorModel.setTransformation(this.map.bounds.getCenter(), 0);
+  }
+
+  private getRNGOption(optionWeights: Record<string, number>): string {
     const randomPercent: number = Math.random();
+    let weightSum: number = 0;
     let rateSum: number = 0;
-    let chosen: string = "";
 
-    for (const name in this.spawnRates) {
-      const rate = this.spawnRates[name];
+    for (const name in optionWeights) {
+      weightSum += optionWeights[name];
+    }
+
+    for (const name in optionWeights) {
+      const rate = optionWeights[name] / weightSum;
       rateSum += rate;
 
       if (randomPercent < rateSum) {
-        chosen = name;
-
-        break;
+        return name;
       }
     }
 
-    if (chosen === "grunt") new Grunt(randomPosition);
-    else if (chosen === "necro") new Necro(randomPosition);
-    else if (chosen === "patrol") new Patrol(randomPosition);
-    else if (chosen === "kronku") new Kronku(randomPosition);
-    else if (chosen === "batspawner") new Batspawner(randomPosition);
+    return "";
+  }
+
+  private spawnItem(): void {
+    const position: Vector2 = this.map.getRandomVacancy();
+    const chosen: string = this.getRNGOption(this.itemSpawnWeights);
+
+    if (chosen === "ANRE") new ANREItem(position);
+    else if (chosen === "ANRPI") new ANRPIItem(position);
+    else if (chosen === "ANRMI") new ANRMIItem(position);
+  }
+
+  private spawnVampire(): void {
+    const position: Vector2 = this.map.getRandomVacancy();
+    const chosen: string = this.getRNGOption(this.vampireSpawnWeights);
+    let vampire: Entity;
+
+    if (chosen === "grunt") vampire = new Grunt(position);
+    else if (chosen === "patrol") vampire = new Patrol(position);
+    else if (chosen === "kuranku") vampire = new Kuranku(position);
+    else if (chosen === "necromancer") vampire = new Necromancer(position);
+
+    vampire!.setTeam(this.vampires);
   }
 
   public update(deltaTime: number): void {
-    this.spawnTimer += deltaTime;
+    if (this.player.dead) {
+      Game.instance.endGame();
 
-    while (this.spawnTimer >= 1) {
-      this.spawnTimer -= 1;
-      this.spawnProbability += 1 / 100;
+      return;
+    }
 
-      let spawnCount = Math.floor(this.spawnProbability);
+    if (this.vampires.hasNoMembers()) {
+      this.wave++;
 
-      if (Math.random() < (this.spawnProbability % 1)) spawnCount++;
+      for (let i = 0; i < (this.wave - 1) * this.itemsPerWave; i++) {
+        this.spawnItem();
+      }
 
-      for (let i: number = 0; i < spawnCount; i++) {
-        // this.spawnVampire();
+      for (let i = 0; i < this.wave * this.vampiresPerWave; i++) {
+        this.spawnVampire();
       }
     }
 
-    for (const projectile of Game.instance.projectiles) {
-      projectile.update(deltaTime);
+    for (const entity of this.entities) {
+      entity.updateBehaviour();
     }
 
-    for (const entity of Game.instance.entities) {
-      entity.handleBehavior(deltaTime);
+    for (const projectile of this.projectiles) {
+      projectile.updatePhysics(deltaTime);
     }
 
-    for (const entity of Game.instance.entities) {
-      entity.update(deltaTime);
+    for (const entity of this.entities) {
+      entity.updatePhysics(deltaTime);
     }
+  }
 
-    // do collision for user
+  public reset(): void {
+    this.humans.removeAll();
+    this.vampires.removeAll();
 
-    // do melee attack hitboxes and create projectiles from attacks
+    this.entities.clear();
+    this.projectiles.clear();
 
-    // simulate projectile physics and collisions
-    // simulate entity physics
-    // check structure collisions and reposition entities if colliding
+    this.wave = 0;
   }
 }

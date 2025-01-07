@@ -16,8 +16,17 @@ import { Team } from '../objects/team.js';
 import { SpriteManager } from '../sprites/spritemanager.js';
 import { Util } from '../util/util.js';
 import { Projectile } from '../objects/projectile.js';
-import { Timer } from '../objects/timer.js';
+import { Timer } from '../util/timer.js';
 import { Wall } from '../objects/structures/wall.js';
+import { OptimalPath } from '../physics/pathfinder.js';
+import { Grunt } from '../objects/entities/grunt.js';
+import { Kuranku } from '../objects/entities/kuranku.js';
+import { Patrol } from '../objects/entities/patrol.js';
+import { GameEvent } from '../util/gameevent.js';
+import { UIManager } from '../rendering/uimanager.js';
+import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
+import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
+import { ANRMI, ANRMIItem } from '../objects/tools/ANRMI.js';
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -25,11 +34,6 @@ export class Game extends Gameloop {
   public readonly timers: Set<Timer> = new Set();
   public readonly spriteModels: Map<SpriteSheet, Set<SpriteModel>> = new Map();
   public readonly collisionObjects: Set<CollisionObject> = new Set();
-  public readonly gameObjects: Set<GameObject> = new Set();
-  public readonly entities: Set<Entity> = new Set();
-  public readonly teams: Map<string, Team> = new Map();
-  public readonly projectiles: Set<Projectile> = new Set();
-  public readonly structures: Set<Structure> = new Set();
 
   private _canvas: Canvas;
   private _camera: Camera;
@@ -37,11 +41,7 @@ export class Game extends Gameloop {
   private _spriteManager: SpriteManager;
   private _chunkManager: ChunkManager;
   private _simulation: Simulation;
-  public player: Player; // REMOVE
-
-  private constructor() {
-    super();
-  }
+  private uiManager: UIManager;
 
   public static get instance(): Game {
     if (!Game._instance) Game._instance = new Game();
@@ -56,21 +56,29 @@ export class Game extends Gameloop {
     this._spriteManager = new SpriteManager();
     this._chunkManager = new ChunkManager();
     this._simulation = new Simulation();
+    this.uiManager = new UIManager();
 
     await this._canvas.init();
 
-    new Team("Human");
-    new Team("Vampire");
+    this.uiManager.displayTitleScreen();
+  }
 
-    new Wall(new Vector2(1, 0));
-    new Wall(new Vector2(0, 1));
-    new Wall(new Vector2(1, 1));
-
-    const player: Player = new Player();
-    this.player = player;
-    this._camera.setSubject(this.player);
+  public startGame(): void {
+    this._simulation.init();
 
     this.start();
+  }
+
+  public endGame(): void {
+    this.timers.clear();
+    this.spriteModels.clear();
+    this.collisionObjects.clear();
+    this._chunkManager.reset();
+    this._simulation.reset();
+
+    this.stop();
+
+    this.uiManager.displayEndScreen();
   }
 
   protected update(deltaTime: number): void {
@@ -78,17 +86,20 @@ export class Game extends Gameloop {
       timer.update(deltaTime);
     }
 
+    this.spriteModels.forEach((models: Set<SpriteModel>) => {
+      for (const model of models) {
+        model.updateAnimation(deltaTime);
+      }
+    });
+
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
-    this._canvas.update(deltaTime);
 
     if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
-
-    document.getElementById("fps-display")!.innerText = (1 / deltaTime).toFixed(1);
-    document.getElementById("entity-count-display")!.innerText = "0";
   }
 
   protected render(): void {
+    this.uiManager.displayGameInfo();
     this._canvas.render();
   }
 

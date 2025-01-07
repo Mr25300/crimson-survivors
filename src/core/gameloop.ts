@@ -1,9 +1,11 @@
 export abstract class Gameloop {
-  private running: boolean = false;
+  private _running: boolean = false;
   private lastTime: number;
+  private _elapsedTime: number = 0;
+  private _fps: number;
 
   protected start(time?: number): void {
-    this.running = true;
+    this._running = true;
 
     requestAnimationFrame((timestamp: number) => {
       this.loop(timestamp);
@@ -11,7 +13,7 @@ export abstract class Gameloop {
   }
 
   private loop(timestamp: number): void {
-    if (!this.running) return;
+    if (!this._running) return;
 
     let deltaTime = 0;
 
@@ -20,7 +22,8 @@ export abstract class Gameloop {
     }
 
     // possibly enforce 60fps to maintain performance with high framerate
-
+    this._elapsedTime += deltaTime;
+    this._fps = 1 / deltaTime;
     this.update(deltaTime);
     this.render();
 
@@ -31,8 +34,20 @@ export abstract class Gameloop {
     });
   }
 
+  public get running(): boolean {
+    return this._running;
+  }
+
+  public get elapsedTime(): number {
+    return this._elapsedTime;
+  }
+
+  public get fps(): number {
+    return this._fps;
+  }
+
   protected stop(): void {
-    this.running = false;
+    this._running = false;
   }
 
   protected abstract update(deltaTime: number): void;

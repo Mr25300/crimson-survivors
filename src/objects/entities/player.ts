@@ -3,14 +3,12 @@ import { Tool } from '../tool.js';
 import { Vector2 } from '../../util/vector2.js';
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import { ANRM } from '../tools/ANRM.js';
+import { ANRPI } from '../tools/ANRPI.js';
+import { ANRMI } from '../tools/ANRMI.js';
+import { ANRE } from '../tools/ANRE.js';
 
 export class Player extends Entity {
-  private tool: Tool;
-  private tools: Tool[] = [];
-  private maximumTools: number = 1;
-
-  constructor() {
+  constructor(position: Vector2) {
     super(
       Game.instance.spriteManager.create("player"),
       new Polygon([
@@ -22,27 +20,13 @@ export class Player extends Entity {
         new Vector2(0.2, -0.3)
       ]),
       3,
-      new Vector2(),
-      100
+      100,
+      true,
+      position
     );
-
-    this.giveTool(new ANRM());
-    this.holdTool(0);
-
-    this.setTeam("Human");
   }
 
-  public giveTool(tool: Tool): void {
-    if (this.tools.length <= this.maximumTools) {
-      this.tools.push(tool);
-    }
-  }
-
-  public holdTool(index: number): void {
-    this.tool = this.tools[index];
-  }
-
-  public handleBehavior(): void {
+  public updateBehaviour(): void {
     let moveDir = new Vector2();
 
     if (Game.instance.controller.isControlActive("moveU")) moveDir = moveDir.add(new Vector2(0, 1));
@@ -55,12 +39,8 @@ export class Player extends Entity {
     this.setMoveDirection(moveDir);
     this.setFaceDirection(aimDir);
 
-    if (Game.instance.controller.isMouseDown()) {
-      this.attack();
+    if (this.tool && Game.instance.controller.isMouseDown()) {
+      this.tool.use(this);
     }
-  }
-
-  public attack(): void {
-    this.tool.use(this);
   }
 }

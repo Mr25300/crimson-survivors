@@ -4,11 +4,9 @@ import { Bounds } from "../physics/collisions.js";
 import {Vector2} from "../util/vector2.js";
 
 export class Camera {
-  private lerpAlpha: number = 10;
   private _position: Vector2 = new Vector2();
-  private goalPosition: Vector2 = new Vector2();
 
-  private subject: GameObject | null = null;
+  private subject?: GameObject;
 
   public get position(): Vector2 {
     return this._position;
@@ -16,22 +14,18 @@ export class Camera {
 
   public setSubject(subject: GameObject): void {
     this.subject = subject;
+    this._position = subject.position;
   }
 
   public update(deltaTime: number) {
-    const alpha = 1 - Math.exp(-this.lerpAlpha * deltaTime);
-
     if (this.subject) {
-      this.goalPosition = this.subject.position;
+      this._position = this.subject.position;
 
       const range = Game.instance.canvas.getScreenRange();
+      const screenBounds = new Bounds(this._position.subtract(range), this._position.add(range));
+      const overlap = Game.instance.simulation.map.bounds.getInnerOverlap(screenBounds);
 
-      const screenBounds = new Bounds(this.goalPosition.subtract(range), this.goalPosition.add(range));
-      const overlap = Game.instance.simulation.bounds.getInnerOverlap(screenBounds);
-
-      this.goalPosition = this.goalPosition.subtract(overlap);
+      this._position = this._position.subtract(overlap);
     }
-
-    this._position = this._position.lerp(this.goalPosition, alpha);
   }
 }

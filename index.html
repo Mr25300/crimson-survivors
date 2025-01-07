@@ -5,12 +5,31 @@
 
   <body>
     <div class="container">
-      <canvas id="gameScreen" width="500px" height="300px"></canvas>
+      <canvas id="game-screen" tabindex="1"></canvas>
 
-      <div class="absolute-element debug-info">
+      <div id="title-screen" class="play-screen show">
+        <button id="title-screen-start">Play</button>
+      </div>
+
+      <div id="end-screen" class="play-screen">
+        <div>
+          <h1>Game Over</h1>
+          <label>You saved <span id="vampire-save-count"></span> vampires.</label>
+          <br>
+          <button id="end-screen-restart">Play Again</button>
+        </div>
+      </div>
+
+      <div class="game-info">
+        <progress id="health-bar" value="25" max="100"></progress>
+        <br>
+        <label>Current Module: </label><span id="tool-display"></span>
+      </div>
+
+      <div class="debug-info">
         <label>FPS: </label><span id="fps-display"></span>
         <br>
-        <label>Entities on Screen: </label><span id="entity-count-display"></span>
+        <label>Entities: </label><span id="entity-count-display"></span>
       </div>
     </div>
     

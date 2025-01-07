@@ -1,5 +1,4 @@
-import { Util } from "../util/util.js";
-import { Matrix4 } from "../util/matrix4.js";
+import { Matrix3 } from "../util/matrix3.js";
 import { ShaderProgram } from "./shaderprogram.js";
 import { SpriteSheet } from "../sprites/spritesheet.js";
 import { Vector2 } from "../util/vector2.js";
@@ -21,14 +20,17 @@ export class Canvas {
   private aspectRatio: number;
 
   constructor() {
-    this.element = document.getElementById("gameScreen") as HTMLCanvasElement;
+    this.element = document.getElementById("game-screen") as HTMLCanvasElement;
+    
     this.gl = this.element.getContext("webgl2") as WebGL2RenderingContext;
+    if (!this.gl) this.gl = this.element.getContext("webgl") as WebGL2RenderingContext;
+    if (!this.gl) throw new Error("Failed to get GL context.");
+
     this.shader = new ShaderProgram(this.gl);
 
+    this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-
-    this.gl.enable(this.gl.DEPTH_TEST);
 
     this.updateDimensions();
 
@@ -46,18 +48,19 @@ export class Canvas {
     this.shader.use();
 
     this.shader.createAttrib("vertexPos");
-    this.shader.createAttrib("textureCoord");
 
     this.shader.createUniform("screenProjection");
-
-    this.shader.createUniform("spriteScale");
+    this.shader.createUniform("spriteSize");
+    this.shader.createUniform("spriteCell");
+    this.shader.createUniform("tileScale");
     this.shader.createUniform("modelTransform");
     this.shader.createUniform("zOrder");
 
     this.shader.createUniform("debugMode");
 
-    this.shader.createUniform("tintColor");
-    this.shader.createUniform("tintOpacity");
+    this.shader.createUniform("gameTime");
+    this.shader.createUniform("highlightColor");
+    this.shader.createUniform("highlightStart");
   }
 
   public createBuffer(data: Float32Array): WebGLBuffer {
@@ -100,8 +103,8 @@ export class Canvas {
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
 
       // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, wrapMode);
       // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, wrapMode);
@@ -164,24 +167,17 @@ export class Canvas {
     return new Vector2(range * this.aspectRatio, range);
   }
 
-  public update(deltaTime: number): void {
-    Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
-      for (const model of models) {
-        model.update(deltaTime);
-      }
-    });
-  }
-
   public render(): void {
-    this.gl.clearColor(0, 0, 0, 1);
+    this.gl.clearColor(1, 1, 1, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
 
-    const projectionMatrix: Matrix4 = Matrix4.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
+    const projectionMatrix: Matrix3 = Matrix3.fromProjection(this.screenUnitScale * 2, this.aspectRatio, Game.instance.camera.position);
 
     this.shader.use();
     this.shader.setAttribBuffer("vertexPos", this.spriteVertexBuffer, 2, 0, 0);
     this.shader.setUniformMatrix("screenProjection", projectionMatrix);
     this.shader.setUniformBool("debugMode", false);
+    this.shader.setUniformFloat("gameTime", Game.instance.elapsedTime);
 
     Game.instance.spriteModels.forEach((models: Set<SpriteModel>, sprite: SpriteSheet) => {
       sprite.bind();
@@ -193,10 +189,11 @@ export class Canvas {
       }
     });
 
-    this.shader.setUniformMatrix("spriteScale", Matrix4.identity());
+    this.shader.setUniformVector("spriteSize", new Vector2(1, 1));
+    this.shader.setUniformFloat("spriteCell", 0);
     this.shader.setUniformFloat("zOrder", 20);
     this.shader.setUniformBool("debugMode", true);
-    this.shader.setUniformFloat("tintOpacity", 0);
+    this.shader.setUniformFloat("highlightStart", -1);
 
     Game.instance.collisionObjects.forEach((object: CollisionObject) => {
       object.bind();

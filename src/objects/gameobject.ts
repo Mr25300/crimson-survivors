@@ -14,8 +14,7 @@ export abstract class GameObject {
     public position: Vector2 = new Vector2(),
     public rotation: number = 0
   ) {
-    this.hitbox.show();
-    this.updateObject(); // fix order of priority here
+    this.updateObject();
   }
 
   public updateObject(): void {
@@ -23,6 +22,11 @@ export abstract class GameObject {
     this.sprite.setTransformation(this.position, this.rotation);
 
     Game.instance.chunkManager.updateObjectChunks(this);
+  }
+
+  public destroy(): void {
+    Game.instance.chunkManager.clearObjectChunks(this);
+    this.sprite.destroy();
   }
 
   public isInChunk(chunkKey: number): boolean {
@@ -35,12 +39,5 @@ export abstract class GameObject {
 
   public removeChunk(chunkKey: number): void {
     this.chunks.delete(chunkKey);
-  }
-
-  public destroy(): void {
-    Game.instance.chunkManager.clearObjectChunks(this);
-
-    this.sprite.destroy();
-    this.hitbox.destroy();
   }
 }

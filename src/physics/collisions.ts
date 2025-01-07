@@ -1,13 +1,15 @@
 import { Game } from '../core/game.js';
-import { Matrix4 } from '../util/matrix4.js';
+import { Matrix3 } from '../util/matrix3.js';
 import { Util } from '../util/util.js';
 import { Vector2 } from '../util/vector2.js';
 
 export class CollisionObject {
   private _transformedVertices: Vector2[] = [];
   private _normals: Vector2[] = [];
-  private verticesOutdated: boolean = true;
-  private normalsOutdated: boolean = true;
+  private _bounds: Bounds;
+  protected verticesOutdated: boolean = true;
+  protected normalsOutdated: boolean = true;
+  protected boundsOutdated: boolean = true;
 
   private showingOnce: boolean = false;
   private vertexBuffer: WebGLBuffer | null = null;
@@ -15,9 +17,10 @@ export class CollisionObject {
 
   constructor(
     protected vertices: Vector2[],
-    protected radius: number = 0,
-    protected _position: Vector2 = new Vector2(),
-    protected _rotation: number = 0
+    private radius: number = 0,
+    private _position: Vector2 = new Vector2(),
+    private _rotation: number = 0,
+    private infiniteBarrier: boolean = false
   ) {}
 
   public get position(): Vector2 {
@@ -34,11 +37,12 @@ export class CollisionObject {
 
     this.verticesOutdated = true;
     this.normalsOutdated = true;
+    this.boundsOutdated = true;
   }
 
   public getTransformedVertices(): Vector2[] {
     if (this.verticesOutdated) {
-      const matrix = Matrix4.fromTransformation(this._position, this._rotation);
+      const matrix = Matrix3.fromTransformation(this._position, this._rotation);
 
       for (let i = 0; i < this.vertices.length; i++) {
         this._transformedVertices[i] = matrix.apply(this.vertices[i]);
@@ -50,28 +54,20 @@ export class CollisionObject {
     return this._transformedVertices;
   }
 
-  public getNormals(reference: CollisionObject): Vector2[] {
+  public getNormals(): Vector2[] {
     if (this.normalsOutdated) {
-      const vertices: Vector2[] = this.getTransformedVertices();
+      if (this.vertices.length > 1) {
+        const vertices: Vector2[] = this.getTransformedVertices();
 
-      this._normals.length = 0;
+        for (let i = 0; i < vertices.length; i++) {
+          if (vertices.length === 2 && i === 1) break;
 
-      for (let i = 0; i < vertices.length; i++) {
-        const vertex1 = vertices[i];
-
-        if (vertices.length > 1) {
+          const vertex1 = vertices[i];
           const vertex2 = vertices[(i + 1) % vertices.length];
           const edge = vertex2.subtract(vertex1);
           const normal = edge.perp().unit();
-
-          this._normals.push(normal);
-        }
-
-        if (this.radius > 0) {
-          const closestRefVertex = reference.getClosestVertex(vertex1);
-          const directionAxis = vertex1.subtract(closestRefVertex).unit();
-
-          this._normals.push(directionAxis);
+  
+          this._normals[i] = normal;
         }
       }
 
@@ -79,6 +75,21 @@ export class CollisionObject {
     }
 
     return this._normals;
+  }
+
+  public getCollisionNormals(reference: CollisionObject): Vector2[] {
+    const radialNormals: Vector2[] = [];
+
+    if (this.radius > 0) {
+      for (const vertex of this.getTransformedVertices()) {
+        const closestRefVertex = reference.getClosestVertex(vertex);
+        const directionAxis = vertex.subtract(closestRefVertex).unit();
+
+        radialNormals.push(directionAxis);
+      }
+    }
+
+    return [...this.getNormals(), ...radialNormals];
   }
 
   public getProjectedRange(axis: Vector2): [number, number] {
@@ -94,14 +105,42 @@ export class CollisionObject {
       if (dotMax > max) max = dotMax;
     }
 
+    if (this.infiniteBarrier) {
+      const normal = this.getNormals()[0];
+      
+      if (normal.dot(axis) > 0) min = -Infinity;
+      else max = Infinity;
+    }
+
     return [min, max];
   }
 
   public getBounds(): Bounds {
-    const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
-    const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+    if (this.boundsOutdated) {
+      let minX: number = Infinity;
+      let minY: number = Infinity;
+      let maxX: number = -Infinity;
+      let maxY: number = -Infinity;
+  
+      for (const vertex of this.getTransformedVertices()) {
+        if (vertex.x < minX) minX = vertex.x;
+        if (vertex.y < minY) minY = vertex.y;
+        if (vertex.x > maxX) maxX = vertex.x;
+        if (vertex.y > maxY) maxY = vertex.y;
+      }
 
-    return new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+      this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+    }
+
+    // if (this.boundsOutdated) {
+    //   const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
+    //   const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+
+    //   this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+    //   this.boundsOutdated = false;
+    // }
+
+    return this._bounds;
   }
 
   public getCenter(): Vector2 {
@@ -144,17 +183,17 @@ export class CollisionObject {
   }
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {
-    const normals1: Vector2[] = this.getNormals(object);
-    const normals2: Vector2[] = object.getNormals(this);
+    const normals1: Vector2[] = object.infiniteBarrier ? [] : this.getCollisionNormals(object);
+    const normals2: Vector2[] = object.getCollisionNormals(this);
     const existingAxes: Set<number> = new Set();
 
     let overlap: number = Infinity;
     let normal: Vector2 = new Vector2();
 
     // loop through axes and check dot product between them, and get rid of duplicates which have a dot of 1 or -1
-    for (const axis of [...normals1, ...normals2]) {
-      const cantorKey: number = Util.cantor(axis.x, axis.y);
-      const oppositeKey: number = Util.cantor(-axis.x, -axis.y);
+    for (const axis of [...normals2, ...normals1]) {
+      const cantorKey: number = Util.cantor(axis);
+      const oppositeKey: number = Util.cantor(axis.multiply(-1));
 
       if (existingAxes.has(cantorKey) || existingAxes.has(oppositeKey)) continue;
 
@@ -173,8 +212,10 @@ export class CollisionObject {
       }
     }
 
-    const direction = this.getCenter().subtract(object.getCenter());
-    if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+    if (!object.infiniteBarrier) {
+      const direction = this.getCenter().subtract(object.getCenter());
+      if (direction.dot(normal) < 0) normal = normal.multiply(-1);
+    }
 
     return [true, normal, overlap];
   }
@@ -244,7 +285,9 @@ export class CollisionObject {
           endAngle = 2 * Math.PI;
         }
 
-        const resolutionLoops = Math.ceil(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+        let resolutionLoops = Math.ceil(circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+
+        if (this.vertices.length === 1) resolutionLoops -= 1;
 
         for (let j = 0; j < resolutionLoops; j++) {
           const angle = startAngle + (endAngle - startAngle) * j / (resolutionLoops - 1);
@@ -286,22 +329,22 @@ export class CollisionObject {
     Game.instance.collisionObjects.delete(this);
   }
 
-  public bind(): void {
-    if (!this.vertexBuffer) return;
-
-    Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
-    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix4.fromTransformation(this.position, this.rotation));
-
-    if (this.showingOnce) {
-      this.destroy();
-    }
-  }
-
   public get vertexCount(): number {
     return this._vertexCount;
   }
 
-  public destroy() {
+  public bind(): void {
+    if (!this.vertexBuffer) return;
+
+    Game.instance.canvas.shader.setAttribBuffer("vertexPos", this.vertexBuffer, 2, 0, 0);
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation));
+
+    if (this.showingOnce) {
+      this.destroyBuffer();
+    }
+  }
+
+  public destroyBuffer(): void {
     this.hide();
 
     if (this.vertexBuffer) {
@@ -334,6 +377,10 @@ export class SweptCollisionObject extends CollisionObject {
     for (let i = 0; i < this.startVertices.length; i++) {
       this.vertices[i] = this.startVertices[i].subtract(new Vector2(0, length));
     }
+
+    this.verticesOutdated = true;
+    this.normalsOutdated = true;
+    this.boundsOutdated = true;
   }
 }
 
@@ -377,10 +424,7 @@ export class Circle extends CollisionObject {
 }
 
 export class Line extends CollisionObject {
-  constructor(
-    start: Vector2,
-    end: Vector2
-  ) {
+  constructor(start: Vector2, end: Vector2) {
     const center = start.add(end).divide(2);
     const direction = end.subtract(start);
     const length = direction.magnitude();
@@ -391,43 +435,17 @@ export class Line extends CollisionObject {
 
     ], 0, center, direction.angle());
   }
-
-  // public intersects(line: Line): boolean {
-  //   // const [a, b] = [this._start, this._end];
-  //   // const [c, d] = [line._start, line._end];
-
-  //   // // Line direction vectors
-  //   // const dir1 = b.subtract(a);
-  //   // const dir2 = d.subtract(c);
-
-  //   // // Determinant
-  //   // const det = dir1.x * dir2.y - dir1.y * dir2.x;
-
-  //   // if (det === 0) return false; // Parallel or collinear
-
-  //   // // Compute t and u
-  //   // const t = ((c.x - a.x) * dir2.y - (c.y - a.y) * dir2.x) / det;
-  //   // const u = ((c.x - a.x) * dir1.y - (c.y - a.y) * dir1.x) / det;
-
-  //   // // Check if intersection occurs within both segments
-  //   // return t >= 0 && t <= 1 && u >= 0 && u <= 1;
-
-  //   // const dir1 = this._end.subtract(this._start);
-  //   // const dir2 = line._end.subtract(line._start);
-  //   // const d1 = dir1.cross(line._start.subtract(this._start));
-  //   // const d2 = dir1.cross(line._end.subtract(this._start));
-  //   // const d3 = dir2.cross(this._start.subtract(line._start));
-  //   // const d4 = dir2.cross(this._end.subtract(line._start));
-
-  //   // return d1 * d2 < 0 && d3 * d4 < 0;
-  // }
 }
 
 export class Point extends CollisionObject {
-  constructor(
-    position: Vector2
-  ) {
+  constructor(position: Vector2) {
     super([new Vector2()], 0, position, 0);
+  }
+}
+
+export class Barrier extends CollisionObject {
+  constructor(position: Vector2, rotation: number) {
+    super([new Vector2(-0.5), new Vector2(0.5)], 0, position, rotation, true);
   }
 }
 
@@ -443,6 +461,21 @@ export class Bounds {
 
   public get max(): Vector2 {
     return this._max;
+  }
+
+  public getCenter(): Vector2 {
+    return this._min.add(this._max).divide(2);
+  }
+
+  public getDimensions(): Vector2 {
+    return this._max.subtract(this._min);
+  }
+
+  public overlaps(bounds: Bounds): boolean {
+    const xOverlap = this._max.x > bounds._min.x && this._min.x < bounds._max.x;
+    const yOverlap = this._max.y > bounds._min.y && this._min.y < bounds._max.y;
+    
+    return xOverlap && yOverlap;
   }
 
   public getInnerOverlap(innerRect: Bounds): Vector2 {

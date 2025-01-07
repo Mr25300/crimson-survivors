@@ -1,56 +1,45 @@
 import { Game } from '../../core/game.js';
 import { Polygon } from '../../physics/collisions.js';
-import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../timer.js';
-import {Entity} from '../entity.js';
+import { Vector2 } from '../../util/vector2.js';
+import { Timer } from '../../util/timer.js';
+import { Bot } from '../bot.js';
+import { PatrolWall } from '../structures/patrolWall.js';
 
-export class Patrol extends Entity {
-  private attackCooldown: Timer = new Timer(2);
+export class Patrol extends Bot {
+  private wallDespawnTimer: Timer = new Timer(6);
 
   constructor(spawnPosition: Vector2) {
     super(
       Game.instance.spriteManager.create("patrol"),
       new Polygon([
-        new Vector2(-0.3, -0.4),
-        new Vector2(-0.3, 0),
-        new Vector2(-0.1, 0.3),
-        new Vector2(0.1, 0.3),
-        new Vector2(0.3, 0),
-        new Vector2(0.3, -0.4)
+        new Vector2(-0.1, -0.35),
+        new Vector2(-0.2, -0.25),
+        new Vector2(-0.2, 0.04),
+        new Vector2(0.22, 0.04),
+        new Vector2(0.22, -0.25),
+        new Vector2(0.12, -0.35)
       ]),
-      2,
-      spawnPosition,
-      20
+      1.5,
+      50,
+      3,
+      4,
+      spawnPosition
     );
   }
 
-  public pathFind(playerLocation: Vector2): void {
-    // if in range
-    if (
-      playerLocation.subtract(this.position).magnitude() <= 5 
-    ) {
-      this.setFaceDirection(playerLocation.subtract(this.position).unit());
-      this.setMoveDirection(playerLocation.subtract(this.position).unit());
-    } else {
-      this.setMoveDirection(new Vector2(0, 0));
-    }
-  }
-
-  public handleBehavior(deltaTime: number) {
-    this.attackCooldown.update(deltaTime);
-    this.pathFind(Game.instance.player.position);
-
-    if (!this.attackCooldown.active) {
-      this.attackCooldown.start();
-    }
-  }
-
   public attack(): void {
-    const randomNumber = Math.random();
-    // 5% chance we build a wall
-    if (randomNumber <= 0.05) {
-    this.sprite.playAnimation("deport");
-      // build a wall
-    }
+    const anim = this.sprite.playAnimation("create")!;
+
+    anim.markerReached.connect(() => {
+      const newWall = new PatrolWall(this.position.add(this.faceDirection.multiply(1)), this.faceDirection.angle(), this);
+
+      this.wallDespawnTimer.onComplete.connect(() => {
+        newWall.despawn();
+
+      }, newWall);
+
+      this.wallDespawnTimer.start(newWall);
+
+    }, "spawnWall");
   }
 }
