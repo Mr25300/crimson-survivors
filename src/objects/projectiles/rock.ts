@@ -8,7 +8,7 @@ import { Projectile } from "../projectile.js";
 export class Rock extends Projectile {
   private damage: number = 10;
 
-  constructor(position: Vector2, direction: Vector2, private sender: Entity) {
+  constructor(position: Vector2, direction: Vector2, sender: Entity) {
     super(
       Game.instance.spriteManager.create("kurankuRock"),
       new Rectangle(0.07, 0.07),

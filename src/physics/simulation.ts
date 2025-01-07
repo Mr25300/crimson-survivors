@@ -29,7 +29,7 @@ export class Simulation {
   private entities: Set<Entity> = new Set();
   private projectiles: Set<Projectile> = new Set();
 
-  private wave: number = 0;
+  private wave: number = 100;
   private vampiresPerWave: number = 10;
   private itemsPerWave: number = 3;
 

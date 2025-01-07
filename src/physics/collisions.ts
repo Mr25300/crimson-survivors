@@ -117,12 +117,28 @@ export class CollisionObject {
 
   public getBounds(): Bounds {
     if (this.boundsOutdated) {
-      const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
-      const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+      let minX: number = Infinity;
+      let minY: number = Infinity;
+      let maxX: number = -Infinity;
+      let maxY: number = -Infinity;
+  
+      for (const vertex of this.getTransformedVertices()) {
+        if (vertex.x < minX) minX = vertex.x;
+        if (vertex.y < minY) minY = vertex.y;
+        if (vertex.x > maxX) maxX = vertex.x;
+        if (vertex.y > maxY) maxY = vertex.y;
+      }
 
       this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
-      this.boundsOutdated = false;
     }
+
+    // if (this.boundsOutdated) {
+    //   const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
+    //   const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
+
+    //   this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+    //   this.boundsOutdated = false;
+    // }
 
     return this._bounds;
   }

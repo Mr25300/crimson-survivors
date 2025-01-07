@@ -6,14 +6,14 @@ import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
 import { Bounds, CollisionObject, Polygon, Rectangle } from "./collisions.js";
 
+type ChunkObjects = Map<string, Set<GameObject>>;
+// type ChunkObjects = Map<string, Set<GameObject> | ChunkObjects>;
+
 export interface CollisionInfo {
   object?: GameObject;
   normal: Vector2;
   overlap: number;
 }
-
-type ChunkObjects = Map<string, Set<GameObject>>;
-// type ChunkObjects = Map<string, Set<GameObject> | ChunkObjects>;
 
 export class ChunkManager {
   private CHUNK_SIZE = 1;
@@ -54,6 +54,13 @@ export class ChunkManager {
     
     if (typeObjects.size === 0) objects.delete(object.type);
     if (objects.size === 0) this.chunks.delete(chunkKey);
+  }
+
+  public getChunkBounds(bounds: Bounds): Bounds {
+    return new Bounds(
+      new Vector2(Util.roundDown(bounds.min.x / this.CHUNK_SIZE), Util.roundDown(bounds.min.y / this.CHUNK_SIZE)),
+      new Vector2(Util.roundUp(bounds.max.x / this.CHUNK_SIZE), Util.roundUp(bounds.max.y / this.CHUNK_SIZE))
+    );
   }
 
   public getChunksOfBounds(bounds: Bounds): number[] {

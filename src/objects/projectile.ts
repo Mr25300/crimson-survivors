@@ -25,7 +25,7 @@ export abstract class Projectile extends GameObject {
     private speed: number,
     private drag: number = 0,
     despawnTime: number,
-    private sender: Entity
+    protected sender: Entity
   ) {
     super("Projectile", sprite, hitbox, position, direction.angle());
 

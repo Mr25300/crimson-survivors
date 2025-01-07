@@ -13,7 +13,7 @@ export class Explosive extends Projectile {
   private detonationTimer: Timer = new Timer(2);
   private bounceCooldown: Timer = new Timer(0.05);
 
-  constructor(position: Vector2, direction: Vector2, private sender: Entity) {
+  constructor(position: Vector2, direction: Vector2, sender: Entity) {
     super(
       Game.instance.spriteManager.create("playerExplosive"),
       new Circle(0.09, new Vector2(0.015, 0.015)),
@@ -41,12 +41,12 @@ export class Explosive extends Projectile {
     this.detonationTimer.stop();;
 
     const anim = this.sprite.playAnimation("explode")!;
-
+    
     anim.markerReached.connect(() => {
       this.freeze();
 
       const hitbox = new Circle(1.5, undefined, this.position);
-      const entities: Entity[] = Game.instance.chunkManager.attackQuery(hitbox, false, this.sender.team);
+      const entities: Entity[] = Game.instance.chunkManager.attackQuery(hitbox, false, this.sender);
 
       for (const entity of entities) {
         const direction = entity.position.subtract(this.position).unit();
