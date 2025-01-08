@@ -25,9 +25,9 @@ export abstract class Bot extends Entity {
     this.setFaceDirection(this.pathfinder.faceDirection);
 
     if (this.pathfinder.shouldAttack() && !this.attackTimer.isActive()) {
-      // this.attackTimer.start();
+      this.attackTimer.start();
 
-      // this.attack();
+      this.attack();
     }
   }
 }

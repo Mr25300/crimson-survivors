@@ -21,7 +21,7 @@ void main() {
   } else {
     // vec2 centerOffset = (vec2(1) - tileScale) * 0.5;
     vec2 tiledPosition = textureVertCoord * tileScale;
-    vec2 textureCoord = mod(tiledPosition, spriteCellSize) + spriteCellStart;// + centerOffset; // !!!! FIX THIS BAFFOOON !!!!
+    vec2 textureCoord = mod(tiledPosition, spriteCellSize) + spriteCellStart;
     vec4 textureColor = texture2D(texture, textureCoord);
 
     if (textureColor.a < 0.01) {

@@ -3,7 +3,7 @@ import { Entity } from "../objects/entity.js";
 import { Timer } from "../util/timer.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
-import { Point, Rectangle, SweptCollisionObject } from "./collisions.js";
+import { SweptCollisionObject } from "./collisions.js";
 
 class MinHeap<T> {
   private heap: T[] = [];
@@ -33,8 +33,8 @@ class MinHeap<T> {
 
     const item = this.heap[0];
 
-    this.heap[0] = this.heap[this.size - 1];
-    delete this.heap[this.size-- - 1];
+    this.heap[0] = this.heap[this.size-- - 1];
+    this.heap.length = this.size;
 
     this.heapifyDown();
 
@@ -94,13 +94,13 @@ class MinHeap<T> {
 }
 
 class PathNode {
+  public queued: boolean = false;
+
   constructor(
     public readonly position: Vector2,
     public gCost: number,
     public readonly hCost: number,
-    public restricted: boolean = false,
-    public parent?: PathNode,
-    public queued: boolean = false
+    public parent?: PathNode
   ) {}
 
   public get fCost(): number {
@@ -150,19 +150,12 @@ export class OptimalPath {
     return Util.cantor(position);
   }
 
-  private processNode(node: PathNode) {
-    this.processed.set(this.getKey(node.position), node);
-  }
-
-  private getProcessed(position: Vector2): PathNode | undefined {
-    return this.processed.get(this.getKey(position));
-  }
-
   public computePath(): void {
     const startNode = new PathNode(this.gridStart, 0, this.gridStart.distance(this.gridGoal));
-    this.priorityQueue.push(startNode);
-    this.processed.set(this.getKey(this.gridStart), this.priorityQueue.peek()!);
     startNode.queued = true;
+
+    this.priorityQueue.push(startNode);
+    this.processed.set(this.getKey(this.gridStart), startNode);
 
     while (!this.priorityQueue.isEmpty()) {
       const node = this.priorityQueue.pop()!;
@@ -188,7 +181,7 @@ export class OptimalPath {
     const neighborKey = this.getKey(neighborPos);
 
     if (this.restricted.has(neighborKey)) return;
-
+    
     const gCost: number = node.gCost + direction.magnitude();
     const existing = this.processed.get(neighborKey);
 
@@ -201,21 +194,10 @@ export class OptimalPath {
       }
 
     } else {
-      const goalDistance = neighborPos.distance(this.gridGoal);
-      const totalDistance = this.gridStart.distance(this.gridGoal);
-      const neighborDistanceSum = neighborPos.distance(this.gridStart) + goalDistance;
-      let restricted: boolean = false;//neighborDistanceSum > totalDistance + 2 * this.searchRange / this.gridScale; // oval shape with min radius of searchrange around each oval focus
+      this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
+      this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
 
-      if (!restricted) {
-        // cut off for out of bounds
-      }
-
-      if (!restricted) {
-        this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
-        this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
-
-        restricted = Game.instance.chunkManager.restrictionQuery(this.travelHitbox);
-      }
+      const restricted: boolean = Game.instance.chunkManager.restrictionQuery(this.travelHitbox);
 
       if (restricted) {
         this.restricted.add(neighborKey);
@@ -223,12 +205,12 @@ export class OptimalPath {
         return;
       }
 
-      const hCost = goalDistance;
-      const neighborNode = new PathNode(neighborPos, gCost, hCost, restricted, node);
+      const hCost = neighborPos.distance(this.gridGoal);;
+      const neighborNode = new PathNode(neighborPos, gCost, hCost, node);
+      neighborNode.queued = true;
 
       this.processed.set(neighborKey, neighborNode);
       this.priorityQueue.push(neighborNode);
-      neighborNode.queued = true;
     }
   }
 
@@ -261,10 +243,13 @@ export class OptimalPath {
 }
 
 export class Pathfinder {
+  private followDist: number = 1;
   private recomputeDist: number = 1;
   private recomputeTimer: Timer = new Timer(1);
 
   private target: Entity = Game.instance.simulation.player;
+
+  private pathfindHitbox: SweptCollisionObject;
 
   private currentPath: OptimalPath;
   private currentWaypoint: number
@@ -277,7 +262,9 @@ export class Pathfinder {
   constructor(
     private subject: Entity,
     private approachRange: number
-  ) {}
+  ) {
+    this.pathfindHitbox = subject.hitbox.sweep();
+  }
 
   public setTarget(target: Entity) {
     this.target = target;
@@ -296,24 +283,13 @@ export class Pathfinder {
   }
 
   public update(): void {
-    if (!this.target) {
-      // do random walking stuff
-
-      return;
-    }
+    if (!this.target) return;
 
     const directPath = this.target.position.subtract(this.subject.position);
     
     this._targetDistance = directPath.magnitude();
 
-    if (this._targetDistance <= this.approachRange) {
-      this._moveDirection = new Vector2();
-      this._faceDirection = directPath.unit();
-
-      return;
-    }
-
-    if (this._targetInSight) {
+    if (this._targetDistance <= this.followDist) {
       this._moveDirection = this._faceDirection = directPath.unit();
 
       return;
@@ -322,9 +298,9 @@ export class Pathfinder {
     if (!this.recomputeTimer.isActive() && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
       this.recomputeTimer.start();
 
-      // this.currentPath = new OptimalPath(this.subject.position, this.target.position, 4, this.approachRange, this.pathfindHitbox);
-      // this.currentPath.computePath();
-      // this.currentWaypoint = 1;
+      this.currentPath = new OptimalPath(this.subject.position, this.target.position, 4, this.approachRange, this.pathfindHitbox);
+      this.currentPath.computePath();
+      this.currentWaypoint = 1;
     }
 
     if (this.currentPath) {
@@ -335,7 +311,7 @@ export class Pathfinder {
   
         const dotWaypoint = pathDirection.dot(waypoint);
         const dotPosition = pathDirection.dot(this.subject.position);
-  
+
         if (dotPosition > dotWaypoint) {
           this.currentWaypoint++;
   

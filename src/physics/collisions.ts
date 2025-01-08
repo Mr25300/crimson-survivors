@@ -42,10 +42,8 @@ export class CollisionObject {
 
   public getTransformedVertices(): Vector2[] {
     if (this.verticesOutdated) {
-      const matrix = Matrix3.fromTransformation(this._position, this._rotation);
-
       for (let i = 0; i < this.vertices.length; i++) {
-        this._transformedVertices[i] = matrix.apply(this.vertices[i]);
+        this._transformedVertices[i] = this.vertices[i].rotate(this._rotation).add(this._position);
       }
 
       this.verticesOutdated = false;
@@ -117,28 +115,12 @@ export class CollisionObject {
 
   public getBounds(): Bounds {
     if (this.boundsOutdated) {
-      let minX: number = Infinity;
-      let minY: number = Infinity;
-      let maxX: number = -Infinity;
-      let maxY: number = -Infinity;
-  
-      for (const vertex of this.getTransformedVertices()) {
-        if (vertex.x < minX) minX = vertex.x;
-        if (vertex.y < minY) minY = vertex.y;
-        if (vertex.x > maxX) maxX = vertex.x;
-        if (vertex.y > maxY) maxY = vertex.y;
-      }
+      const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
+      const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
 
       this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
+      this.boundsOutdated = false;
     }
-
-    // if (this.boundsOutdated) {
-    //   const [minX, maxX] = this.getProjectedRange(new Vector2(1, 0));
-    //   const [minY, maxY] = this.getProjectedRange(new Vector2(0, 1));
-
-    //   this._bounds = new Bounds(new Vector2(minX, minY), new Vector2(maxX, maxY));
-    //   this.boundsOutdated = false;
-    // }
 
     return this._bounds;
   }
@@ -168,18 +150,6 @@ export class CollisionObject {
     }
 
     return closestVertex;
-  }
-
-  public getRadialBound(): number {
-    let maxRadius: number = -Infinity;
-
-    for (const vertex of this.vertices) {
-      const distance = vertex.magnitude();
-
-      if (distance > maxRadius) maxRadius = distance;
-    }
-
-    return maxRadius + this.radius;
   }
 
   public intersects(object: CollisionObject): [boolean, Vector2, number] {

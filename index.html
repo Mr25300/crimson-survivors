@@ -7,29 +7,37 @@
     <div class="container">
       <canvas id="game-screen" tabindex="1"></canvas>
 
-      <div id="title-screen" class="play-screen show">
-        <button id="title-screen-start">Play</button>
+      <div id="title-screen" class="ui-group title-screen">
+        <img class="background-image" src="res/ui/TitleScreen.png"/>
+        <button id="title-screen-start" class="play-button">
+          <img src="res/ui/TitleButton.png"/>
+        </button>
       </div>
 
-      <div id="end-screen" class="play-screen">
-        <div>
-          <h1>Game Over</h1>
-          <label>You saved <span id="vampire-save-count"></span> vampires.</label>
-          <br>
-          <button id="end-screen-restart">Play Again</button>
+      <div id="end-screen" class="ui-group end-screen hide">
+        <img class="background-image" src="res/ui/EndScreen.png"/>
+        <button id="end-screen-restart" class="play-button">
+          <img src="res/ui/EndButton.png"/>
+        </button>
+
+        <div class="info-display end-stats">
+          <span>Time Played: <span id="time-played">#</span>s</span>
+          <span>Killed By: <span id="killed-by"></span></span>
+          <span>Vampires Saved: <span id="vampire-save-count">#</span></span>
         </div>
       </div>
 
-      <div class="game-info">
-        <progress id="health-bar" value="25" max="100"></progress>
-        <br>
-        <label>Current Module: </label><span id="tool-display"></span>
-      </div>
-
-      <div class="debug-info">
-        <label>FPS: </label><span id="fps-display"></span>
-        <br>
-        <label>Entities: </label><span id="entity-count-display"></span>
+      <div class="ui-group">
+        <div class="info-display game-info">
+          <progress id="health-bar" value="25" max="100"></progress>
+          <span>Module: <span id="tool-display"></span></span>
+        </div>
+  
+        <div class="info-display debug-info">
+          <span>FPS: <span id="fps-display"></span></span>
+          <span>Entities: <span id="entity-display"></span></span>
+          <span>Projectiles: <span id="projectile-display"></span></span>
+        </div>
       </div>
     </div>
     

@@ -94,8 +94,6 @@ export class Game extends Gameloop {
 
     this._simulation.update(deltaTime);
     this._camera.update(deltaTime);
-
-    if (1 / deltaTime < 50) console.log(`FPS DROPPED TO ${1 / deltaTime}`);
   }
 
   protected render(): void {

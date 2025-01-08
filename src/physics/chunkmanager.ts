@@ -16,7 +16,7 @@ export interface CollisionInfo {
 }
 
 export class ChunkManager {
-  private CHUNK_SIZE = 1;
+  private CHUNK_SIZE = 2;
 
   private chunks: Map<number, ChunkObjects> = new Map();
 
@@ -154,15 +154,10 @@ export class ChunkManager {
       const chunkRange = new Vector2(this.CHUNK_SIZE / 2, this.CHUNK_SIZE / 2);
       const chunkBounds = new Bounds(chunk.subtract(chunkRange), chunk.add(chunkRange));
 
-      if (!hitboxBounds.overlaps(chunkBounds)) { // clean up this code
+      if (!hitboxBounds.overlaps(chunkBounds)) {
         object.removeChunk(chunkKey);
         this.removeFromChunk(chunkKey, object);
       }
-
-      // if (!this.chunkContainsObject(chunk, object.hitbox)) { // check if out of bounds first
-      //   object.removeChunk(chunkKey);
-      //   this.removeFromChunk(chunkKey, object);
-      // }
     }
 
     for (const chunkKey of this.getChunksOfBounds(hitboxBounds)) {

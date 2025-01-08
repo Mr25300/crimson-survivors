@@ -1,22 +1,16 @@
 import { Game } from '../core/game.js';
-import { Bat } from '../objects/entities/bat.js';
 import { Grunt } from '../objects/entities/grunt.js';
 import { Kuranku } from '../objects/entities/kuranku.js';
 import { Necromancer } from '../objects/entities/necromancer.js';
 import { Patrol } from '../objects/entities/patrol.js';
 import { Player } from '../objects/entities/player.js';
 import { Entity } from '../objects/entity.js';
-import { Item } from '../objects/item.js';
 import { Projectile } from '../objects/projectile.js';
-import { Structure } from '../objects/structure.js';
-import { Wall } from '../objects/structures/wall.js';
 import { Team } from '../objects/team.js';
 import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
 import { ANRMIItem } from '../objects/tools/ANRMI.js';
 import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
-import { Util } from '../util/util.js';
 import { Vector2 } from '../util/vector2.js';
-import { Barrier, Bounds, CollisionObject, Line } from './collisions.js';
 import { Maze } from './maze.js';
 
 export class Simulation {
@@ -29,7 +23,7 @@ export class Simulation {
   private entities: Set<Entity> = new Set();
   private projectiles: Set<Projectile> = new Set();
 
-  private wave: number = 100;
+  private wave: number = 0;
   private vampiresPerWave: number = 10;
   private itemsPerWave: number = 3;
 
@@ -72,6 +66,10 @@ export class Simulation {
 
   public get entityCount(): number {
     return this.entities.size;
+  }
+
+  public get projectileCount(): number {
+    return this.projectiles.size;
   }
 
   public init(): void {

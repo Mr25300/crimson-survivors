@@ -1,8 +1,10 @@
+precision mediump float;
+
 attribute vec2 vertexPos;
 
 uniform mat3 screenProjection;
-uniform vec2 spriteSize;
-uniform float spriteCell;
+uniform vec2 spriteSize; // make this ivec2
+uniform float spriteCell; // make this int
 uniform mat3 modelTransform;
 uniform float zOrder;
 
@@ -18,12 +20,6 @@ float tanh(float x) {
   return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
-float modI(float a, float b) {
-  float m = a - floor((a + 0.5) / b) * b;
-  
-  return floor(m + 0.5);
-}
-
 void main() {
   float zPosition = -tanh(zOrder);
   
@@ -33,7 +29,7 @@ void main() {
   vec2 baseCoord = vertexPos + vec2(0.5); // map [-0.5, 0.5] to [0, 1]
   vec2 formattedCoord = vec2(baseCoord.x, 1.0 - baseCoord.y);
   vec2 cellSize = vec2(1) / spriteSize;
-  float column = modI(spriteCell, spriteSize.x);
+  float column = mod(spriteCell, spriteSize.x);
   float row = floor(spriteCell / spriteSize.x);
   vec2 cellStart = cellSize * vec2(column, row);
 

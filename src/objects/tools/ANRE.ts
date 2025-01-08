@@ -1,7 +1,6 @@
 import { Game } from "../../core/game.js";
 import { Circle } from "../../physics/collisions.js";
 import { Matrix3 } from "../../util/matrix3.js";
-import { Timer } from "../../util/timer.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
 import { Item } from "../item.js";

@@ -4,28 +4,109 @@
   user-select: none;
 }
 
-canvas {
+.container {
+  position: relative;
   width: 100%;
   height: 100%;
 }
 
-.container {
-  position: relative;
+#game-screen {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
-.container div {
+.ui-group {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ui-group.hide {
+  display: none;
+}
+
+.title-screen {
+  background-color: rgb(242, 229, 217);
+  z-index: 3;
+}
+
+.end-screen {
+  background-color: rgb(99, 6, 6);
+  z-index: 2;
+}
+
+.background-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: none;
+}
+
+.play-button {
+  position: absolute;
+  background: none;
+  border: none;
+}
+
+.play-button img {
+  height: 100px;
+  transition: filter 0.3s ease-out;
+  cursor: pointer;
+}
+
+.play-button:hover img {
+  filter: invert(100%);
+  filter: saturate(0.5);
+}
+
+.title-screen .play-button {
+  top: 80%;
+}
+
+.end-screen .play-button {
+  top: 60%;
+}
+
+.info-display {
+  position: absolute;
+  display: grid;
+  grid-auto-rows: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+}
+
+.end-stats {
+  left: 8px;
+  bottom: 8px;
+  color: red;
 }
 
 .game-info {
-  top: 5px;
-  left: 5px;
+  left: 8px;
+  top: 8px;
+  color: darkcyan;
+  font-weight: 800;
+}
+
+.debug-info {
+  left: 8px;
+  bottom: 8px;
+  color: greenyellow;
 }
 
 #health-bar {
   width: 500px;
   height: 18px;
   appearance: none;
+  margin-bottom: 8px;
 }
 
 #health-bar::-webkit-progress-bar {
@@ -36,32 +117,9 @@ canvas {
 }
 
 #health-bar::-webkit-progress-value {
-  background-color: chartreuse;
+  background-color: darkcyan;
 }
 
 #health-bar::-moz-progress-bar {
-  background-color: chartreuse;
-}
-
-.debug-info {
-  bottom: 5px;
-  left: 5px;
-  color: greenyellow;
-  font-family: 'Courier New', Courier, monospace;
-  z-index: 1;
-}
-
-.play-screen {
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: white;
-  z-index: 3;
-  display: none;
-}
-
-.play-screen.show {
-  display: grid;
-  place-items: center;
+  background-color: darkcyan;
 }

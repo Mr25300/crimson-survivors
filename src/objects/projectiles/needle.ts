@@ -8,7 +8,7 @@ import { Projectile } from "../projectile.js";
 import { Structure } from "../structure.js";
 
 export class Needle extends Projectile {
-  constructor(position: Vector2, direction: Vector2, private sender: Entity, private damage: number, private knockback: number) {
+  constructor(position: Vector2, direction: Vector2, sender: Entity, private damage: number, private knockback: number) {
     super(
       Game.instance.spriteManager.create("playerNeedle"),
       new Rectangle(0.06, 0.12, new Vector2(0.015, 0.09)),
@@ -17,7 +17,7 @@ export class Needle extends Projectile {
       10,
       0,
       3,
-      sender,
+      sender
     );
   }
 
