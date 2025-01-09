@@ -12,10 +12,10 @@ import { EventConnection } from "../util/gameevent.js";
 
 export abstract class Projectile extends GameObject {
   private sweptHitbox: SweptCollisionObject;
-
-  private despawnTimer?: Timer;
   
   private frozen: boolean = false;
+
+  private despawnConnection?: EventConnection;
 
   constructor(
     sprite: SpriteModel,
@@ -32,12 +32,9 @@ export abstract class Projectile extends GameObject {
     this.sweptHitbox = hitbox.sweep();
 
     if (despawnTime > 0) {
-      this.despawnTimer = new Timer(despawnTime);
-      this.despawnTimer.onComplete.connectOnce(() => {
+      this.despawnConnection = Timer.delay(despawnTime, () => {
         this.destroy();
       });
-
-      this.despawnTimer.start();
     }
 
     Game.instance.simulation.registerProjectile(this);
@@ -77,7 +74,7 @@ export abstract class Projectile extends GameObject {
   public destroy(): void {
     super.destroy();
 
-    if (this.despawnTimer) this.despawnTimer.stop();
+    if (this.despawnConnection) this.despawnConnection.disconnect();
 
     Game.instance.simulation.unregisterProjectile(this);
   }

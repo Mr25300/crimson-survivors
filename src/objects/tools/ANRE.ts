@@ -1,5 +1,6 @@
 import { Game } from "../../core/game.js";
 import { Circle } from "../../physics/collisions.js";
+import { SpriteAnimation } from "../../sprites/spritemodel.js";
 import { Matrix3 } from "../../util/matrix3.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
@@ -24,8 +25,6 @@ export class ANREItem extends Item {
 }
 
 export class ANRE extends Tool {
-  private explosiveOffset: Vector2 = new Vector2(0.15, 0.12);
-
   constructor() {
     super("Anti-Necro Remedial Explosive", 1.5);
   }
@@ -35,10 +34,10 @@ export class ANRE extends Tool {
   }
 
   public useFunctionality(user: Entity): void {
-    const anim = user.sprite.playAnimation("explosiveThrow")!;
+    const anim: SpriteAnimation = user.sprite.playAnimation("explosiveThrow")!;
 
     anim.markerReached.connect(() => {
-      const offset = Matrix3.fromRotation(user.faceDirection.angle()).apply(this.explosiveOffset);
+      const offset: Vector2 = new Vector2(0.15, 0.12).rotate(user.faceDirection.angle());
 
       new Explosive(user.position.add(offset), user.faceDirection, user);
 

@@ -51,7 +51,7 @@ export class Explosive extends Projectile {
       for (const entity of entities) {
         const direction = entity.position.subtract(this.position).unit();
 
-        entity.damage(50, this.sender, new Color(255 / 255, 148 / 255, 148 / 255));
+        entity.damage(50, this.sender, new Color(255, 125, 125));
         entity.knockback(direction.multiply(15));
       }
 

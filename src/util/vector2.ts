@@ -1,14 +1,17 @@
 import { Util } from "./util.js";
 
-/**
- * Represents a vector in 2d space.
- */
+/** Represents a vector in 2d space. */
 export class Vector2 {
   constructor(
-    private _x: number = 0,
-    private _y: number = 0
+    public readonly x: number = 0,
+    public readonly y: number = 0
   ) {}
 
+  /**
+   * Returns a vector based on an input angle.
+   * @param angle The angle of the vector.
+   * @returns The vector with the passed angle.
+   */
   public static fromAngle(angle: number): Vector2 {
     return new Vector2(
       Math.sin(angle),
@@ -16,48 +19,54 @@ export class Vector2 {
     )
   }
 
+  /**
+   * Creates a random unit vector.
+   * @returns A random unit vector.
+   */
   public static randomUnit(): Vector2 {
     return Vector2.fromAngle(Math.random() * 2 * Math.PI);
   }
 
-  public get x() {
-    return this._x;
+  /**
+   * 
+   * @param vector The vector being added.
+   * @returns 
+   */
+  public add(vector: Vector2): Vector2 {
+    return new Vector2(this.x + vector.x, this.y + vector.y);
   }
 
-  public get y() {
-    return this._y;
-  }
-
-  public add(vec: Vector2): Vector2 {
-    return new Vector2(this._x + vec._x, this._y + vec._y);
-  }
-
-  public subtract(vec: Vector2): Vector2 {
-    return new Vector2(this._x - vec._x, this._y - vec._y);
+  public subtract(vector: Vector2): Vector2 {
+    return new Vector2(this.x - vector.x, this.y - vector.y);
   }
 
   public multiply(scalar: number): Vector2 {
-    return new Vector2(this._x * scalar, this._y * scalar);
+    return new Vector2(this.x * scalar, this.y * scalar);
   }
 
   public divide(divisor: number): Vector2 {
-    return new Vector2(this._x / divisor, this._y / divisor);
+    return new Vector2(this.x / divisor, this.y / divisor);
   }
 
   /**
-   * Calculates the magnitude of the vector using the pytagoreon theorum.
+   * Calculates the magnitude of the vector using the pythagoreon theorum.
    * @returns The magnitude of the vector.
    */
   public magnitude(): number {
-    return Math.sqrt(this._x ** 2 + this._y ** 2);
-  }
-  
-  public distance(vec: Vector2): number {
-    return this.subtract(vec).magnitude();
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
   }
 
   /**
-   * Calculates the unit vector, having a magnitude of 1.
+   * Calculates the distance between another vector.
+   * @param vector The comparison vector.
+   * @returns The distance between the vectors.
+   */
+  public distance(vector: Vector2): number {
+    return this.subtract(vector).magnitude();
+  }
+
+  /**
+   * Returns the normalized vector with a magnitude of 1.
    * @returns The unit vector.
    */
   public unit(): Vector2 {
@@ -68,37 +77,65 @@ export class Vector2 {
     return this.divide(mag);
   }
 
+  /**
+   * Gets the angle of a vector, assuming the vector [0, 1] has angle 0.
+   * @returns The angle of the vector.
+   */
   public angle(): number {
-    return Math.atan2(this._x, this._y);
+    return Math.atan2(this.x, this.y);
   }
 
-  public dot(vec: Vector2): number {
-    return this._x * vec._x + this._y * vec._y;
+  /**
+   * Calculates the dot product with another vector.
+   * @param vector The other vector. 
+   * @returns The dot product.
+   */
+  public dot(vector: Vector2): number {
+    return this.x * vector.x + this.y * vector.y;
   }
 
-  public cross(vec: Vector2): number {
-    return this._x * vec._y - this._y * vec._x;
-  }
+  // public cross(vector: Vector2): number {
+  //   return this.x * vector.y - this.y * vector.x;
+  // }
 
+  /**
+   * Creates a vector perpendicular to the original vector.
+   * @returns The perpendicular vector.
+   */
   public perp(): Vector2 {
-    return new Vector2(-this._y, this._x);// try making y not negative
+    return new Vector2(-this.y, this.x);
   }
 
+  /**
+   * Rotates the vector about the origin by an angle in radians.
+   * @param rotation The amount to rotate.
+   * @returns The rotated vector.
+   */
   public rotate(rotation: number): Vector2 {
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
 
     return new Vector2(
-      this._x * cos + this._y * sin,
-      this._y * cos - this._x * sin
+      this.x * cos + this.y * sin,
+      this.y * cos - this.x * sin
     );
   }
 
+  /**
+   * Linearly interpolates between two vectors based the given progress parameter.
+   * @param goal The goal vector
+   * @param t The linear progress (0 to 1).
+   * @returns The vector along the line.
+   */
   public lerp(goal: Vector2, t: number): Vector2 {
-    return new Vector2(Util.lerp(this._x, goal._x, t), Util.lerp(this._y, goal._y, t));
+    return new Vector2(Util.lerp(this.x, goal.x, t), Util.lerp(this.y, goal.y, t));
   }
 
+  /**
+   * Rounds the vector.
+   * @returns The rounded vector.
+   */
   public round(): Vector2 {
-    return new Vector2(Math.round(this._x), Math.round(this._y));
+    return new Vector2(Math.round(this.x), Math.round(this.y));
   }
 }

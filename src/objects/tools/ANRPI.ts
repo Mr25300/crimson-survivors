@@ -33,8 +33,10 @@ export class ANRPI extends Tool {
 
   public useFunctionality(user: Entity): void {
     user.sprite.playAnimation("projectileShoot");
+
+    const offset: Vector2 = new Vector2(0, 0.3).rotate(user.faceDirection.angle());
     
-    new Needle(user.position.add(user.faceDirection.multiply(0.3)), user.faceDirection, user, 20, 10);
+    new Needle(user.position.add(offset), user.faceDirection, user, 20, 10);
   }
 
   public unequip(user: Entity): void {

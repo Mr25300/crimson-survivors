@@ -31,7 +31,7 @@ export class Kuranku extends Bot {
     const anim = this.sprite.playAnimation("throw")!;
 
     anim.markerReached.connect(() => {
-      const offset = Matrix3.fromRotation(this.faceDirection.angle()).apply(this.rockOffset);
+      const offset = this.rockOffset.rotate(this.faceDirection.angle());
 
       new Rock(this.position.add(offset), this.faceDirection, this);
 

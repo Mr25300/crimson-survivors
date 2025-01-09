@@ -4,9 +4,10 @@ import { Timer } from "../util/timer.js";
 import { Entity } from "./entity.js";
 import { GameObject } from "./gameobject.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
+import { EventConnection } from "../util/gameevent.js";
 
 export abstract class Item extends GameObject {
-  private despawnTimer: Timer;
+  private despawnConnection: EventConnection;
 
   constructor(
     sprite: SpriteModel,
@@ -17,12 +18,9 @@ export abstract class Item extends GameObject {
   ) {
     super("Item", sprite, hitbox, position, rotation);
 
-    this.despawnTimer = new Timer(despawnTime);
-    this.despawnTimer.onComplete.connectOnce(() => {
+    this.despawnConnection = Timer.delay(despawnTime, () => {
       this.destroy();
     });
-
-    this.despawnTimer.start();
   }
 
   public abstract pickupFunctionality(entity: Entity): void;
@@ -34,6 +32,6 @@ export abstract class Item extends GameObject {
 
   public override destroy(): void {
     super.destroy();
-    this.despawnTimer.stop();
+    this.despawnConnection.disconnect();
   }
 }

@@ -6,6 +6,6 @@ export class Color {
   ) {}
 
   public toArray(): Float32Array {
-    return new Float32Array([this._r, this._g, this._b]);
+    return new Float32Array([this._r / 255, this._g / 255, this._b / 255]);
   }
 }

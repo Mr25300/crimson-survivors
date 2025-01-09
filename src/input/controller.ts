@@ -1,4 +1,4 @@
-import { Game } from "./game.js";
+import { Game } from "../core/game.js";
 import {Vector2} from "../util/vector2.js";
 
 const CONTROLS = ["moveU", "moveD", "moveL", "moveR"] as const;

@@ -1,49 +1,45 @@
 import { Game } from "../core/game.js";
-import { GameEvent } from "./gameevent.js";
+import { EventConnection, GameEvent } from "./gameevent.js";
 
 export class Timer {
   private times: Map<any, number> = new Map();
-
-  public readonly onComplete: GameEvent = new GameEvent();
-
+  
   constructor(private duration: number) {}
 
-  public start(key: any = "default"): void {
-    this.times.set(key, 0);
+  static delay(time: number, callback: (...any: any) => void): EventConnection {
+    const timer: Timer = new Timer(time);
+    timer.start();
 
-    if (!Game.instance.timers.has(this)) Game.instance.timers.add(this);
-  }
+    const connection: EventConnection = Game.instance.onUpdate.connect(() => {
+      if (!timer.isActive()) {
+        connection.disconnect();
 
-  public update(deltaTime: number): void {
-    this.times.forEach((timePassed: number, key: any) => {
-      const newTime = timePassed + deltaTime;
-      this.times.set(key, newTime);
-
-      if (newTime >= this.duration) {
-        this.stop(key);
-        this.onComplete.fire(key);
+        callback();
       }
     });
+
+    return connection;
+  }
+
+  public start(key: any = "default"): void {
+    this.times.set(key, Game.instance.elapsedTime);
   }
 
   public stop(key: any = "default"): void {
     this.times.delete(key);
-
-    if (this.times.size === 0) this.remove();
   }
 
   public isActive(key: any = "default"): boolean {
-    return this.times.get(key) !== undefined;
-  }
-
-  public getProgress(key: any = "default"): number {
     const timePassed: number | undefined = this.times.get(key);
-    if (timePassed) return timePassed / this.duration;
+    if (!timePassed) return false;
 
-    return 0;
+    return Game.instance.elapsedTime - timePassed < this.duration;
   }
 
-  public remove(): void {
-    Game.instance.timers.delete(this)
-  }
+  // public getProgress(key: any = "default"): number {
+  //   const startTime: number | undefined = this.times.get(key);
+  //   if (startTime) return (Game.instance.elapsedTime - startTime) / this.duration;
+
+  //   return 0;
+  // }
 }

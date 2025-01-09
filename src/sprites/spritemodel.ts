@@ -1,10 +1,11 @@
 import { Game } from "../core/game.js";
 import { Color } from "../util/color.js";
-import { GameEvent } from "../util/gameevent.js";
+import { EventConnection, GameEvent } from "../util/gameevent.js";
 import { Matrix3 } from "../util/matrix3.js";
 import { Vector2 } from "../util/vector2.js";
 import { AnimationInfo, SpriteSheet } from "./spritesheet.js";
 
+/** Represents an instance of a sprite sheet with transformations and active animations. */
 export class SpriteModel {
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
@@ -13,6 +14,7 @@ export class SpriteModel {
 
   private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
+  private animationListener?: EventConnection;
   private currentModifier?: string;
 
   private highlightColor: Color = new Color(1, 1, 1);
@@ -32,27 +34,48 @@ export class SpriteModel {
     this.currentCell = cellNumber;
   }
 
-  public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation | null {
+  /**
+   * 
+   * @param name The animation name.
+   * @param timePassed The start time of the animation.
+   * @param speed The speed scale of the animation.
+   * @returns The created animation.
+   */
+  public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation {
     const info = this.sprite.getAnimation(name);
-
-    if (!info) {
-      console.error(`Sprite animation ${name} does not exist.`);
-
-      return null;
-    }
+    if (!info) throw new Error(`Sprite animation ${name} does not exist.`);
 
     const animation = new SpriteAnimation(this, info, timePassed, speed);
     this.animations.set(name, animation);
 
+    if (this.animations.size > 0 && !this.animationListener) {
+      this.animationListener = Game.instance.onUpdate.connect((deltaTime: number) => {
+        this.updateAnimations(deltaTime);
+      });
+    }
+
     return animation;
   }
 
+  /**
+   * Determines whether or not an animation is already playing.
+   * @param name The animation name.
+   * @returns A boolean, true if active and false if not.
+   */
   public isAnimationPlaying(name: string): boolean {
     return this.animations.get(name) !== undefined;
   }
 
+  /**
+   * Stops an existing animation and stops listening to the game update.
+   * @param name The animation name.
+   */
   public stopAnimation(name: string): void {
     this.animations.delete(name);
+
+    if (this.animations.size === 0 && this.animationListener) {
+      this.animationListener.disconnect();
+    }
   }
 
   public get animationModifier(): string | undefined {
@@ -63,66 +86,82 @@ export class SpriteModel {
     this.currentModifier = name;
   }
 
-  public updateAnimation(deltaTime: number) {
-    let highestPriority: number;
+  /**
+   * Updates and handles the animations for the sprite model.
+   * @param deltaTime The time passed for the frame.
+   */
+  public updateAnimations(deltaTime: number) {
+    let highestPriority: number = -Infinity;
     let selectedFrame: number | undefined;
 
     this.animations.forEach((anim: SpriteAnimation, key: string) => {
       const animFrame = anim.getFrame(deltaTime);
 
+      // Stop the animation if active
       if (!anim.active) {
         this.animations.delete(key);
 
         return;
       }
 
-      if (highestPriority === undefined || selectedFrame === undefined || anim.priority >= highestPriority) {
+      // Set the new highest frame if it has a greater priority
+      if (anim.priority >= highestPriority) {
         highestPriority = anim.priority;
         selectedFrame = animFrame;
       }
     });
 
-    if (selectedFrame !== undefined) {
-      this.setSpriteCell(selectedFrame);
-    }
+    if (selectedFrame !== undefined) this.setSpriteCell(selectedFrame);
   }
 
+  /**
+   * Creates and sets the sprite model's highlight effect.
+   * @param color The color of the highlight.
+   */
   public createHighlightEffect(color: Color) {
     this.highlightColor = color;
     this.highlightStart = Game.instance.elapsedTime;
   }
 
+  /**
+   * Sets the transformation for the sprite model.
+   * @param position The transformation translation.
+   * @param rotation The transformation rotation.
+   */
   public setTransformation(position: Vector2, rotation: number): void {
     this.position = position;
     this.rotation = rotation;
   }
 
-  public getTransformation(): Matrix3 {
-    return Matrix3.fromTransformation(this.position, this.rotation);
-  }
-
+  /**
+   * Binds the sprite model and its relevant transformation uniforms in preparation for drawing.
+   */
   public bind(): void {
+    const transformMatrix: Matrix3 = Matrix3.fromTransformation(this.position, this.rotation, this.size);
+
     Game.instance.canvas.shader.setUniformFloat("spriteCell", this.currentCell);
-    Game.instance.canvas.shader.setUniformMatrix("modelTransform", Matrix3.fromTransformation(this.position, this.rotation, this.size));
+    Game.instance.canvas.shader.setUniformMatrix("modelTransform", transformMatrix);
     Game.instance.canvas.shader.setUniformVector("tileScale", this.tileScale);
 
     Game.instance.canvas.shader.setUniformColor("highlightColor", this.highlightColor);
     Game.instance.canvas.shader.setUniformFloat("highlightStart", this.highlightStart);
   }
 
+  /**
+   * Destroys the model and its reference.
+   */
   public destroy(): void {
     const models = Game.instance.spriteModels.get(this.sprite);
     if (!models) return;
     
     models.delete(this);
 
-    if (models.size === 0) {
-      Game.instance.spriteModels.delete(this.sprite);
-    }
+    if (models.size === 0) Game.instance.spriteModels.delete(this.sprite);
   }
 }
 
 export class SpriteAnimation {
+  /** The event for when an animation marker is passed. */
   public readonly markerReached: GameEvent = new GameEvent();
 
   private _active = true;
@@ -142,6 +181,11 @@ export class SpriteAnimation {
     return this.info.priority;
   }
 
+  /**
+   * 
+   * @param deltaTime 
+   * @returns 
+   */
   public getFrame(deltaTime: number): number {
     const prevTime = this.timePassed;
     let newTime = prevTime + deltaTime * this.speed;

@@ -56,18 +56,18 @@ export class ChunkManager {
     if (objects.size === 0) this.chunks.delete(chunkKey);
   }
 
-  public getChunkBounds(bounds: Bounds): Bounds {
-    return new Bounds(
-      new Vector2(Util.roundDown(bounds.min.x / this.CHUNK_SIZE), Util.roundDown(bounds.min.y / this.CHUNK_SIZE)),
-      new Vector2(Util.roundUp(bounds.max.x / this.CHUNK_SIZE), Util.roundUp(bounds.max.y / this.CHUNK_SIZE))
-    );
-  }
-
   public getChunksOfBounds(bounds: Bounds): number[] {
     const chunks: number[] = [];
 
-    const minChunk = new Vector2(Util.roundDown(bounds.min.x / this.CHUNK_SIZE), Util.roundDown(bounds.min.y / this.CHUNK_SIZE));
-    const maxChunk = new Vector2(Util.roundUp(bounds.max.x / this.CHUNK_SIZE), Util.roundUp(bounds.max.y / this.CHUNK_SIZE));
+    const minChunk: Vector2 = new Vector2(
+      Util.round(bounds.min.x / this.CHUNK_SIZE, 1, false),
+      Util.round(bounds.min.y / this.CHUNK_SIZE, 1, false)
+    );
+
+    const maxChunk: Vector2 = new Vector2(
+      Util.round(bounds.max.x / this.CHUNK_SIZE),
+      Util.round(bounds.max.y / this.CHUNK_SIZE)
+    );
 
     for (let x = minChunk.x; x <= maxChunk.x; x++) {
       for (let y = minChunk.y; y <= maxChunk.y; y++) {

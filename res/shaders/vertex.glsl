@@ -3,7 +3,7 @@ precision mediump float;
 attribute vec2 vertexPos;
 
 uniform mat3 screenProjection;
-uniform vec2 spriteSize; // make this ivec2
+uniform vec2 spriteSize;
 uniform float spriteCell; // make this int
 uniform mat3 modelTransform;
 uniform float zOrder;

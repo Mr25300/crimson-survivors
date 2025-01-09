@@ -7,6 +7,7 @@ import { Structure } from "../structure.js";
 import { Team } from "../team.js";
 
 export class PatrolWall extends Structure {
+  private despawnTime: number = 6;
   private hitTimer: Timer = new Timer(0.5);
 
   constructor(position: Vector2, rotation: number, private creator: Entity) {
@@ -19,6 +20,10 @@ export class PatrolWall extends Structure {
 
     this.sprite.playAnimation("solid");
     this.sprite.playAnimation("appear");
+
+    Timer.delay(this.despawnTime, () => {
+      this.despawn();
+    });
   }
 
   public entityCollided(entity: Entity): void {

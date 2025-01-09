@@ -23,6 +23,7 @@ export abstract class Entity extends GameObject {
   private _health: number;
   private _dead: boolean = false;
   private _kills: number = 0;
+  private _lastAttacker?: Entity;
 
   private _team?: Team;
   private _tool?: Tool;
@@ -60,8 +61,9 @@ export abstract class Entity extends GameObject {
     this._moveDirection = direction.unit();
   }
 
-  public damage(amount: number, attacker?: Entity, color: Color = new Color(1, 0, 0)) {
+  public damage(amount: number, attacker?: Entity, color: Color = new Color(255, 0, 0)) {
     this._health -= amount;
+    this._lastAttacker = attacker;
 
     if (this._health <= 0) {
       this._dead = true;

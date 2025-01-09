@@ -1,3 +1,5 @@
+import { GameEvent } from "../util/gameevent";
+
 export abstract class Gameloop {
   private _running: boolean = false;
   private lastTime: number;

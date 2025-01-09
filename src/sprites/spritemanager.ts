@@ -11,6 +11,7 @@ export type SpriteName =
 "necromancer" | "bat" |
 "floor" | "wall";
 
+/** Manages and creates all relevant sprite sheets for the game. */
 export class SpriteManager {
   private sprites: Record<SpriteName, SpriteSheet>;
 
@@ -97,9 +98,15 @@ export class SpriteManager {
     }
   }
 
+  /**
+   * Creates a sprite model from an existing game sprite sheet.
+   * @param name The name of the sprite sheet.
+   * @param size Optional model of the size.
+   * @param tiling Optional tiling enabled.
+   * @returns The created sprite model.
+   */
   public create(name: SpriteName, size?: Vector2, tiling?: boolean): SpriteModel {
     const sprite = this.sprites[name];
-
     if (!sprite) throw new Error(`Sprite "${name}" does not exist.`);
 
     return new SpriteModel(sprite, size, tiling);

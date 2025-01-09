@@ -40,7 +40,7 @@ class MinHeap<T> {
 
     return item;
   }
-
+  
   public peek(): T | undefined {
     return this.heap[0];
   }

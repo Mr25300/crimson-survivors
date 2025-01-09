@@ -38,11 +38,10 @@ export class ANRMI extends Tool {
   public useFunctionality(user: Entity): void {
     user.sprite.playAnimation("machineShoot");
 
-    const direction = user.faceDirection;
-    const offset = Matrix3.fromRotation(direction.angle()).apply(this.bulletOffset);
-    const rotation = -this.shootRange + 2 * this.shootRange * Math.random();
+    const offset: Vector2 = new Vector2(0.125, 0.2).rotate(user.faceDirection.angle());
+    const rotation: number = -this.shootRange + 2 * this.shootRange * Math.random();
     
-    new Needle(user.position.add(offset), direction.rotate(rotation), user, 10, 4);
+    new Needle(user.position.add(offset), user.faceDirection.rotate(rotation), user, 10, 4);
   }
 
   public unequip(user: Entity): void {
