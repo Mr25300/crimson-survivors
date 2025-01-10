@@ -117,7 +117,7 @@
 }
 
 #health-bar::-webkit-progress-value {
-  background-color: darkcyan;
+  background-color: cyan;
 }
 
 #health-bar::-moz-progress-bar {

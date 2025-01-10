@@ -12,6 +12,7 @@ import { Team } from "../objects/team.js";
 import { ANREItem } from "../objects/tools/ANRE.js";
 import { ANRMIItem } from "../objects/tools/ANRMI.js";
 import { ANRPI, ANRPIItem } from "../objects/tools/ANRPI.js";
+import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 import { Maze } from "./maze.js";
 
@@ -27,7 +28,7 @@ export class Simulation {
   public readonly structures: Set<Structure> = new Set();
   public readonly items: Set<Item> = new Set();
 
-  private wave: number = 0;
+  private _wave: number = 0;
   /** Amount of vampires to spawn every wave. */
   private vampiresPerWave: number = 10;
   /** Amount of items to spawn every wave. */
@@ -47,15 +48,19 @@ export class Simulation {
   };
 
   constructor() {
-    this.map = new Maze(new Vector2(10, 10), 4, 1);
+    this.map = new Maze(new Vector2(8, 8), 4, 1);
 
     // Create floor model to occupy map bounds
-    const floorModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
+    const floorModel: SpriteModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
     floorModel.setTransformation(this.map.bounds.getCenter(), 0);
   }
 
   public get player(): Player {
     return this._player;
+  }
+
+  public get wave(): number {
+    return this._wave;
   }
 
   /** Initializes map and player. */
@@ -124,22 +129,16 @@ export class Simulation {
    * @param deltaTime The time passed.
    */
   public update(deltaTime: number): void {
-    if (this.player.dead) { // End game if player is dead
-      Game.instance.endGame();
-
-      return;
-    }
-
     // Spawn vampires and items if wave has been cleared
     if (this.vampires.hasNoMembers()) {
-      this.wave++;
+      this._wave++;
 
       // Ensure no items spawn on first wave
-      for (let i = 0; i < (this.wave - 1) * this.itemsPerWave; i++) {
+      for (let i = 0; i < (this._wave - 1) * this.itemsPerWave; i++) {
         this.spawnItem();
       }
 
-      for (let i = 0; i < this.wave * this.vampiresPerWave; i++) {
+      for (let i = 0; i < this._wave * this.vampiresPerWave; i++) {
         this.spawnVampire();
       }
     }
@@ -160,7 +159,7 @@ export class Simulation {
     }
   }
 
-  /** Destroy and entities, projectile and structures and reset wave. */
+  /** Destroy and entities, projectile and structures and reset to first wave. */
   public reset(): void {
     for (const entity of this.entities) {
       entity.destroy();
@@ -174,6 +173,10 @@ export class Simulation {
       structure.destroy();
     }
 
-    this.wave = 0;
+    for (const item of this.items) {
+      item.destroy();
+    }
+
+    this._wave = 0;
   }
 }

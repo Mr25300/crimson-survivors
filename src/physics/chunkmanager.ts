@@ -4,7 +4,7 @@ import { GameObject } from "../objects/gameobject.js";
 import { Team } from "../objects/team.js";
 import { Util } from "../util/util.js";
 import { Vector2 } from "../util/vector2.js";
-import { Bounds, CollisionObject, Polygon, Rectangle } from "./collisions.js";
+import { Bounds, CollisionObject } from "./collisions.js";
 
 type ChunkObjects = Map<string, Set<GameObject>>;
 
@@ -220,6 +220,10 @@ export class ChunkManager {
     }
   }
 
+  /**
+   * Removes all chunk references from an object.
+   * @param object The object being cleared.
+   */
   public clearObjectChunks(object: GameObject): void {
     for (const chunkKey of object.chunks) {
       object.removeChunk(chunkKey);

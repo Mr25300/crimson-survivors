@@ -4,6 +4,7 @@ import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 import { Entity } from "./entity.js";
 import { Timer } from "../util/timer.js";
+import { Game } from "../core/game.js";
 
 /** Handles enemy bot attacks and pathfinding. */
 export abstract class Bot extends Entity {
@@ -15,6 +16,8 @@ export abstract class Bot extends Entity {
 
     this.pathfinder = new Pathfinder(this, attackRange); // Instantiate pathfinder with attack range
     this.attackTimer = new Timer(attackCooldown); // Create timer for attacking cooldown
+
+    this.pathfinder.setTarget(Game.instance.simulation.player); // Set target to player
   }
 
   public abstract attack(): void;

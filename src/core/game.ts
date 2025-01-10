@@ -58,8 +58,8 @@ export class Game extends Gameloop {
 
   /** Simulate game. */
   protected update(deltaTime: number): void {
-    // Handle game reset control
-    if (this.controller.isControlActive("reset")) {
+    // Handle player death or game reset control
+    if (this._simulation.player.dead || this.controller.isControlActive("reset")) {
       this.endGame();
 
       return;
@@ -78,7 +78,7 @@ export class Game extends Gameloop {
   }
 
   /** Reset and clear all game information and display end screen. */
-  public endGame(): void {
+  private endGame(): void {
     this._simulation.reset();
     this.stop();
 

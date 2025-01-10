@@ -13,7 +13,7 @@ export class Necromancer extends Bot {
       new Circle(0.45, new Vector2(-0.01, 0.05)),
       1,
       80,
-      10,
+      12,
       10,
       spawnPosition
     );

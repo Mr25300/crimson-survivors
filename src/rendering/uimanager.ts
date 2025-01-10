@@ -20,6 +20,7 @@ const END_SCREEN_RESTART: HTMLButtonElement = document.getElementById("end-scree
 
 const HEALTH_BAR: HTMLProgressElement = document.getElementById("health-bar") as HTMLProgressElement;
 const TOOL_DISPLAY: HTMLSpanElement = document.getElementById("tool-display") as HTMLSpanElement;
+const WAVE_DISPLAY: HTMLSpanElement = document.getElementById("wave-display") as HTMLSpanElement;
 
 const FPS_DISPLAY: HTMLSpanElement = document.getElementById("fps-display") as HTMLSpanElement;
 const ENTITY_DISPLAY: HTMLSpanElement = document.getElementById("entity-display") as HTMLSpanElement;
@@ -64,6 +65,7 @@ export class UIManager {
     HEALTH_BAR.value = player.health;
     HEALTH_BAR.max = player.maxHealth;
     TOOL_DISPLAY.innerText = player.tool ? player.tool.name : "None";
+    WAVE_DISPLAY.innerText = Game.instance.simulation.wave.toString();
 
     FPS_DISPLAY.innerText = Game.instance.fps.toFixed(1);
     ENTITY_DISPLAY.innerText = Game.instance.simulation.entities.size.toString();

@@ -13,7 +13,7 @@ export class Timer {
    * @param callback The function to be called.
    * @returns The connection to the update event.
    */
-  static delay(time: number, callback: (...any: any) => void): EventConnection {
+  public static delay(time: number, callback: (...any: any) => void): EventConnection {
     const timer: Timer = new Timer(time);
     timer.start();
 

@@ -124,6 +124,13 @@ class MinHeap<T> {
 class PathNode {
   public queued: boolean = false;
 
+  /**
+   * Creates a path node with the specified information.
+   * @param position The position of the path node.
+   * @param gCost The distance from the node to the start.
+   * @param hCost The distance from the node to the target.
+   * @param parent The origin node which has been traveled from.
+   */
   constructor(
     public readonly position: Vector2,
     public gCost: number,
@@ -152,7 +159,7 @@ class PathNode {
 
 /** Handles the search for an optimal path between two points. */
 export class OptimalPath {
-  private gridScale: number = 1;
+  private gridScale: number = 1; // The size of path nodes in game space+
 
   /** The possible directions a node can travel in. */
   private neighborDirections: Vector2[] = [
@@ -178,35 +185,35 @@ export class OptimalPath {
 
   public readonly waypoints: Vector2[] = [];
 
-  constructor(start: Vector2, goal: Vector2, private searchRange: number, private arriveRange: number, private travelHitbox: SweptCollisionObject) {
-    this.gridStart = start.divide(this.gridScale).round();
-    this.gridGoal = goal.divide(this.gridScale).round();
+  constructor(start: Vector2, goal: Vector2, private arriveRange: number, private travelHitbox: SweptCollisionObject) {
+    this.gridStart = start.divide(this.gridScale).round(); // Round start to nearest path grid position
+    this.gridGoal = goal.divide(this.gridScale).round(); // Round end to nearest path grid position
   }
 
   public getGoal(): Vector2 {
     return this.gridGoal.multiply(this.gridScale);
   }
 
-  private getKey(position: Vector2): number {
-    return Util.cantor(position);
-  }
-
+  /** Computes the quickest path from the start to the goal. */
   public computePath(): void {
-    const startNode = new PathNode(this.gridStart, 0, this.gridStart.distance(this.gridGoal));
+    const startNode: PathNode = new PathNode(this.gridStart, 0, this.gridStart.distance(this.gridGoal));
     startNode.queued = true;
 
+    // Add the start location to the queue to be processed
     this.priorityQueue.push(startNode);
-    this.processed.set(this.getKey(this.gridStart), startNode);
+    this.processed.set(Util.cantor(this.gridStart), startNode);
 
     while (!this.priorityQueue.isEmpty()) {
-      const node = this.priorityQueue.pop()!;
+      const node: PathNode = this.priorityQueue.pop()!; // Get highest priority node (lowest fScore)
 
+      // End computation and backtrack path if within threshold of target
       if (node.hCost <= this.arriveRange / this.gridScale) {
         this.backtrackWaypoints(node);
 
         return;
       }
 
+      // Loop through and check neighbors
       for (const direction of this.neighborDirections) {
         this.travelToNeighbor(node, direction);
       }
@@ -215,37 +222,42 @@ export class OptimalPath {
     }
   }
 
-  public travelToNeighbor(node: PathNode, direction: Vector2): void {
+  /**
+   * Travels to and processes the neighbor of the specified node.
+   * @param node The origin node.
+   * @param direction The direction to travel.
+   */
+  private travelToNeighbor(node: PathNode, direction: Vector2): void {
     const neighborPos = node.position.add(direction);
-    const neighborKey = this.getKey(neighborPos);
+    const neighborKey = Util.cantor(neighborPos);
 
-    if (this.restricted.has(neighborKey)) return;
-    
+    if (this.restricted.has(neighborKey)) return; // Return if the node is already restricted
+
     const gCost: number = node.gCost + direction.magnitude();
-    const existing = this.processed.get(neighborKey);
+    const existing = this.processed.get(neighborKey); // Look for existing neighbor
 
     if (existing) {
-      if (gCost < existing.gCost) {
+      if (gCost < existing.gCost) { // If the new path to the neighbor is more efficient than overwrite it
         existing.gCost = gCost;
         existing.parent = node;
 
-        if (!existing.queued) this.priorityQueue.push(existing); // add a boolean to mark whether or not a node is in the priority queue and dont queue it if it already is
+        if (!existing.queued) this.priorityQueue.push(existing); // Queue node to be processed again if not already queued
       }
 
     } else {
+      // Position hitbox going from original node to neighbor node for collision checking
       this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
       this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
 
-      const restricted: boolean = Game.instance.chunkManager.restrictionQuery(this.travelHitbox);
-
-      if (restricted) {
+      if (Game.instance.chunkManager.restrictionQuery(this.travelHitbox)) { // Check for collision and mark as restricted
         this.restricted.add(neighborKey);
 
         return;
       }
 
-      const hCost = neighborPos.distance(this.gridGoal);;
-      const neighborNode = new PathNode(neighborPos, gCost, hCost, node);
+      // Create and queue new neighbor node
+      const hCost: number = neighborPos.distance(this.gridGoal);
+      const neighborNode: PathNode = new PathNode(neighborPos, gCost, hCost, node);
       neighborNode.queued = true;
 
       this.processed.set(neighborKey, neighborNode);
@@ -253,22 +265,29 @@ export class OptimalPath {
     }
   }
 
-  public backtrackWaypoints(endNode: PathNode): void {
+  /**
+   * Backtracks through a node and its parents and creates the most efficient path possible.
+   * @param endNode The node to arrive at.
+   */
+  private backtrackWaypoints(endNode: PathNode): void {
     let current: PathNode = endNode;
     let lastWaypoint: Vector2 = current.position;
 
-    this.waypoints.push(lastWaypoint.multiply(this.gridScale));
+    this.waypoints.push(lastWaypoint.multiply(this.gridScale)); // Add end waypoint
 
+    // Backtrack through waypoint ancestry
     while (current.parent) {
-      const prev = current;
+      const prev: PathNode = current;
 
       current = current.parent;
 
       const difference = lastWaypoint.subtract(current.position);
 
+      // Position hitbox from last valid waypoint to the node being searched
       this.travelHitbox.setTransformation(lastWaypoint.multiply(this.gridScale), difference.angle());
       this.travelHitbox.sweepVertices(difference.magnitude() * this.gridScale);
 
+      // Create and start a new waypoint if a straight path from the last waypoint is not possible
       if (Game.instance.chunkManager.restrictionQuery(this.travelHitbox)) {
         lastWaypoint = prev.position;
 
@@ -276,17 +295,23 @@ export class OptimalPath {
       }
     }
 
-    this.waypoints.push(this.gridStart.multiply(this.gridScale));
-    this.waypoints.reverse();
+    this.waypoints.push(this.gridStart.multiply(this.gridScale)); // Add start waypoint
+    this.waypoints.reverse(); // Flip the waypoints to match the order of travel
   }
 }
 
+/** Handles and manages bot pathfinding and */
 export class Pathfinder {
-  private followDist: number = 1;
-  private recomputeDist: number = 1;
-  private recomputeTimer: Timer = new Timer(1);
+  private static globalRecomputeTimer: Timer = new Timer(0.05);
 
-  private target: Entity = Game.instance.simulation.player;
+  /** Distance threshold for automatic linear tracking. */
+  private autoFollowDist: number = 2;
+  /** Distance threshold for the entity to travel before recomputing a path. */
+  private recomputeDist: number = 1;
+  /** The cooldown timer for path computation. */
+  // private recomputeTimer: Timer = new Timer(1);
+
+  private target?: Entity;
 
   private pathfindHitbox: SweptCollisionObject;
 
@@ -295,13 +320,9 @@ export class Pathfinder {
 
   private _moveDirection: Vector2 = new Vector2();
   private _faceDirection: Vector2 = new Vector2();
-  private _targetInSight: boolean = false;
   private _targetDistance: number;
 
-  constructor(
-    private subject: Entity,
-    private approachRange: number
-  ) {
+  constructor(private subject: Entity, private approachRange: number) {
     this.pathfindHitbox = subject.hitbox.sweep();
   }
 
@@ -317,10 +338,15 @@ export class Pathfinder {
     return this._faceDirection;
   }
 
+  /**
+   * Determines whether or not the subject should attack.
+   * @returns True if should attack, false otherwise.
+   */
   public shouldAttack(): boolean {
     return this.target !== null && this._targetDistance <= this.approachRange;
   }
 
+  /** Updates the pathfinder's move and face directions and computes a new path if necessary. */
   public update(): void {
     if (!this.target) return;
 
@@ -328,41 +354,51 @@ export class Pathfinder {
     
     this._targetDistance = directPath.magnitude();
 
-    if (this._targetDistance <= this.followDist) {
+    if (this._targetDistance <= this.approachRange) { // Stop movement and track face direction if within range
+      this._moveDirection = new Vector2();
+      this._faceDirection = directPath.unit();
+
+      return;
+
+    } else if (this._targetDistance <= this.autoFollowDist) { // Follow target in a straight line if in auto follow range and not within approach range
       this._moveDirection = this._faceDirection = directPath.unit();
 
       return;
     }
 
-    if (!this.recomputeTimer.isActive() && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
-      this.recomputeTimer.start();
+    // Recompute path if timer is not active and entity has moved more than the recompute distance since the last path
+    if (!Pathfinder.globalRecomputeTimer.isActive() && (!this.currentPath || this.currentPath.getGoal().distance(this.target.position) > this.recomputeDist)) {
+      Pathfinder.globalRecomputeTimer.start();
 
-      this.currentPath = new OptimalPath(this.subject.position, this.target.position, 4, this.approachRange, this.pathfindHitbox);
+      this.currentPath = new OptimalPath(this.subject.position, this.target.position, this.approachRange, this.pathfindHitbox);
       this.currentPath.computePath();
       this.currentWaypoint = 1;
     }
 
     if (this.currentPath) {
+      // Loop through the waypoints
       while (this.currentWaypoint < this.currentPath.waypoints.length) {
         const waypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint];
         const lastWaypoint: Vector2 = this.currentPath.waypoints[this.currentWaypoint - 1];
         const pathDirection = waypoint.subtract(lastWaypoint).unit();
   
-        const dotWaypoint = pathDirection.dot(waypoint);
+        // Project waypoint and entity position onto direction axis between waypoints
+        const dotWaypoint = pathDirection.dot(waypoint); 
         const dotPosition = pathDirection.dot(this.subject.position);
 
-        if (dotPosition > dotWaypoint) {
+        if (dotPosition > dotWaypoint) { // Go to the next waypoint if the entity has passed the current one
           this.currentWaypoint++;
   
           continue;
         }
-  
+
+        // Combine direction along waypoint axis and direct path to waypoint for move direction
         const waypointDirection = waypoint.subtract(this.subject.position).unit();
         const finalDirection = pathDirection.add(waypointDirection).unit();
   
         this._moveDirection = this._faceDirection = finalDirection;
   
-        return;
+        return; // Break loop if direction was set
       }
     }
 

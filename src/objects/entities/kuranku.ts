@@ -21,7 +21,7 @@ export class Kuranku extends Bot {
       ]),
       2,
       30,
-      5,
+      8,
       2,
       spawnPosition
     );
