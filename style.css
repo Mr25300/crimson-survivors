@@ -80,7 +80,8 @@
   display: grid;
   grid-auto-rows: auto;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 16px;
+  font-size: 18px;
+  gap: 2px;
 }
 
 .end-stats {
@@ -92,8 +93,9 @@
 .game-info {
   left: 8px;
   top: 8px;
-  color: darkcyan;
-  font-weight: 800;
+  color: cyan;
+  font-weight: 600;
+  gap: 8px;
 }
 
 .debug-info {
@@ -103,10 +105,9 @@
 }
 
 #health-bar {
-  width: 500px;
+  width: 540px;
   height: 18px;
   appearance: none;
-  margin-bottom: 8px;
 }
 
 #health-bar::-webkit-progress-bar {
@@ -121,5 +122,5 @@
 }
 
 #health-bar::-moz-progress-bar {
-  background-color: darkcyan;
+  background-color: cyan;
 }

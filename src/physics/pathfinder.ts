@@ -303,7 +303,7 @@ export class OptimalPath {
 /** Handles and manages bot pathfinding and */
 export class Pathfinder {
   /** The global path recompute timer to limit computation frequency. */
-  private static globalRecomputeTimer: Timer = new Timer(0.05);
+  private static globalRecomputeTimer: Timer = new Timer(0.1);
 
   /** Distance threshold for automatic linear tracking. */
   private autoFollowDist: number = 2;
@@ -349,7 +349,7 @@ export class Pathfinder {
   public update(): void {
     if (!this.target) return;
 
-    const directPath = this.target.position.subtract(this.subject.position);
+    const directPath: Vector2 = this.target.position.subtract(this.subject.position);
     
     this._targetDistance = directPath.magnitude();
 
@@ -401,6 +401,6 @@ export class Pathfinder {
       }
     }
 
-    this._moveDirection = new Vector2();
+    this._moveDirection = this._faceDirection = directPath.unit(); // Set to straight line follow by default
   }
 }
