@@ -23,10 +23,12 @@ export abstract class Bot extends Entity {
   public updateBehaviour(): void {
     this.pathfinder.update();
 
+    // Set move and face directions
     this.setMoveDirection(this.pathfinder.moveDirection);
     this.setFaceDirection(this.pathfinder.faceDirection);
 
-    if (this.pathfinder.shouldAttack() && !this.attackTimer.isActive()) { // why isnt this working
+    // Handle bot attack
+    if (this.pathfinder.shouldAttack() && !this.attackTimer.isActive()) {
       this.attackTimer.start();
 
       this.attack();

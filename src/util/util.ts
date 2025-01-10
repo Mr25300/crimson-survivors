@@ -48,20 +48,38 @@ export class Util {
   }
 
   /**
-   * Returns a unique number key for any given 2d coordinate.
+   * Map an integer to a whole number for arrays.
+   * @param input The number to map.
+   * @returns The positive map output.
+   */
+  public static positiveMap(input: number): number {
+    return input < 0 ? 2 * input : -2 * input - 1;
+  }
+
+  /**
+   * Inverse of the positive map function, mapping a whole number to an integer
+   * @param output The output from the positive map function.
+   * @returns The integer output.
+   */
+  public static inversePositiveMap(output: number): number {
+    return output % 2 === 0 ? output / 2 : -(output + 1) / 2;
+  }
+
+  /**
+   * Returns a unique number key for any given 2d integer coordinate.
    * @param vec The 2d coordinate.
    * @returns A unique number output.
    */
   public static cantor(vec: Vector2): number {
     // Format components to be positive and unconflicting.
-    const x: number = vec.x < 0 ? 2 * vec.x : -2 * vec.x - 1;
-    const y: number = vec.y < 0 ? 2 * vec.y : -2 * vec.y - 1;
+    const x: number = this.positiveMap(vec.x);
+    const y: number = this.positiveMap(vec.y);
 
     return (x + y) * (x + y + 1) / 2 + y;
   }
 
   /**
-   * Inverse of the cantor function, returns a unique 2d coordinate for any given number input.
+   * Inverse of the cantor function, returns a unique 2d integer coordinate for any given integer input.
    * @param key The number input.
    * @returns A unique 2d coordinate.
    */
@@ -72,11 +90,8 @@ export class Util {
     const x: number = key - t;
     const y: number = w - x;
 
-    // Decode the values into positive or negative.
-    const decodedX: number = x % 2 === 0 ? x / 2 : -(x + 1) / 2;
-    const decodedY: number = y % 2 === 0 ? y / 2 : -(y + 1) / 2;
-
-    return new Vector2(decodedX, decodedY);
+    // Decode the values into positive or negative
+    return new Vector2(this.inversePositiveMap(x), this.inversePositiveMap(y));
   }
 
   /**

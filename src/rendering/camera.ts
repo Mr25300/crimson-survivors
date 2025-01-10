@@ -28,9 +28,9 @@ export class Camera {
       this._position = this.subject.position;
 
       // Get the vector amount the screen overlaps the camera
-      const range = Game.instance.canvas.getScreenRange();
-      const screenBounds = new Bounds(this._position.subtract(range), this._position.add(range));
-      const overlap = Game.instance.simulation.map.bounds.getInnerOverlap(screenBounds);
+      const range: Vector2 = Game.instance.canvas.getScreenRange();
+      const screenBounds: Bounds = new Bounds(this._position.subtract(range), this._position.add(range));
+      const overlap: Vector2 = Game.instance.simulation.map.bounds.getInnerOverlap(screenBounds);
 
       this._position = this._position.subtract(overlap);
     }

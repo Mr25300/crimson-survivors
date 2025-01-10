@@ -82,6 +82,7 @@ export abstract class Projectile extends GameObject {
     super.destroy();
 
     if (this.despawnConnection) this.despawnConnection.disconnect(); // Disconnect the despawn connection
+    this.sweptHitbox.hide();
 
     Game.instance.simulation.projectiles.delete(this); // Remove projectile from the simulation
   }

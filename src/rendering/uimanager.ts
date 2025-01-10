@@ -25,6 +25,7 @@ const FPS_DISPLAY: HTMLSpanElement = document.getElementById("fps-display") as H
 const ENTITY_DISPLAY: HTMLSpanElement = document.getElementById("entity-display") as HTMLSpanElement;
 const PROJECTILE_DISPLAY: HTMLSpanElement = document.getElementById("projectile-display") as HTMLSpanElement;
 const STRUCTURE_DISPLAY: HTMLSpanElement = document.getElementById("structure-display") as HTMLSpanElement;
+const ITEM_DISPLAY: HTMLSpanElement = document.getElementById("item-display") as HTMLSpanElement;
 
 /** Manages all UI actions and functionalities. */
 export class UIManager {
@@ -68,6 +69,7 @@ export class UIManager {
     ENTITY_DISPLAY.innerText = Game.instance.simulation.entities.size.toString();
     PROJECTILE_DISPLAY.innerText = Game.instance.simulation.projectiles.size.toString();
     STRUCTURE_DISPLAY.innerText = Game.instance.simulation.structures.size.toString();
+    ITEM_DISPLAY.innerText = Game.instance.simulation.items.size.toString();
   }
 
   /** Display the end screen with the game stats and prompt the user to continue. */
