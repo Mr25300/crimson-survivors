@@ -302,14 +302,13 @@ export class OptimalPath {
 
 /** Handles and manages bot pathfinding and */
 export class Pathfinder {
+  /** The global path recompute timer to limit computation frequency. */
   private static globalRecomputeTimer: Timer = new Timer(0.05);
 
   /** Distance threshold for automatic linear tracking. */
   private autoFollowDist: number = 2;
   /** Distance threshold for the entity to travel before recomputing a path. */
-  private recomputeDist: number = 1;
-  /** The cooldown timer for path computation. */
-  // private recomputeTimer: Timer = new Timer(1);
+  private recomputeDist: number = 2;
 
   private target?: Entity;
 
