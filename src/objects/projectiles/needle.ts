@@ -1,12 +1,12 @@
 import { Game } from "../../core/game.js";
 import { CollisionInfo } from "../../physics/chunkmanager.js";
-import { Polygon, Rectangle } from "../../physics/collisions.js";
+import { Rectangle } from "../../physics/collisions.js";
 import { Color } from "../../util/color.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
 import { Projectile } from "../projectile.js";
-import { Structure } from "../structure.js";
 
+/** Needle projectile implementation. */
 export class Needle extends Projectile {
   constructor(position: Vector2, direction: Vector2, sender: Entity, private damage: number, private knockback: number) {
     super(
@@ -21,6 +21,7 @@ export class Needle extends Projectile {
     );
   }
 
+  /** Damages and knocks back entities that are hit. */
   public handleEntityCollision(entity: Entity): void {
     entity.damage(this.damage, this.sender, new Color(255, 125, 125));
     entity.knockback(this.direction.multiply(this.knockback));
@@ -28,11 +29,12 @@ export class Needle extends Projectile {
     this.destroy();
   }
 
+  /** Freezes and sticks to walls that it collides with. */
   public handleStructureCollisions(collisions: CollisionInfo[]): void {
     if (collisions.length > 0) this.freeze();
 
     for (const info of collisions) {
-      this.position = this.position.add(info.normal.multiply(info.overlap));
+      this.position = this.position.add(info.normal.multiply(info.overlap)); // Correct overlap
     }
   }
 }

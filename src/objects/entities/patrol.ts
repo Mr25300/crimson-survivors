@@ -1,9 +1,9 @@
-import { Game } from '../../core/game.js';
-import { Polygon } from '../../physics/collisions.js';
-import { Vector2 } from '../../util/vector2.js';
-import { Timer } from '../../util/timer.js';
-import { Bot } from '../bot.js';
-import { PatrolWall } from '../structures/patrolWall.js';
+import { Game } from "../../core/game.js";
+import { Polygon } from "../../physics/collisions.js";
+import { SpriteAnimation } from "../../sprites/spritemodel.js";
+import { Vector2 } from "../../util/vector2.js";
+import { Bot } from "../bot.js";
+import { PatrolWall } from "../structures/patrolWall.js";
 
 export class Patrol extends Bot {
   constructor(spawnPosition: Vector2) {
@@ -25,8 +25,9 @@ export class Patrol extends Bot {
     );
   }
 
+  /** Creates patrol wall after windup animation. */
   public attack(): void {
-    const anim = this.sprite.playAnimation("create")!;
+    const anim: SpriteAnimation = this.sprite.playAnimation("create")!;
 
     anim.markerReached.connect(() => {
       new PatrolWall(this.position.add(this.faceDirection.multiply(1)), this.faceDirection.angle(), this);

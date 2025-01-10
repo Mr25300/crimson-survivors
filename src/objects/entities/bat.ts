@@ -1,8 +1,8 @@
-import { Game } from '../../core/game.js';
-import { Polygon, Rectangle } from '../../physics/collisions.js';
-import {Vector2} from '../../util/vector2.js';
-import { Bot } from '../bot.js';
-import {Entity} from '../entity.js';
+import { Game } from "../../core/game.js";
+import { Rectangle } from "../../physics/collisions.js";
+import { Vector2 } from "../../util/vector2.js";
+import { Bot } from "../bot.js";
+import { Entity } from "../entity.js";
 
 export class Bat extends Bot {
   constructor(spawnPosition: Vector2) {
@@ -17,6 +17,7 @@ export class Bat extends Bot {
     )
   }
 
+  /** Does a basic damage knockback melee attack. */
   public attack(): void {
     const hitbox = new Rectangle(0.4, 0.3, new Vector2(0, 0.15));
     hitbox.setTransformation(this.position, this.faceDirection.angle());

@@ -5,9 +5,8 @@ import { Vector2 } from "../util/vector2.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Game } from "../core/game.js";
 import { CollisionObject } from "../physics/collisions.js";
-import { Util } from "../util/util.js";
 
-/** Encapsulates the game's screen and all relevant functionality. */
+/** Encapsulates the game"s screen and all relevant functionality. */
 export class Canvas {
   private element: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
@@ -32,8 +31,10 @@ export class Canvas {
     if (!this.gl) this.gl = this.element.getContext("webgl") as WebGL2RenderingContext;
     if (!this.gl) throw new Error("Failed to get GL context.");
 
+    // Create the shader program
     this.shader = new ShaderProgram(this.gl);
 
+    // Set webgl settings
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -78,7 +79,7 @@ export class Canvas {
    * @returns A webgl buffer.
    */
   public createBuffer(data: Float32Array): WebGLBuffer {
-    const buffer: WebGLBuffer = this.gl.createBuffer();
+    const buffer: WebGLBuffer | null = this.gl.createBuffer();
     if (!buffer) throw new Error("Failed to create buffer.");
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer); // ELEMENT_ARRAY_BUFFER for index buffer
@@ -101,10 +102,10 @@ export class Canvas {
    * @returns The created texture.
    */
   public createTexture(imagePath: string): WebGLTexture {
-    const image = new Image();
+    const image: HTMLImageElement = new Image();
     image.src = imagePath;
 
-    const texture = this.gl.createTexture();
+    const texture: WebGLTexture | null = this.gl.createTexture();
     if (!texture) throw new Error("Failed to create texture.");
 
     // Load texture data when image loads
@@ -155,7 +156,7 @@ export class Canvas {
   }
 
   /**
-   * Updates the canvas dimensions and webgl viewport based on its element's properties.
+   * Updates the canvas dimensions and webgl viewport based on its element"s properties.
    */
   private updateDimensions(): void {
     this.width = this.element.clientWidth;
@@ -191,7 +192,7 @@ export class Canvas {
   }
 
   /**
-   * 
+   * Draw all sprite models and collision objects to the canvas.
    */
   public render(): void {
     // Clear screen

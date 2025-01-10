@@ -1,12 +1,9 @@
-import { Entity } from '../entity.js';
-import { Tool } from '../tool.js';
-import { Vector2 } from '../../util/vector2.js';
-import { Game } from '../../core/game.js';
-import { Polygon } from '../../physics/collisions.js';
-import { ANRPI } from '../tools/ANRPI.js';
-import { ANRMI } from '../tools/ANRMI.js';
-import { ANRE } from '../tools/ANRE.js';
+import { Entity } from "../entity.js";
+import { Vector2 } from "../../util/vector2.js";
+import { Game } from "../../core/game.js";
+import { Polygon } from "../../physics/collisions.js";
 
+/** Player entity implementation with input handling in behaviour. */
 export class Player extends Entity {
   constructor(position: Vector2) {
     super(
@@ -27,20 +24,20 @@ export class Player extends Entity {
   }
 
   public updateBehaviour(): void {
+    // Get move direction based on game controller input
     let moveDir = new Vector2();
-
     if (Game.instance.controller.isControlActive("moveU")) moveDir = moveDir.add(new Vector2(0, 1));
     if (Game.instance.controller.isControlActive("moveD")) moveDir = moveDir.add(new Vector2(0, -1));
     if (Game.instance.controller.isControlActive("moveL")) moveDir = moveDir.add(new Vector2(-1, 0));
     if (Game.instance.controller.isControlActive("moveR")) moveDir = moveDir.add(new Vector2(1, 0));
 
+    // Get aim direction as direction from player to mouse
     const aimDir = Game.instance.controller.getAimPosition().subtract(this.position);
 
     this.setMoveDirection(moveDir);
     this.setFaceDirection(aimDir);
 
-    if (this.tool && Game.instance.controller.isMouseDown()) {
-      this.tool.use(this);
-    }
+    // Use tool if mouse is held down
+    if (this.tool && Game.instance.controller.isMouseDown()) this.tool.use(this);
   }
 }

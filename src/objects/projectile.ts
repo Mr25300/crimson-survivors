@@ -1,15 +1,14 @@
 import { Game } from "../core/game.js";
-import { CollisionObject, Polygon, SweptCollisionObject } from "../physics/collisions.js";
+import { CollisionObject, SweptCollisionObject } from "../physics/collisions.js";
 import { SpriteModel } from "../sprites/spritemodel.js";
 import { Vector2 } from "../util/vector2.js";
 import { Timer } from "../util/timer.js";
 import { GameObject } from "./gameobject.js";
 import { Entity } from "./entity.js";
-import { Structure } from "./structure.js";
-import { Team } from "./team.js";
 import { CollisionInfo } from "../physics/chunkmanager.js";
 import { EventConnection } from "../util/gameevent.js";
 
+/** Represents and handles projectile logic and physics. */
 export abstract class Projectile extends GameObject {
   private sweptHitbox: SweptCollisionObject;
   
@@ -31,34 +30,41 @@ export abstract class Projectile extends GameObject {
 
     this.sweptHitbox = hitbox.sweep();
 
+    // Add despawn timer if despawn time is specified
     if (despawnTime > 0) {
       this.despawnConnection = Timer.delay(despawnTime, () => {
         this.destroy();
       });
     }
 
-    Game.instance.simulation.registerProjectile(this);
+    Game.instance.simulation.projectiles.add(this); // Add projectile to simulation
   }
 
-  public freeze() {
+  /** Freeze the physics simulation of the projectile. */
+  public freeze(): void {
     this.frozen = true;
   }
 
-  public updatePhysics(deltaTime: number) {
-    if (this.frozen) return;
-    
-    const velocityDisplacement: Vector2 = this.direction.multiply(this.speed * deltaTime);
-    const drag: number = this.speed * this.drag;
-    const dragDisplacement: Vector2 = this.direction.multiply(-drag * deltaTime ** 2 / 2);
-    const dragDeceleration: number = drag * deltaTime;
+  /**
+   * Handle physics and collisions of a projectile for a frame.
+   * @param deltaTime The time passed since the last frame.
+   */
+  public updatePhysics(deltaTime: number): void {
+    if (this.frozen) return; // Skip physics if frozen
 
-    this.position = this.position.add(velocityDisplacement).add(dragDisplacement);
-    this.rotation = this.direction.angle();
-    this.speed = this.speed - drag * dragDeceleration;
+    const velocityDisplacement: Vector2 = this.direction.multiply(this.speed * deltaTime); // Calculate the velocity displacement of the projectile
+    const dragForce: number = this.speed * this.drag; // Get the drag force based on the speed
+    const dragDisplacement: Vector2 = this.direction.multiply(-dragForce * deltaTime ** 2 / 2); // Calculate the drag deceleration displacement
 
+    this.position = this.position.add(velocityDisplacement).add(dragDisplacement); // Add the velocity and drag displacement to the position
+    this.rotation = this.direction.angle(); // Set the angle of the projectile to its movement direction
+    this.speed = this.speed - dragForce * deltaTime; // Apply drag force to decelerate speed
+
+    // Sweep projectile hitbox between its current and previous frame
     this.sweptHitbox.setTransformation(this.position, this.rotation);
     this.sweptHitbox.sweepVertices(this.speed * deltaTime);
 
+    // Query entities, structures and handle their collisions
     const entityQuery: Entity[] = Game.instance.chunkManager.attackQuery(this.sweptHitbox, true, this.sender);
     const structureQuery: CollisionInfo[] = Game.instance.chunkManager.collisionQueryFromHitbox(this.sweptHitbox, "Structure", false);
 
@@ -67,15 +73,16 @@ export abstract class Projectile extends GameObject {
 
     this.updateObject();
   }
-
+  
   public abstract handleEntityCollision(entity: Entity): void;
   public abstract handleStructureCollisions(collisions: CollisionInfo[]): void;
 
+  /** Destroys the projectile. */
   public destroy(): void {
     super.destroy();
 
-    if (this.despawnConnection) this.despawnConnection.disconnect();
+    if (this.despawnConnection) this.despawnConnection.disconnect(); // Disconnect the despawn connection
 
-    Game.instance.simulation.unregisterProjectile(this);
+    Game.instance.simulation.projectiles.delete(this); // Remove projectile from the simulation
   }
 }

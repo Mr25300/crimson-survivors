@@ -1,11 +1,8 @@
-import { Game } from '../../core/game.js';
-import { Polygon, Rectangle } from '../../physics/collisions.js';
-import {Vector2} from '../../util/vector2.js';
-import { Timer } from '../../util/timer.js';
-import {Entity} from '../entity.js';
-import { Pathfinder } from '../../physics/pathfinder.js';
-import { Bot } from '../bot.js';
-import { CollisionInfo } from '../../physics/chunkmanager.js';
+import { Game } from "../../core/game.js";
+import { Polygon, Rectangle } from "../../physics/collisions.js";
+import { Vector2 } from "../../util/vector2.js";
+import { Entity } from "../entity.js";
+import { Bot } from "../bot.js";
 
 export class Grunt extends Bot {
   constructor(spawnPosition: Vector2) {
@@ -27,6 +24,7 @@ export class Grunt extends Bot {
     );
   }
 
+  /** Does a basic melee attack after an animation windup. */
   public attack(): void {
     const attackAnimation = this.sprite.playAnimation("attack")!;
 
@@ -35,7 +33,7 @@ export class Grunt extends Bot {
       hitbox.setTransformation(this.position, this.faceDirection.angle());
 
       const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this)[0];
-  
+
       if (attacked) {
         attacked.damage(10, this);
         attacked.knockback(this.faceDirection.multiply(5));

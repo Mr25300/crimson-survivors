@@ -4,8 +4,8 @@ import { Timer } from "../../util/timer.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
 import { Structure } from "../structure.js";
-import { Team } from "../team.js";
 
+/** Handles patrol wall animations, damage and despawn. */
 export class PatrolWall extends Structure {
   private despawnTime: number = 6;
   private hitTimer: Timer = new Timer(0.5);
@@ -21,11 +21,13 @@ export class PatrolWall extends Structure {
     this.sprite.playAnimation("solid");
     this.sprite.playAnimation("appear");
 
+    // Add despawn delay timer
     Timer.delay(this.despawnTime, () => {
       this.despawn();
     });
   }
 
+  /** Damages non-whitelisted entites who collide with the structure. */
   public entityCollided(entity: Entity): void {
     if (entity.team === this.creator.team) return;
 
@@ -36,6 +38,7 @@ export class PatrolWall extends Structure {
     }
   }
 
+  /** Play the fade animation and destroy the patrol wall. */
   public despawn(): void {
     const anim = this.sprite.playAnimation("disappear")!;
 

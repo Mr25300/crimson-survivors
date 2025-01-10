@@ -1,10 +1,11 @@
 import { Game } from "../../core/game.js";
 import { CollisionInfo } from "../../physics/chunkmanager.js";
-import { Polygon, Rectangle } from "../../physics/collisions.js";
+import { Rectangle } from "../../physics/collisions.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
 import { Projectile } from "../projectile.js";
 
+/** Rock projectile implementation. */
 export class Rock extends Projectile {
   private damage: number = 10;
 
@@ -20,7 +21,8 @@ export class Rock extends Projectile {
       sender
     );
   }
-
+  
+  /** Damages and knocks back collided entities. */
   public handleEntityCollision(entity: Entity): void {
     entity.damage(this.damage, this.sender);
     entity.knockback(this.direction.multiply(5));
@@ -28,6 +30,7 @@ export class Rock extends Projectile {
     this.destroy();
   }
 
+  /** Despawns projectile upon structure collision. */
   public handleStructureCollisions(collisions: CollisionInfo[]): void {
     if (collisions.length > 0) this.destroy();
   }

@@ -1,7 +1,7 @@
-import { Game } from '../core/game.js';
-import { Matrix3 } from '../util/matrix3.js';
-import { Util } from '../util/util.js';
-import { Vector2 } from '../util/vector2.js';
+import { Game } from "../core/game.js";
+import { Matrix3 } from "../util/matrix3.js";
+import { Util } from "../util/util.js";
+import { Vector2 } from "../util/vector2.js";
 
 export class CollisionObject {
   private _transformedVertices: Vector2[] = [];

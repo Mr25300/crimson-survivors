@@ -88,4 +88,30 @@ export class Util {
   public static randomInt(min: number, max: number) {
     return Math.floor(min + (max - min + 1) * Math.random());
   }
+
+  /**
+   * Fills the start of a string with a default character.
+   * @param str The input string.
+   * @param fill The character to fill it with.
+   * @param length The length to fill to.
+   * @returns The filled string.
+   */
+  public static padStart(str: string, fill: string, length: number): string {
+    if (str.length >= length) return str;
+
+    return fill.repeat(length - str.length) + str;
+  }
+
+  /**
+   * Seperates the inputted time in seconds into its second, minute and hour components.
+   * @param time The time passed in seconds.
+   * @returns A tuple composed of seconds, minutes and hours.
+   */
+  public static getTimeComponents(time: number): [number, number, number] {
+    const seconds = Math.floor(time) % 60;
+    const minutes = Math.floor(time / 60) % 60;
+    const hours = Math.floor(time / 3600);
+
+    return [seconds, minutes, hours];
+  }
 }

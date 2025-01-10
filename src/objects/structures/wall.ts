@@ -1,9 +1,9 @@
 import { Game } from "../../core/game.js";
-import { CollisionObject, Polygon, Rectangle } from "../../physics/collisions.js";
+import { Rectangle } from "../../physics/collisions.js";
 import { Vector2 } from "../../util/vector2.js";
-import { Entity } from "../entity.js";
 import { Structure } from "../structure.js";
 
+/** Creates unrotated rectangular wall structure. */
 export class Wall extends Structure {
   constructor(position: Vector2, size: Vector2 = new Vector2(1, 1)) {
     super(
@@ -14,5 +14,5 @@ export class Wall extends Structure {
     );
   }
 
-  public entityCollided(entity: Entity): void {}
+  public entityCollided(): void {}
 }

@@ -1,9 +1,9 @@
-import { Game } from '../../core/game.js';
-import { Polygon } from '../../physics/collisions.js';
-import { Vector2 } from '../../util/vector2.js';
-import { Bot } from '../bot.js';
-import { Rock } from '../projectiles/rock.js';
-import { Matrix3 } from '../../util/matrix3.js';
+import { Game } from "../../core/game.js";
+import { Polygon } from "../../physics/collisions.js";
+import { SpriteAnimation } from "../../sprites/spritemodel.js";
+import { Vector2 } from "../../util/vector2.js";
+import { Bot } from "../bot.js";
+import { Rock } from "../projectiles/rock.js";
 
 export class Kuranku extends Bot {
   private rockOffset: Vector2 = new Vector2(0.15, 0.1);
@@ -27,8 +27,9 @@ export class Kuranku extends Bot {
     );
   }
 
+  /** Spawns rock projectile after windup animation. */
   public attack(): void {
-    const anim = this.sprite.playAnimation("throw")!;
+    const anim: SpriteAnimation = this.sprite.playAnimation("throw")!;
 
     anim.markerReached.connect(() => {
       const offset = this.rockOffset.rotate(this.faceDirection.angle());

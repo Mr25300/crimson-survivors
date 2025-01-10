@@ -1,16 +1,16 @@
-import { Gameloop } from './gameloop.js';
-import { Canvas } from '../rendering/canvas.js';
-import { SpriteModel } from '../sprites/spritemodel.js';
-import { Camera } from '../rendering/camera.js';
-import { SpriteSheet } from '../sprites/spritesheet.js';
-import { Controller } from '../input/controller.js';
-import { Simulation } from '../physics/simulation.js';
-import { ChunkManager } from '../physics/chunkmanager.js';
-import { CollisionObject, Polygon } from '../physics/collisions.js';
-import { SpriteManager } from '../sprites/spritemanager.js';
-import { Timer } from '../util/timer.js';
-import { UIManager } from '../rendering/uimanager.js';
-import { GameEvent } from '../util/gameevent.js';
+import { Gameloop } from "./gameloop.js";
+import { Canvas } from "../rendering/canvas.js";
+import { SpriteModel } from "../sprites/spritemodel.js";
+import { Camera } from "../rendering/camera.js";
+import { SpriteSheet } from "../sprites/spritesheet.js";
+import { Controller } from "../input/controller.js";
+import { Simulation } from "../physics/simulation.js";
+import { ChunkManager } from "../physics/chunkmanager.js";
+import { CollisionObject, Polygon } from "../physics/collisions.js";
+import { SpriteManager } from "../sprites/spritemanager.js";
+import { Timer } from "../util/timer.js";
+import { UIManager } from "../rendering/uimanager.js";
+import { GameEvent } from "../util/gameevent.js";
 
 export class Game extends Gameloop {
   private static _instance: Game;
@@ -56,30 +56,33 @@ export class Game extends Gameloop {
     this.start();
   }
 
-  /** Reset and clear all game information and display end screen. */
-  public endGame(): void {
-    this.spriteModels.clear();
-    this.collisionObjects.clear();
-    this._chunkManager.reset();
-    this._simulation.reset();
-
-    this.stop();
-
-    this.uiManager.displayEndScreen();
-  }
-
-  /** Update timers, animations and simulate physics. */
+  /** Simulate game. */
   protected update(deltaTime: number): void {
-    this.onUpdate.fire(deltaTime);
+    // Handle game reset control
+    if (this.controller.isControlActive("reset")) {
+      this.endGame();
+
+      return;
+    }
+
+    this.onUpdate.fire(undefined, deltaTime);
 
     this._simulation.update(deltaTime);
   }
 
-  /** Update camera, draw all objects in canvas and display ui updates. */
+  /** Update camera, draw all objects in canvas and update UI display. */
   protected render(): void {
     this._camera.update();
     this._canvas.render();
     this.uiManager.displayGameInfo();
+  }
+
+  /** Reset and clear all game information and display end screen. */
+  public endGame(): void {
+    this._simulation.reset();
+    this.stop();
+
+    this.uiManager.displayEndScreen();
   }
 
   public get canvas(): Canvas {

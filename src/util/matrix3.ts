@@ -1,8 +1,8 @@
-import {Vector2} from "./vector2.js";
+import { Vector2 } from "./vector2.js";
 
 /** Stores and encapsulates the logic of a 3d matrix. */
 export class Matrix3 {
-  constructor(private values: Float32Array) {}
+  constructor(private values: Float32Array) { }
 
   /**
    * Creates a matrix3 from a set of values.
@@ -112,11 +112,11 @@ export class Matrix3 {
   public multiply(matrix: Matrix3): Matrix3 {
     const result = new Float32Array(9);
 
-    // dot product of every intersecting vector
-    for (let r = 0; r < 3; r++) { // every row of this matrix
-      for (let c = 0; c < 3; c++) { // every column of other matrix
+    for (let r = 0; r < 3; r++) { // Loop through rows of this matrix
+      for (let c = 0; c < 3; c++) { // Loop through columns of other matrix
         let dotProduct = 0;
 
+        // Calculate dot product of the intersecting rows and columns by multiplying and then summing each term
         for (let n = 0; n < 3; n++) {
           dotProduct += this.values[n + r * 3] * matrix.values[n * 3 + c];
         }

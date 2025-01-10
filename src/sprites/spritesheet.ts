@@ -5,7 +5,7 @@ import { Vector2 } from "../util/vector2.js";
 export class SpriteSheet {
   private texture: WebGLTexture;
 
-  /** The sprite sheet's animation info map. */
+  /** The sprite sheet"s animation info map. */
   private animations: Map<string, AnimationInfo> = new Map();
 
   constructor(
@@ -28,7 +28,7 @@ export class SpriteSheet {
    * @returns The animation info of the object created.
    */
   public createAnimation(name: string, frames: number[], duration: number, looped: boolean, priority: number): AnimationInfo {
-    const info = new AnimationInfo(frames, duration, looped, priority);
+    const info: AnimationInfo = new AnimationInfo(frames, duration, looped, priority);
     this.animations.set(name, info);
 
     return info;
@@ -44,7 +44,7 @@ export class SpriteSheet {
   }
 
   /**
-   * Bind the sprite sheet's texture and uniforms in preparation for rendering.
+   * Bind the sprite sheet"s texture and uniforms in preparation for rendering.
    */
   public bind(): void {
     Game.instance.canvas.bindTexture(this.texture);
@@ -53,7 +53,7 @@ export class SpriteSheet {
   }
 
   /**
-   * Destroy the sprite sheet and it's texture.
+   * Destroy the sprite sheet and it"s texture.
    */
   public destroy(): void {
     Game.instance.canvas.deleteTexture(this.texture);

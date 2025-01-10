@@ -1,12 +1,11 @@
-import { GameEvent } from "../util/gameevent";
-
+/** Handle game loop */
 export abstract class Gameloop {
   private _running: boolean = false;
   private lastTime: number;
   private _elapsedTime: number = 0;
   private _fps: number;
-
-  protected start(time?: number): void {
+  
+  protected start(): void {
     this._running = true;
 
     requestAnimationFrame((timestamp: number) => {
@@ -14,22 +13,23 @@ export abstract class Gameloop {
     });
   }
 
+  /**
+   * Handles the gameloop frame.
+   * @param timestamp The animation frame timestamp in milliseconds.
+   */
   private loop(timestamp: number): void {
     if (!this._running) return;
 
-    let deltaTime = 0;
+    // Calcualte the change in time from the current and last timestamp
+    const deltaTime: number = this.lastTime !== undefined ? (timestamp - this.lastTime) / 1000 : 0;
+    this.lastTime = timestamp;
 
-    if (this.lastTime) {
-      deltaTime = (timestamp - this.lastTime) / 1000;
-    }
-
-    // possibly enforce 60fps to maintain performance with high framerate
     this._elapsedTime += deltaTime;
     this._fps = 1 / deltaTime;
+
+    // Call update and render functions
     this.update(deltaTime);
     this.render();
-
-    this.lastTime = timestamp;
 
     requestAnimationFrame((timestamp: number) => {
       this.loop(timestamp);

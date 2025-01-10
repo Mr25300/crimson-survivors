@@ -112,8 +112,8 @@ export class Vector2 {
    * @returns The rotated vector.
    */
   public rotate(rotation: number): Vector2 {
-    const cos = Math.cos(rotation);
-    const sin = Math.sin(rotation);
+    const cos: number = Math.cos(rotation);
+    const sin: number = Math.sin(rotation);
 
     return new Vector2(
       this.x * cos + this.y * sin,

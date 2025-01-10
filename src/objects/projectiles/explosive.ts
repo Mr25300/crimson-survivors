@@ -2,6 +2,7 @@ import { Game } from "../../core/game.js";
 import { CollisionInfo } from "../../physics/chunkmanager.js";
 import { Circle } from "../../physics/collisions.js";
 import { Color } from "../../util/color.js";
+import { EventConnection } from "../../util/gameevent.js";
 import { Timer } from "../../util/timer.js";
 import { Vector2 } from "../../util/vector2.js";
 import { Entity } from "../entity.js";
@@ -10,7 +11,9 @@ import { Projectile } from "../projectile.js";
 export class Explosive extends Projectile {
   private detonated: boolean = false;
 
-  private detonationTimer: Timer = new Timer(2);
+  private detonationDelay: number = 2;
+  private detonationConnection: EventConnection;
+
   private bounceCooldown: Timer = new Timer(0.05);
 
   constructor(position: Vector2, direction: Vector2, sender: Entity) {
@@ -20,31 +23,33 @@ export class Explosive extends Projectile {
       position,
       direction,
       8,
-      0.3,
+      0.6,
       0,
       sender
     );
 
     this.sprite.playAnimation("beeping");
 
-    this.detonationTimer.onComplete.connectOnce(() => {
+    // Start detonation timer
+    this.detonationConnection = Timer.delay(this.detonationDelay, () => {
       this.detonate();
     });
-
-    this.detonationTimer.start();
   }
 
+  /** Detonates the explosive and damages nearby enemies. */
   public detonate(): void {
     if (this.detonated) return;
 
     this.detonated = true;
-    this.detonationTimer.stop();;
-
-    const anim = this.sprite.playAnimation("explode")!;
+    this.detonationConnection.disconnect();
     
+    // Play animation and listen to marker events for hitbox and despawn
+    const anim = this.sprite.playAnimation("explode")!;
+
     anim.markerReached.connect(() => {
       this.freeze();
 
+      // Create hitbox and damage entities who collide with it
       const hitbox = new Circle(1.5, undefined, this.position);
       const entities: Entity[] = Game.instance.chunkManager.attackQuery(hitbox, false, this.sender);
 
@@ -63,10 +68,12 @@ export class Explosive extends Projectile {
     }, "despawn");
   }
 
-  public handleEntityCollision(entity: Entity): void {
+  /** Detonate the explosive when it collides with entities. */
+  public handleEntityCollision(): void {
     this.detonate();
   }
 
+  /** Deflect the explosive off walls it collides with. */
   public handleStructureCollisions(collisions: CollisionInfo[]): void {
     let averageNormal: Vector2 = new Vector2();
 

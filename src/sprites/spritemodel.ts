@@ -10,8 +10,10 @@ export class SpriteModel {
   private position: Vector2 = new Vector2();
   private rotation: number = 0;
 
+  /** The space occupied by the sprite texture for the model. */
   private tileScale: Vector2;
 
+  /** Represents the cell of the sprite sheet the sprite model is displaying. */
   private currentCell: number = 0;
   private animations: Map<string, SpriteAnimation> = new Map();
   private animationListener?: EventConnection;
@@ -24,12 +26,16 @@ export class SpriteModel {
     if (tiling) this.tileScale = new Vector2(this.size.x / this.sprite.width, this.size.y / this.sprite.height);
     else this.tileScale = new Vector2(1, 1);
 
-    const objects = Game.instance.spriteModels.get(this.sprite) || new Set();
+    const objects: Set<SpriteModel> = Game.instance.spriteModels.get(this.sprite) || new Set();
     if (objects.size === 0) Game.instance.spriteModels.set(this.sprite, objects);
 
     objects.add(this);
   }
 
+  /**
+   * Set the current cell number of the sprite model.
+   * @param cellNumber The sprite cell number.
+   */
   public setSpriteCell(cellNumber: number): void {
     this.currentCell = cellNumber;
   }
@@ -42,10 +48,10 @@ export class SpriteModel {
    * @returns The created animation.
    */
   public playAnimation(name: string, timePassed?: number, speed?: number): SpriteAnimation {
-    const info = this.sprite.getAnimation(name);
+    const info: AnimationInfo | undefined = this.sprite.getAnimation(name);
     if (!info) throw new Error(`Sprite animation ${name} does not exist.`);
 
-    const animation = new SpriteAnimation(this, info, timePassed, speed);
+    const animation: SpriteAnimation = new SpriteAnimation(this, info, timePassed, speed);
     this.animations.set(name, animation);
 
     if (this.animations.size > 0 && !this.animationListener) {
@@ -95,7 +101,7 @@ export class SpriteModel {
     let selectedFrame: number | undefined;
 
     this.animations.forEach((anim: SpriteAnimation, key: string) => {
-      const animFrame = anim.getFrame(deltaTime);
+      const animFrame: number = anim.updateFrame(deltaTime);
 
       // Stop the animation if active
       if (!anim.active) {
@@ -115,7 +121,7 @@ export class SpriteModel {
   }
 
   /**
-   * Creates and sets the sprite model's highlight effect.
+   * Creates and sets the sprite model"s highlight effect.
    * @param color The color of the highlight.
    */
   public createHighlightEffect(color: Color) {
@@ -133,9 +139,7 @@ export class SpriteModel {
     this.rotation = rotation;
   }
 
-  /**
-   * Binds the sprite model and its relevant transformation uniforms in preparation for drawing.
-   */
+  /** Binds the sprite model and its relevant transformation uniforms in preparation for drawing. */
   public bind(): void {
     const transformMatrix: Matrix3 = Matrix3.fromTransformation(this.position, this.rotation, this.size);
 
@@ -147,13 +151,13 @@ export class SpriteModel {
     Game.instance.canvas.shader.setUniformFloat("highlightStart", this.highlightStart);
   }
 
-  /**
-   * Destroys the model and its reference.
-   */
+  /** Destroys the model"s connection and reference. */
   public destroy(): void {
+    if (this.animationListener) this.animationListener.disconnect();
+
     const models = Game.instance.spriteModels.get(this.sprite);
     if (!models) return;
-    
+
     models.delete(this);
 
     if (models.size === 0) Game.instance.spriteModels.delete(this.sprite);
@@ -171,7 +175,7 @@ export class SpriteAnimation {
     private info: AnimationInfo,
     private timePassed: number = 0,
     private speed: number = 1
-  ) {}
+  ) { }
 
   public get active(): boolean {
     return this._active;
@@ -182,14 +186,15 @@ export class SpriteAnimation {
   }
 
   /**
-   * 
-   * @param deltaTime 
-   * @returns 
+   * Updates the animation and returns its current frame.
+   * @param deltaTime The time passed since the last frame.
+   * @returns The frame the current animation is on.
    */
-  public getFrame(deltaTime: number): number {
+  public updateFrame(deltaTime: number): number {
     const prevTime = this.timePassed;
-    let newTime = prevTime + deltaTime * this.speed;
+    const newTime = prevTime + deltaTime * this.speed;
 
+    // Loop through markers and fire marker reached events if passed
     this.info.getMarkers().forEach((frame: number, name: string) => {
       const frameTime = frame / this.info.frames.length * this.info.duration;
 
@@ -198,25 +203,23 @@ export class SpriteAnimation {
       }
     });
 
-    this.timePassed = newTime;
+    // Stop animation if it isn"t looped and has exceeded the duration
+    if (newTime >= this.info.duration && !this.info.looped) {
+      this.stop();
 
-    if (newTime >= this.info.duration) {
-      if (!this.info.looped) {
-        this.stop();
-
-        return 0;
-      }
-
-      this.timePassed %= this.info.duration;
+      return -1;
     }
 
+    this.timePassed = newTime % this.info.duration;
+
+    // Determine the frame based on the time passed through the animation and the active modifiers on the animation
     const percentThrough = this.timePassed / this.info.duration;
     const frameIndex = Math.floor(this.info.frames.length * percentThrough);
     const modifier = this.info.getModifier(this.model.animationModifier!) || 0;
 
     return this.info.frames[frameIndex] + modifier;
   }
-
+  
   public stop() {
     this._active = false;
   }

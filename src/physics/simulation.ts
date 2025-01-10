@@ -1,17 +1,19 @@
-import { Game } from '../core/game.js';
-import { Grunt } from '../objects/entities/grunt.js';
-import { Kuranku } from '../objects/entities/kuranku.js';
-import { Necromancer } from '../objects/entities/necromancer.js';
-import { Patrol } from '../objects/entities/patrol.js';
-import { Player } from '../objects/entities/player.js';
-import { Entity } from '../objects/entity.js';
-import { Projectile } from '../objects/projectile.js';
-import { Team } from '../objects/team.js';
-import { ANRE, ANREItem } from '../objects/tools/ANRE.js';
-import { ANRMIItem } from '../objects/tools/ANRMI.js';
-import { ANRPI, ANRPIItem } from '../objects/tools/ANRPI.js';
-import { Vector2 } from '../util/vector2.js';
-import { Maze } from './maze.js';
+import { Game } from "../core/game.js";
+import { Grunt } from "../objects/entities/grunt.js";
+import { Kuranku } from "../objects/entities/kuranku.js";
+import { Necromancer } from "../objects/entities/necromancer.js";
+import { Patrol } from "../objects/entities/patrol.js";
+import { Player } from "../objects/entities/player.js";
+import { Entity } from "../objects/entity.js";
+import { Item } from "../objects/item.js";
+import { Projectile } from "../objects/projectile.js";
+import { Structure } from "../objects/structure.js";
+import { Team } from "../objects/team.js";
+import { ANREItem } from "../objects/tools/ANRE.js";
+import { ANRMIItem } from "../objects/tools/ANRMI.js";
+import { ANRPI, ANRPIItem } from "../objects/tools/ANRPI.js";
+import { Vector2 } from "../util/vector2.js";
+import { Maze } from "./maze.js";
 
 export class Simulation {
   public readonly map: Maze;
@@ -20,8 +22,10 @@ export class Simulation {
   public readonly humans: Team = new Team("Human");
   public readonly vampires: Team = new Team("Vampire");
 
-  private entities: Set<Entity> = new Set();
-  private projectiles: Set<Projectile> = new Set();
+  public readonly entities: Set<Entity> = new Set();
+  public readonly projectiles: Set<Projectile> = new Set();
+  public readonly structures: Set<Structure> = new Set();
+  public readonly items: Set<Item> = new Set();
 
   private wave: number = 0;
   private vampiresPerWave: number = 10;
@@ -42,34 +46,13 @@ export class Simulation {
 
   constructor() {
     this.map = new Maze(new Vector2(10, 10), 4, 1);
-  }
 
-  public registerEntity(entity: Entity): void {
-    this.entities.add(entity);
-  }
-
-  public unregisterEntity(entity: Entity): void {
-    this.entities.delete(entity);
-  }
-
-  public registerProjectile(projectile: Projectile): void {
-    this.projectiles.add(projectile);
-  }
-
-  public unregisterProjectile(projectile: Projectile): void {
-    this.projectiles.delete(projectile);
+    const floorModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
+    floorModel.setTransformation(this.map.bounds.getCenter(), 0);
   }
 
   public get player(): Player {
     return this._player;
-  }
-
-  public get entityCount(): number {
-    return this.entities.size;
-  }
-
-  public get projectileCount(): number {
-    return this.projectiles.size;
   }
 
   public init(): void {
@@ -84,9 +67,6 @@ export class Simulation {
 
   public generateMap(): void {
     this.map.generateMaze();
-
-    const floorModel = Game.instance.spriteManager.create("floor", this.map.bounds.getDimensions(), true);
-    floorModel.setTransformation(this.map.bounds.getCenter(), 0);
   }
 
   private getRNGOption(optionWeights: Record<string, number>): string {
@@ -151,12 +131,12 @@ export class Simulation {
       }
     }
 
-    for (const entity of this.entities) {
-      entity.updateBehaviour();
-    }
-
     for (const projectile of this.projectiles) {
       projectile.updatePhysics(deltaTime);
+    }
+
+    for (const entity of this.entities) {
+      entity.updateBehaviour();
     }
 
     for (const entity of this.entities) {
@@ -165,11 +145,17 @@ export class Simulation {
   }
 
   public reset(): void {
-    this.humans.removeAll();
-    this.vampires.removeAll();
+    for (const entity of this.entities) {
+      entity.destroy();
+    }
 
-    this.entities.clear();
-    this.projectiles.clear();
+    for (const projectile of this.projectiles) {
+      projectile.destroy();
+    }
+
+    for (const structure of this.structures) {
+      structure.destroy();
+    }
 
     this.wave = 0;
   }
