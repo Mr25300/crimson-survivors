@@ -169,9 +169,9 @@ export class OptimalPath {
   /** The ordered queue of possible nodes ordered from lowest to highest fScore. */
   private priorityQueue: MinHeap<PathNode> = new MinHeap((a: PathNode, b: PathNode) => a.compare(b));
   /** The map of processed nodes with the cantor output of their position as keys. */
-  private processed: PathNode[][] = [];
+  private processed: Map<number, PathNode> = new Map();
   /** The map of restricted nodes as their cantor keys. */
-  private restricted: boolean[][] = [];
+  private restricted: Set<number> = new Set();
 
   private gridStart: Vector2;
   private gridGoal: Vector2;
@@ -191,45 +191,12 @@ export class OptimalPath {
     return Util.cantor(position);
   }
 
-  private addToArray<T>(array: T[][], position: Vector2, value: T) {
-    const y: number = Util.positiveMap(position.x);
-    const x: number = Util.positiveMap(position.y);
-
-    const row: T[] = array[y] || [];
-    if (row.length === 0) array[y] = row;
-
-    row[x] = value;
-  }
-
-  private getFromArray<T>(array: T[][], position: Vector2): T | undefined {
-    const y: number = Util.positiveMap(position.x);
-    const x: number = Util.positiveMap(position.y);
-
-    const row: T[] = array[y];
-    if (!row) return;
-
-    return row[x];
-  }
-
-  private removeFromArray<T>(array: T[][], position: Vector2) {
-    const y: number = Util.positiveMap(position.x);
-    const x: number = Util.positiveMap(position.y);
-
-    const row: T[] = array[y];
-    if (!row) return;
-
-    delete row[x];
-    if (row.length === 0) delete array[y];
-  }
-
   public computePath(): void {
     const startNode = new PathNode(this.gridStart, 0, this.gridStart.distance(this.gridGoal));
     startNode.queued = true;
 
     this.priorityQueue.push(startNode);
-    // this.processed.set(this.getKey(this.gridStart), startNode);
-
-    this.addToArray(this.processed, this.gridStart, startNode);
+    this.processed.set(this.getKey(this.gridStart), startNode);
 
     while (!this.priorityQueue.isEmpty()) {
       const node = this.priorityQueue.pop()!;
@@ -252,10 +219,10 @@ export class OptimalPath {
     const neighborPos = node.position.add(direction);
     const neighborKey = this.getKey(neighborPos);
 
-    if (this.getFromArray(this.restricted, neighborPos)) return;
+    if (this.restricted.has(neighborKey)) return;
     
     const gCost: number = node.gCost + direction.magnitude();
-    const existing = this.getFromArray(this.processed, neighborPos);
+    const existing = this.processed.get(neighborKey);
 
     if (existing) {
       if (gCost < existing.gCost) {
@@ -272,7 +239,7 @@ export class OptimalPath {
       const restricted: boolean = Game.instance.chunkManager.restrictionQuery(this.travelHitbox);
 
       if (restricted) {
-        this.addToArray(this.restricted, neighborPos, true);
+        this.restricted.add(neighborKey);
 
         return;
       }
@@ -281,7 +248,7 @@ export class OptimalPath {
       const neighborNode = new PathNode(neighborPos, gCost, hCost, node);
       neighborNode.queued = true;
 
-      this.addToArray(this.processed, neighborPos, neighborNode);
+      this.processed.set(neighborKey, neighborNode);
       this.priorityQueue.push(neighborNode);
     }
   }
