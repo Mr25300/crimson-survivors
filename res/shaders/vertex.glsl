@@ -4,17 +4,13 @@ attribute vec2 vertexPos;
 
 uniform mat3 screenProjection;
 uniform vec2 spriteSize;
-uniform float spriteCell; // make this int
+uniform float spriteCell;
 uniform mat3 modelTransform;
 uniform float zOrder;
 
 varying vec2 textureVertCoord;
 varying vec2 spriteCellSize;
 varying vec2 spriteCellStart;
-
-// change z priority based on distance from center of screen (closer enemies appear ontop)
-// dm = root(2)
-// z = d/dm * 2 - 1 (normalize to 1, -1)
 
 float tanh(float x) {
   return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
