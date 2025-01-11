@@ -28,22 +28,37 @@ export class Vector2 {
   }
 
   /**
-   * 
+   * Returns the sum of this and another vector.
    * @param vector The vector being added.
-   * @returns 
+   * @returns The sum vector.
    */
   public add(vector: Vector2): Vector2 {
     return new Vector2(this.x + vector.x, this.y + vector.y);
   }
 
+  /**
+   * Returns the difference of this and another vector.
+   * @param vector The vector being subtracted.
+   * @returns The difference vector.
+   */
   public subtract(vector: Vector2): Vector2 {
     return new Vector2(this.x - vector.x, this.y - vector.y);
   }
 
+  /**
+   * Returns a scaled version of this vector.
+   * @param scalar The scalar to multiply by.
+   * @returns The scaled vector.
+   */
   public multiply(scalar: number): Vector2 {
     return new Vector2(this.x * scalar, this.y * scalar);
   }
 
+  /**
+   * Returns a divided version of this vector.
+   * @param divisor The number to divide by.
+   * @returns The divided vector.
+   */
   public divide(divisor: number): Vector2 {
     return new Vector2(this.x / divisor, this.y / divisor);
   }
@@ -93,10 +108,6 @@ export class Vector2 {
   public dot(vector: Vector2): number {
     return this.x * vector.x + this.y * vector.y;
   }
-
-  // public cross(vector: Vector2): number {
-  //   return this.x * vector.y - this.y * vector.x;
-  // }
 
   /**
    * Creates a vector perpendicular to the original vector.
