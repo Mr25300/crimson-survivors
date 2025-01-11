@@ -74,8 +74,8 @@ export class ChunkManager {
     );
 
     // Loop between min and max chunk
-    for (let x = minChunk.x; x <= maxChunk.x; x++) {
-      for (let y = minChunk.y; y <= maxChunk.y; y++) {
+    for (let x: number = minChunk.x; x <= maxChunk.x; x++) {
+      for (let y: number = minChunk.y; y <= maxChunk.y; y++) {
         chunks.push(Util.cantor(new Vector2(x, y)));
       }
     }

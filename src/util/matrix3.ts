@@ -112,12 +112,12 @@ export class Matrix3 {
   public multiply(matrix: Matrix3): Matrix3 {
     const result = new Float32Array(9);
 
-    for (let r = 0; r < 3; r++) { // Loop through rows of this matrix
-      for (let c = 0; c < 3; c++) { // Loop through columns of other matrix
+    for (let r: number = 0; r < 3; r++) { // Loop through rows of this matrix
+      for (let c: number = 0; c < 3; c++) { // Loop through columns of other matrix
         let dotProduct = 0;
 
         // Calculate dot product of the intersecting rows and columns by multiplying and then summing each term
-        for (let n = 0; n < 3; n++) {
+        for (let n: number = 0; n < 3; n++) {
           dotProduct += this.values[n + r * 3] * matrix.values[n * 3 + c];
         }
 
@@ -135,7 +135,7 @@ export class Matrix3 {
   public glFormat(): Float32Array {
     const formatted = new Float32Array(9);
 
-    for (let i = 0; i < 9; i++) {
+    for (let i: number = 0; i < 9; i++) {
       formatted[i] = this.values[(i % 3) * 3 + Math.floor(i / 3)];
     }
 

@@ -26,7 +26,7 @@ export class Necromancer extends Bot {
     const anim: SpriteAnimation = this.sprite.playAnimation("spawn")!;
 
     anim.markerReached.connectOnce(() => {
-      for (let i = 0; i < spawnCount; i++) {
+      for (let i: number = 0; i < spawnCount; i++) {
         const spawnOffset: Vector2 = Vector2.randomUnit().multiply(0.7); // Get random offset in circle around necromancer
 
         new Bat(this.position.add(spawnOffset)).setTeam(Game.instance.simulation.vampires);
