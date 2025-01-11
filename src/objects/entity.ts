@@ -11,10 +11,11 @@ import { Item } from "./item.js";
 
 /** Manages the entity game object and its relevant functionalities. */
 export abstract class Entity extends GameObject {
-  private accelTime: number = 0.25;
-  private knockbackDrag: number = 5;
+  private ACCEL_TIME: number = 0.25;
+  private IMPULSE_DRAG: number = 5;
+
   private movementVelocity: Vector2 = new Vector2();
-  private knockbackVelocity: Vector2 = new Vector2();
+  private impulseVelocity: Vector2 = new Vector2();
 
   private _moveDirection: Vector2 = new Vector2();
   private _faceDirection: Vector2 = new Vector2();
@@ -104,11 +105,11 @@ export abstract class Entity extends GameObject {
   }
 
   /**
-   * Apply knockback to the entity.
+   * Apply impulse to the entity.
    * @param impulse The impulse vector.
    */
-  public knockback(impulse: Vector2) {
-    this.knockbackVelocity = this.knockbackVelocity.add(impulse);
+  public applyImpulse(impulse: Vector2): void {
+    this.impulseVelocity = this.impulseVelocity.add(impulse);
   }
 
   public get team(): Team | undefined {
@@ -116,7 +117,7 @@ export abstract class Entity extends GameObject {
   }
 
   /** Set the entity"s team and add them to the member list. */
-  public setTeam(team: Team) {
+  public setTeam(team: Team): void {
     this.clearFromTeam();
 
     this._team = team;
@@ -133,7 +134,7 @@ export abstract class Entity extends GameObject {
   }
 
   /** Handles unequip action for current tool and equips the new tool. */
-  public equipTool(tool: Tool) {
+  public equipTool(tool: Tool): void {
     if (this._tool) this._tool.unequip(this);
 
     tool.equip(this);
@@ -147,19 +148,19 @@ export abstract class Entity extends GameObject {
     // Calculate goal movement velocity and acceleration required to get there by the acceleration time
     const goalVelocity: Vector2 = this._moveDirection.multiply(this.moveSpeed);
     const difference: Vector2 = goalVelocity.subtract(this.movementVelocity);
-    const acceleration: Vector2 = difference.divide(this.accelTime);
+    const acceleration: Vector2 = difference.divide(this.ACCEL_TIME);
 
     const velDisplacement: Vector2 = this.movementVelocity.multiply(deltaTime); // Calculate the velocity displacement
     const accelDisplacement: Vector2 = acceleration.multiply(deltaTime ** 2 / 2); // Calculate the acceleration displacement
 
-    const knockDisplacement = this.knockbackVelocity.multiply(deltaTime); // Calculate the knockback displacement
-    const dragForce = this.knockbackVelocity.multiply(-this.knockbackDrag); // Calculate the drag force (acceleration)
+    const impulseDisplacement = this.impulseVelocity.multiply(deltaTime); // Calculate the impulse displacement
+    const dragForce = this.impulseVelocity.multiply(-this.IMPULSE_DRAG); // Calculate the drag force (acceleration)
     const dragDisplacement = dragForce.multiply(deltaTime ** 2 / 2); // Calculate the drag acceleration displacement
 
     // Add the displacement amounts to the position
-    this.position = this.position.add(velDisplacement).add(accelDisplacement).add(knockDisplacement).add(dragDisplacement);
+    this.position = this.position.add(velDisplacement).add(accelDisplacement).add(impulseDisplacement).add(dragDisplacement);
     this.movementVelocity = this.movementVelocity.add(acceleration.multiply(deltaTime)); // Add the acceleration to the movement velocity
-    this.knockbackVelocity = this.knockbackVelocity.add(dragForce.multiply(deltaTime)); // Add the drag deceleration to the knockback velocity
+    this.impulseVelocity = this.impulseVelocity.add(dragForce.multiply(deltaTime)); // Add the drag deceleration to the impulse velocity
 
     this.rotation = this._faceDirection.angle(); // Set the rotation of the model to the face direction
 

@@ -32,11 +32,13 @@ export class Grunt extends Bot {
       const hitbox = new Rectangle(0.4, 0.5);
       hitbox.setTransformation(this.position, this.faceDirection.angle());
 
+      hitbox.show(1);
+
       const attacked: Entity = Game.instance.chunkManager.attackQuery(hitbox, true, this)[0];
 
       if (attacked) {
         attacked.damage(10, this);
-        attacked.knockback(this.faceDirection.multiply(5));
+        attacked.applyImpulse(this.faceDirection.multiply(5));
       }
 
     }, "spawnHitbox");

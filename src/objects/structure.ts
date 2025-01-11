@@ -15,7 +15,7 @@ export abstract class Structure extends GameObject {
 
   public abstract entityCollided(entity: Entity): void;
 
-  public override destroy() {
+  public override destroy(): void {
     super.destroy();
 
     Game.instance.simulation.structures.delete(this); // Remove structure from simulation

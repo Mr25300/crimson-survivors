@@ -17,6 +17,24 @@ import { Vector2 } from "../util/vector2.js";
 import { Maze } from "./maze.js";
 
 export class Simulation {
+  /** Amount of vampires to spawn every wave. */
+  private VAMPS_PER_WAVE: number = 10;
+  /** Amount of items to spawn every wave. */
+  private ITEMS_PER_WAVE: number = 3;
+
+  private VAMP_SPAWN_WEIGHTS: Record<string, number> = {
+    grunt: 40,
+    kuranku: 30,
+    patrol: 20,
+    necromancer: 10
+  };
+
+  private ITEM_SPAWN_WEIGHTS: Record<string, number> = {
+    ANRPI: 40,
+    ANRE: 30,
+    ANRMI: 20
+  };
+  
   public readonly map: Maze;
 
   public readonly humans: Team = new Team("Human");
@@ -29,23 +47,6 @@ export class Simulation {
   public readonly items: Set<Item> = new Set();
 
   private _wave: number = 0;
-  /** Amount of vampires to spawn every wave. */
-  private vampiresPerWave: number = 10;
-  /** Amount of items to spawn every wave. */
-  private itemsPerWave: number = 3;
-
-  private vampireSpawnWeights: Record<string, number> = {
-    grunt: 40,
-    kuranku: 30,
-    patrol: 20,
-    necromancer: 10
-  };
-
-  private itemSpawnWeights: Record<string, number> = {
-    ANRPI: 40,
-    ANRE: 30,
-    ANRMI: 20
-  };
 
   constructor() {
     this.map = new Maze(new Vector2(8, 8), 4, 1);
@@ -103,7 +104,7 @@ export class Simulation {
   /** Spawn a random item in a map vacancy. */
   private spawnItem(): void {
     const position: Vector2 = this.map.getRandomVacancy();
-    const chosen: string = this.getRNGOption(this.itemSpawnWeights);
+    const chosen: string = this.getRNGOption(this.ITEM_SPAWN_WEIGHTS);
 
     if (chosen === "ANRE") new ANREItem(position);
     else if (chosen === "ANRPI") new ANRPIItem(position);
@@ -113,7 +114,7 @@ export class Simulation {
   /** Spawn a random vampire in a map vacancy. */
   private spawnVampire(): void {
     const position: Vector2 = this.map.getRandomVacancy();
-    const chosen: string = this.getRNGOption(this.vampireSpawnWeights);
+    const chosen: string = this.getRNGOption(this.VAMP_SPAWN_WEIGHTS);
     let vampire: Entity;
 
     if (chosen === "grunt") vampire = new Grunt(position);
@@ -134,11 +135,11 @@ export class Simulation {
       this._wave++;
 
       // Ensure no items spawn on first wave
-      for (let i = 0; i < (this._wave - 1) * this.itemsPerWave; i++) {
+      for (let i = 0; i < (this._wave - 1) * this.ITEMS_PER_WAVE; i++) {
         this.spawnItem();
       }
 
-      for (let i = 0; i < this._wave * this.vampiresPerWave; i++) {
+      for (let i = 0; i < this._wave * this.VAMPS_PER_WAVE; i++) {
         this.spawnVampire();
       }
     }

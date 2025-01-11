@@ -24,7 +24,7 @@ export class ChunkManager {
    * @param chunkKey The chunk key.
    * @param object The object being added.
    */
-  public addToChunk(chunkKey: number, object: GameObject): void {
+  private addToChunk(chunkKey: number, object: GameObject): void {
     const objects: ChunkObjects = this.chunks.get(chunkKey) || new Map();
     if (objects.size === 0) this.chunks.set(chunkKey, objects);
 
@@ -40,7 +40,7 @@ export class ChunkManager {
    * @param object The object being removed.
    * @returns 
    */
-  public removeFromChunk(chunkKey: number, object: GameObject): void {
+  private removeFromChunk(chunkKey: number, object: GameObject): void {
     const objects: ChunkObjects | undefined = this.chunks.get(chunkKey);
     if (!objects) return;
 
@@ -58,7 +58,7 @@ export class ChunkManager {
    * @param bounds The bound range to search.
    * @returns An array of chunk keys.
    */
-  public getChunksOfBounds(bounds: Bounds): number[] {
+  private getChunksOfBounds(bounds: Bounds): number[] {
     const chunks: number[] = [];
 
     // Round minimum down to nearest chunk

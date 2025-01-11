@@ -57,7 +57,7 @@ export class Explosive extends Projectile {
         const direction = entity.position.subtract(this.position).unit();
 
         entity.damage(50, this.sender, new Color(255, 125, 125));
-        entity.knockback(direction.multiply(15));
+        entity.applyImpulse(direction.multiply(15));
       }
 
     }, "spawnHitbox");

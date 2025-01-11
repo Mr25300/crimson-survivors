@@ -8,6 +8,14 @@ export class SpriteSheet {
   /** The sprite sheet"s animation info map. */
   private animations: Map<string, AnimationInfo> = new Map();
 
+  /**
+   * Creates a sprite from the specified parameters.
+   * @param imagePath The path to the sprite texture.
+   * @param width The width of the sprite.
+   * @param height The height of the sprite.
+   * @param sheetSize The size in rows and columns of the sprite sheet.
+   * @param zOrder The z-level order of the sprite.
+   */
   constructor(
     imagePath: string,
     public readonly width: number,

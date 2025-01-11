@@ -25,10 +25,12 @@ export abstract class GameObject {
     Game.instance.chunkManager.updateObjectChunks(this);
   }
 
-  /** Destroy the game object and clear it from its chunks. */
-  public destroy(): void {
-    Game.instance.chunkManager.clearObjectChunks(this);
-    this.sprite.destroy();
+  /**
+   * Adds the chunk to the object.
+   * @param chunkKey The chunk key.
+   */
+  public addChunk(chunkKey: number): void {
+    this.chunks.add(chunkKey);
   }
 
   /**
@@ -41,18 +43,16 @@ export abstract class GameObject {
   }
 
   /**
-   * Adds the chunk to the object.
-   * @param chunkKey The chunk key.
-   */
-  public addChunk(chunkKey: number): void {
-    this.chunks.add(chunkKey);
-  }
-
-  /**
    * Removes the chunk from the object.
    * @param chunkKey The chunk key.
    */
   public removeChunk(chunkKey: number): void {
     this.chunks.delete(chunkKey);
+  }
+
+  /** Destroy the game object and clear it from its chunks. */
+  public destroy(): void {
+    Game.instance.chunkManager.clearObjectChunks(this);
+    this.sprite.destroy();
   }
 }

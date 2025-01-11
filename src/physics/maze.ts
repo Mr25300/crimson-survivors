@@ -15,7 +15,7 @@ class MazeNode {
 /** Manages maze creation, extension and wall structure creation. */
 export class Maze {
   /** Possible directions the maze algorithm can go in. */
-  private directions: Vector2[] = [
+  private DIRECTIONS: Vector2[] = [
     new Vector2(0, 1),
     new Vector2(0, -1),
     new Vector2(1, 0),
@@ -27,9 +27,10 @@ export class Maze {
   /** The full tile map based on the size of spaces and walls. */
   private mapGrid: boolean[][] = [];
   private mapSize: Vector2;
+  private vacancies: Vector2[];
+
   public readonly bounds: Bounds;
   public readonly barriers: CollisionObject[] = [];
-  private vacancies: Vector2[];
 
   constructor(private mazeSize: Vector2, private spaceSize: number, private wallSize: number) {
     this.mapSize = this.mazeToTile(mazeSize).subtract(new Vector2(this.wallSize, this.wallSize));
@@ -84,7 +85,7 @@ export class Maze {
     const node: MazeNode = this.mazeGrid[position.y][position.x];
 
     // Filter possible directions based on them being out of bounds or not meeting the visit requirement
-    const options: Vector2[] = this.directions.filter((direction: Vector2) => {
+    const options: Vector2[] = this.DIRECTIONS.filter((direction: Vector2) => {
       const optionPos = position.add(direction);
 
       if (optionPos.x < 0 || optionPos.x >= this.mazeSize.x) return false;
@@ -126,7 +127,7 @@ export class Maze {
    * Continue traversing/creating the maze at a given node position.
    * @param position The position of the node.
    */
-  private start(position: Vector2) {
+  private start(position: Vector2): void {
     this.mazeGrid[position.y][position.x].visited = true;
 
     const neighborPos: Vector2 | undefined = this.searchNeighbors(position, false);

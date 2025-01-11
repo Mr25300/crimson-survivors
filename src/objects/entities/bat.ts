@@ -26,7 +26,7 @@ export class Bat extends Bot {
 
     if (attacked) {
       attacked.damage(2, this);
-      attacked.knockback(this.faceDirection.multiply(3));
+      attacked.applyImpulse(this.faceDirection.multiply(3));
     }
   }
 }

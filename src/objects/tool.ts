@@ -10,8 +10,8 @@ export abstract class Tool {
   }
 
   public abstract equip(user: Entity): void;
-  public abstract useFunctionality(user: Entity): void;
   public abstract unequip(user: Entity): void;
+  public abstract useFunctionality(user: Entity): void;
 
   /** Use tool if cooldown is not active. */
   public use(user: Entity): void {

@@ -7,6 +7,8 @@ import { Vector2 } from "../util/vector2.js";
 
 /** Represents and handles collisions for a non-concave shape. */
 export class CollisionObject {
+  private CIRCLE_RES: number = 30;
+
   private _transformedVertices: Vector2[] = [];
   private _normals: Vector2[] = [];
   private _bounds: Bounds;
@@ -15,8 +17,7 @@ export class CollisionObject {
   protected normalsOutdated: boolean = true;
   protected boundsOutdated: boolean = true;
   protected centerOutdated: boolean = true;
-
-  private circleResolution: number = 30;
+  
   private _showing: boolean = false;
   private _vertexCount: number;
   private vertexBuffer?: WebGLBuffer;
@@ -66,7 +67,7 @@ export class CollisionObject {
    * Applies the object's transformations to its vertices.
    * @returns The transformed vertices.
    */
-  public getTransformedVertices(): Vector2[] {
+  private getTransformedVertices(): Vector2[] {
     // Handle math only if vertices are outdated and the transformation has changed
     if (this.verticesOutdated) {
       for (let i = 0; i < this.vertices.length; i++) {
@@ -83,7 +84,7 @@ export class CollisionObject {
    * Gets the standard normals of the transformed collision object.
    * @returns The object's normals.
    */
-  public getNormals(): Vector2[] {
+  private getNormals(): Vector2[] {
     // Calculate normals if transformations have occured
     if (this.normalsOutdated) {
       if (this.vertices.length > 1) { // Does not have normals if only one vertex
@@ -112,7 +113,7 @@ export class CollisionObject {
    * @param reference The object being collision checked with.
    * @returns The normals to be checked by the collision algorithm.
    */
-  public getCollisionNormals(reference: CollisionObject): Vector2[] {
+  private getCollisionNormals(reference: CollisionObject): Vector2[] {
     const radialNormals: Vector2[] = [];
 
     // Get direction from each vertex to the reference's nearest vertices as a normal for circles
@@ -133,7 +134,7 @@ export class CollisionObject {
    * @param axis The axis to project onto.
    * @returns A tuple made up of the minimum and maximum position of the shape on that axis.
    */
-  public getProjectedRange(axis: Vector2): [number, number] {
+  private getProjectedRange(axis: Vector2): [number, number] {
     let min = Infinity;
     let max = -Infinity;
 
@@ -178,7 +179,7 @@ export class CollisionObject {
    * Calculates the average center of the shape.
    * @returns The average of the shape's transformed vertices.
    */
-  public getCenter(): Vector2 {
+  private getCenter(): Vector2 {
     // Recalculate the center if vertices are outdated
     if (this.centerOutdated) {
       const vertices = this.getTransformedVertices();
@@ -352,7 +353,7 @@ export class CollisionObject {
       }
 
       // Scale resolution loops based on angle difference
-      const resolutionLoops: number = Math.ceil(this.circleResolution * (endAngle - startAngle) / (Math.PI * 2));
+      const resolutionLoops: number = Math.ceil(this.CIRCLE_RES * (endAngle - startAngle) / (Math.PI * 2));
 
       for (let j = 0; j < resolutionLoops; j++) {
         // Skip the last vertex for a circle so that it does not duplicate vertices

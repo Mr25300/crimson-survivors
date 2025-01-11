@@ -33,6 +33,16 @@ export class SpriteModel {
   }
 
   /**
+   * Sets the transformation for the sprite model.
+   * @param position The transformation translation.
+   * @param rotation The transformation rotation.
+   */
+  public setTransformation(position: Vector2, rotation: number): void {
+    this.position = position;
+    this.rotation = rotation;
+  }
+
+  /**
    * Set the current cell number of the sprite model.
    * @param cellNumber The sprite cell number.
    */
@@ -96,7 +106,7 @@ export class SpriteModel {
    * Updates and handles the animations for the sprite model.
    * @param deltaTime The time passed for the frame.
    */
-  public updateAnimations(deltaTime: number) {
+  private updateAnimations(deltaTime: number): void {
     let highestPriority: number = -Infinity;
     let selectedFrame: number | undefined;
 
@@ -127,16 +137,6 @@ export class SpriteModel {
   public createHighlightEffect(color: Color) {
     this.highlightColor = color;
     this.highlightStart = Game.instance.elapsedTime;
-  }
-
-  /**
-   * Sets the transformation for the sprite model.
-   * @param position The transformation translation.
-   * @param rotation The transformation rotation.
-   */
-  public setTransformation(position: Vector2, rotation: number): void {
-    this.position = position;
-    this.rotation = rotation;
   }
 
   /** Binds the sprite model and its relevant transformation uniforms in preparation for drawing. */
@@ -220,7 +220,7 @@ export class SpriteAnimation {
     return this.info.frames[frameIndex] + modifier;
   }
   
-  public stop() {
+  public stop(): void {
     this._active = false;
   }
 }

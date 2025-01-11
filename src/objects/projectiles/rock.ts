@@ -25,7 +25,7 @@ export class Rock extends Projectile {
   /** Damages and knocks back collided entities. */
   public handleEntityCollision(entity: Entity): void {
     entity.damage(this.damage, this.sender);
-    entity.knockback(this.direction.multiply(5));
+    entity.applyImpulse(this.direction.multiply(5));
 
     this.destroy();
   }

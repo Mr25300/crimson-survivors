@@ -159,10 +159,10 @@ class PathNode {
 
 /** Handles the search for an optimal path between two points. */
 export class OptimalPath {
-  private gridScale: number = 1; // The size of path nodes in game space+
+  private GRID_SCALE: number = 1; // The size of path nodes in game space+
 
   /** The possible directions a node can travel in. */
-  private neighborDirections: Vector2[] = [
+  private NEIGHBOR_DIRECTIONS: Vector2[] = [
     new Vector2(0, 1),
     new Vector2(1, 1),
     new Vector2(1, 0),
@@ -186,12 +186,12 @@ export class OptimalPath {
   public readonly waypoints: Vector2[] = [];
 
   constructor(start: Vector2, goal: Vector2, private arriveRange: number, private travelHitbox: SweptCollisionObject) {
-    this.gridStart = start.divide(this.gridScale).round(); // Round start to nearest path grid position
-    this.gridGoal = goal.divide(this.gridScale).round(); // Round end to nearest path grid position
+    this.gridStart = start.divide(this.GRID_SCALE).round(); // Round start to nearest path grid position
+    this.gridGoal = goal.divide(this.GRID_SCALE).round(); // Round end to nearest path grid position
   }
 
   public getGoal(): Vector2 {
-    return this.gridGoal.multiply(this.gridScale);
+    return this.gridGoal.multiply(this.GRID_SCALE);
   }
 
   /** Computes the quickest path from the start to the goal. */
@@ -207,14 +207,14 @@ export class OptimalPath {
       const node: PathNode = this.priorityQueue.pop()!; // Get highest priority node (lowest fScore)
 
       // End computation and backtrack path if within threshold of target
-      if (node.hCost <= this.arriveRange / this.gridScale) {
+      if (node.hCost <= this.arriveRange / this.GRID_SCALE) {
         this.backtrackWaypoints(node);
 
         return;
       }
 
       // Loop through and check neighbors
-      for (const direction of this.neighborDirections) {
+      for (const direction of this.NEIGHBOR_DIRECTIONS) {
         this.travelToNeighbor(node, direction);
       }
 
@@ -246,8 +246,8 @@ export class OptimalPath {
 
     } else {
       // Position hitbox going from original node to neighbor node for collision checking
-      this.travelHitbox.setTransformation(neighborPos.multiply(this.gridScale), direction.angle());
-      this.travelHitbox.sweepVertices(direction.magnitude() * this.gridScale);
+      this.travelHitbox.setTransformation(neighborPos.multiply(this.GRID_SCALE), direction.angle());
+      this.travelHitbox.sweepVertices(direction.magnitude() * this.GRID_SCALE);
 
       if (Game.instance.chunkManager.restrictionQuery(this.travelHitbox)) { // Check for collision and mark as restricted
         this.restricted.add(neighborKey);
@@ -273,7 +273,7 @@ export class OptimalPath {
     let current: PathNode = endNode;
     let lastWaypoint: Vector2 = current.position;
 
-    this.waypoints.push(lastWaypoint.multiply(this.gridScale)); // Add end waypoint
+    this.waypoints.push(lastWaypoint.multiply(this.GRID_SCALE)); // Add end waypoint
 
     // Backtrack through waypoint ancestry
     while (current.parent) {
@@ -284,18 +284,18 @@ export class OptimalPath {
       const difference = lastWaypoint.subtract(current.position);
 
       // Position hitbox from last valid waypoint to the node being searched
-      this.travelHitbox.setTransformation(lastWaypoint.multiply(this.gridScale), difference.angle());
-      this.travelHitbox.sweepVertices(difference.magnitude() * this.gridScale);
+      this.travelHitbox.setTransformation(lastWaypoint.multiply(this.GRID_SCALE), difference.angle());
+      this.travelHitbox.sweepVertices(difference.magnitude() * this.GRID_SCALE);
 
       // Create and start a new waypoint if a straight path from the last waypoint is not possible
       if (Game.instance.chunkManager.restrictionQuery(this.travelHitbox)) {
         lastWaypoint = prev.position;
 
-        this.waypoints.push(lastWaypoint.multiply(this.gridScale));
+        this.waypoints.push(lastWaypoint.multiply(this.GRID_SCALE));
       }
     }
 
-    this.waypoints.push(this.gridStart.multiply(this.gridScale)); // Add start waypoint
+    this.waypoints.push(this.gridStart.multiply(this.GRID_SCALE)); // Add start waypoint
     this.waypoints.reverse(); // Flip the waypoints to match the order of travel
   }
 }
@@ -325,7 +325,7 @@ export class Pathfinder {
     this.pathfindHitbox = subject.hitbox.sweep();
   }
 
-  public setTarget(target: Entity) {
+  public setTarget(target: Entity): void {
     this.target = target;
   }
 

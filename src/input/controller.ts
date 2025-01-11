@@ -8,7 +8,7 @@ type Control = typeof CONTROLS[number];
 /** Handles key and mouse controls. */
 export class Controller {
   /** Record of every control and its key. */
-  private controlKeys: Record<Control, string> = {
+  private CONTROL_KEYS: Record<Control, string> = {
     moveU: "w",
     moveD: "s",
     moveL: "a",
@@ -53,7 +53,7 @@ export class Controller {
 
     // Loop through controls and set as active/inactive if the input matches
     for (const control of CONTROLS) {
-      const controlKey: string = this.controlKeys[control];
+      const controlKey: string = this.CONTROL_KEYS[control];
 
       if (controlKey === key) {
         this.activeControls.set(control, pressed);
@@ -67,7 +67,7 @@ export class Controller {
    * @returns True if being pressed, false if not.
    */
   public isControlActive(control: Control): boolean {
-    return this.activeControls.get(control) == true;
+    return this.activeControls.get(control) === true;
   }
 
   /**

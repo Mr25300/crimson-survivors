@@ -57,7 +57,7 @@ export class ShaderProgram {
    * @param source The shader source code.
    * @returns The created webgl shader.
    */
-  private createShader(type: GLenum, source: string): WebGLShader {
+  private createShader(type: number, source: string): WebGLShader {
     // Initialize webgl shader
     const shader: WebGLShader | null = this.gl.createShader(type);
     if (shader === null) throw new Error("Failed to create shader.");

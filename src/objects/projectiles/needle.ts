@@ -24,7 +24,7 @@ export class Needle extends Projectile {
   /** Damages and knocks back entities that are hit. */
   public handleEntityCollision(entity: Entity): void {
     entity.damage(this.damage, this.sender, new Color(255, 125, 125));
-    entity.knockback(this.direction.multiply(this.knockback));
+    entity.applyImpulse(this.direction.multiply(this.knockback));
 
     this.destroy();
   }

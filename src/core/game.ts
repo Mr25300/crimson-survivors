@@ -6,9 +6,8 @@ import { SpriteSheet } from "../sprites/spritesheet.js";
 import { Controller } from "../input/controller.js";
 import { Simulation } from "../physics/simulation.js";
 import { ChunkManager } from "../physics/chunkmanager.js";
-import { CollisionObject, Polygon } from "../physics/collisions.js";
+import { CollisionObject } from "../physics/collisions.js";
 import { SpriteManager } from "../sprites/spritemanager.js";
-import { Timer } from "../util/timer.js";
 import { UIManager } from "../rendering/uimanager.js";
 import { GameEvent } from "../util/gameevent.js";
 
