@@ -70,7 +70,7 @@ export class CollisionObject {
   private getTransformedVertices(): Vector2[] {
     // Handle math only if vertices are outdated and the transformation has changed
     if (this.verticesOutdated) {
-      for (let i = 0; i < this.vertices.length; i++) {
+      for (let i: number = 0; i < this.vertices.length; i++) {
         this._transformedVertices[i] = this.vertices[i].rotate(this._rotation).add(this._position);
       }
 
@@ -90,7 +90,7 @@ export class CollisionObject {
       if (this.vertices.length > 1) { // Does not have normals if only one vertex
         const vertices: Vector2[] = this.getTransformedVertices();
 
-        for (let i = 0; i < vertices.length; i++) {
+        for (let i: number = 0; i < vertices.length; i++) {
           if (vertices.length === 2 && i === 1) break;
 
           const vertex1: Vector2 = vertices[i]; // Get the vertex
@@ -284,7 +284,7 @@ export class CollisionObject {
     const startVertices: Vector2[] = [];
     const endVertices: Vector2[] = [];
 
-    for (let i = 0; i < this.vertices.length; i++) {
+    for (let i: number = 0; i < this.vertices.length; i++) {
       const vertex = this.vertices[i];
       const width = vertex.dot(new Vector2(1, 0)); // Project onto x axis
 
@@ -355,7 +355,7 @@ export class CollisionObject {
       // Scale resolution loops based on angle difference
       const resolutionLoops: number = Math.ceil(this.CIRCLE_RES * (endAngle - startAngle) / (Math.PI * 2));
 
-      for (let j = 0; j < resolutionLoops; j++) {
+      for (let j: number = 0; j < resolutionLoops; j++) {
         // Skip the last vertex for a circle so that it does not duplicate vertices
         if (this.vertices.length === 1 && j === resolutionLoops - 1) continue;
 
@@ -377,7 +377,7 @@ export class CollisionObject {
     const vertices: Vector2[] = this.getRenderingVertices();
     const vertexArray: Float32Array = new Float32Array(vertices.length * 2);
 
-    for (let i = 0; i < vertices.length; i++) {
+    for (let i: number = 0; i < vertices.length; i++) {
       const vertex: Vector2 = vertices[i];
 
       vertexArray[i * 2] = vertex.x;
@@ -454,7 +454,7 @@ export class SweptCollisionObject extends CollisionObject {
   ) {
     super([], radius, position, rotation);
 
-    for (let i = 0; i < endVertices.length; i++) {
+    for (let i: number = 0; i < endVertices.length; i++) {
       this.vertices[startVertices.length + i] = endVertices[i];
     }
 
@@ -467,7 +467,7 @@ export class SweptCollisionObject extends CollisionObject {
    */
   public sweepVertices(length: number): void {
     // Subtract length to start vertices
-    for (let i = 0; i < this.startVertices.length; i++) {
+    for (let i: number = 0; i < this.startVertices.length; i++) {
       this.vertices[i] = this.startVertices[i].subtract(new Vector2(0, length));
     }
 

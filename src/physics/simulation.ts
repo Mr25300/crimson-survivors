@@ -135,11 +135,11 @@ export class Simulation {
       this._wave++;
 
       // Ensure no items spawn on first wave
-      for (let i = 0; i < (this._wave - 1) * this.ITEMS_PER_WAVE; i++) {
+      for (let i: number = 0; i < (this._wave - 1) * this.ITEMS_PER_WAVE; i++) {
         this.spawnItem();
       }
 
-      for (let i = 0; i < this._wave * this.VAMPS_PER_WAVE; i++) {
+      for (let i: number = 0; i < this._wave * this.VAMPS_PER_WAVE; i++) {
         this.spawnVampire();
       }
     }

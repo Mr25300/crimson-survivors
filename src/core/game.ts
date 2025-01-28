@@ -111,7 +111,7 @@ export class Game extends Gameloop {
 
 class Driver {
   constructor() {
-    const game = Game.instance;
+    const game: Game = Game.instance;
     game.init();
   }
 }

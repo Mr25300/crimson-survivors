@@ -148,8 +148,8 @@ export class Maze {
    */
   private getUnvisitedNode(): Vector2 | undefined {
     // Scan through the maze nodes
-    for (let y = 0; y < this.mazeSize.y; y++) {
-      for (let x = 0; x < this.mazeSize.x; x++) {
+    for (let y: number = 0; y < this.mazeSize.y; y++) {
+      for (let x: number = 0; x < this.mazeSize.x; x++) {
         const node = this.mazeGrid[y][x];
 
         // Check if the node is unvisited and has a visited neighbor to connect to
@@ -166,15 +166,15 @@ export class Maze {
   /** Expand the maze node grid to the tile grid with the given space and wall size. */
   private generateTileGrid(): void {
     // Loop through the maze nodes
-    for (let y = 0; y < this.mazeSize.y; y++) {
-      for (let x = 0; x < this.mazeSize.x; x++) {
+    for (let y: number = 0; y < this.mazeSize.y; y++) {
+      for (let x: number = 0; x < this.mazeSize.x; x++) {
         const node: MazeNode = this.mazeGrid[y][x];
         const gridPos: Vector2 = new Vector2(x, y);
         const start: Vector2 = this.mazeToTile(gridPos);
 
         // Clear out spaces of the maze nodes from the tile grid
-        for (let dX = 0; dX < this.spaceSize; dX++) {
-          for (let dY = 0; dY < this.spaceSize; dY++) {
+        for (let dX: number = 0; dX < this.spaceSize; dX++) {
+          for (let dY: number = 0; dY < this.spaceSize; dY++) {
             const newX = start.x + dX;
             const newY = start.y + dY;
 
@@ -184,8 +184,8 @@ export class Maze {
 
         // Clear out the tiles to the left if the wall is missing
         if (!node.left && x > 0) {
-          for (let dY = 0; dY < this.spaceSize; dY++) {
-            for (let dX = 0; dX < this.wallSize; dX++) {
+          for (let dY: number = 0; dY < this.spaceSize; dY++) {
+            for (let dX: number = 0; dX < this.wallSize; dX++) {
               this.mapGrid[start.y + dY][start.x - 1 - dX] = false;
             }
           }
@@ -193,8 +193,8 @@ export class Maze {
 
         // Clear out the tiles to the right if the wall is missing
         if (!node.bottom && y > 0) {
-          for (let dX = 0; dX < this.spaceSize; dX++) {
-            for (let dY = 0; dY < this.wallSize; dY++) {
+          for (let dX: number = 0; dX < this.spaceSize; dX++) {
+            for (let dY: number = 0; dY < this.wallSize; dY++) {
               this.mapGrid[start.y - 1 - dY][start.x + dX] = false;
             }
           }
@@ -214,27 +214,27 @@ export class Maze {
   /** Generate the structures and vacancies based on the maze tile grid. */
   private generateStructures(): void {
     // Set vacancies
-    for (let y = 0; y < this.mapGrid.length; y++) {
-      for (let x = 0; x < this.mapGrid[y].length; x++) {
+    for (let y: number = 0; y < this.mapGrid.length; y++) {
+      for (let x: number = 0; x < this.mapGrid[y].length; x++) {
         if (!this.mapGrid[y][x]) this.vacancies.push(new Vector2(x, y));
       }
     }
 
     // Loop through tile grid from bottom left corner
-    for (let y = 0; y < this.mapGrid.length; y++) {
-      for (let x = 0; x < this.mapGrid[y].length; x++) {
+    for (let y: number = 0; y < this.mapGrid.length; y++) {
+      for (let x: number = 0; x < this.mapGrid[y].length; x++) {
         if (!this.mapGrid[y][x]) continue;
 
         // Traverse up and right to find other grids to group into one structure
         let sweepUp = 0;
         let sweepRight = 0;
 
-        for (let dY = 1; dY < this.mapSize.y - y; dY++) {
+        for (let dY: number = 1; dY < this.mapSize.y - y; dY++) {
           if (this.mapGrid[y + dY][x]) sweepUp++;
           else break;
         }
 
-        for (let dX = 1; dX < this.mapSize.x - x; dX++) {
+        for (let dX: number = 1; dX < this.mapSize.x - x; dX++) {
           if (this.mapGrid[y][x + dX]) sweepRight++;
           else break;
         }
@@ -244,8 +244,8 @@ export class Maze {
         if ((sweepUp > sweepRight && sweepRight >= this.wallSize - 1) || sweepUp < this.wallSize - 1) {
           new Wall(new Vector2(x + (this.wallSize - 1) / 2, y + sweepUp / 2), new Vector2(this.wallSize, 1 + sweepUp));
 
-          for (let dX = 0; dX < this.wallSize; dX++) {
-            for (let dY = 0; dY <= sweepUp; dY++) {
+          for (let dX: number = 0; dX < this.wallSize; dX++) {
+            for (let dY: number = 0; dY <= sweepUp; dY++) {
               this.mapGrid[y + dY][x + dX] = false;
             }
           }
@@ -253,8 +253,8 @@ export class Maze {
         } else {
           new Wall(new Vector2(x + sweepRight / 2, y + (this.wallSize - 1) / 2), new Vector2(1 + sweepRight, this.wallSize));
 
-          for (let dY = 0; dY < this.wallSize; dY++) {
-            for (let dX = 0; dX <= sweepRight; dX++) {
+          for (let dY: number = 0; dY < this.wallSize; dY++) {
+            for (let dX: number = 0; dX <= sweepRight; dX++) {
               this.mapGrid[y + dY][x + dX] = false;
             }
           }
