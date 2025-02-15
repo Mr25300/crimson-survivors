@@ -6,8 +6,7 @@
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "module": "NodeNext",
-    "moduleResolution": "nodenext"
+    "module": "ES6"
   },
   "include": [
     "src/**/*"
