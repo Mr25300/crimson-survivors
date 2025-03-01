@@ -1,27 +1,15 @@
 {
-  "name": "project-2-banana-confederacy",
+  "name": "crimson-survivors",
   "version": "1.0.0",
   "description": "[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/lQvpm3_5)\r [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=17417343)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "gts lint",
-    "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "build": "tsc"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "live-server": "^1.2.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.13.4",
-    "gts": "^6.0.2",
-    "typescript": "^5.7.2",
-    "undici-types": "^7.3.0"
+    "@types/node": "^22.13.8",
+    "typescript": "^5.8.2"
   }
 }
